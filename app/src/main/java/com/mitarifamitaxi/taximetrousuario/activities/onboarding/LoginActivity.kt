@@ -46,6 +46,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
@@ -88,7 +89,8 @@ class LoginActivity : BaseActivity() {
                 }
             },
             onRegisterClicked = {
-                startActivity(Intent(this, RegisterActivity::class.java))
+                //startActivity(Intent(this, RegisterActivity::class.java))
+                startActivity(Intent(this, SelectRoleActivity::class.java))
             },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
@@ -248,6 +250,7 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
+                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                             Row(
                                 verticalAlignment = Alignment.Companion.CenterVertically,
@@ -279,7 +282,6 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
 
                             Button(
@@ -287,6 +289,7 @@ class LoginActivity : BaseActivity() {
                                     onGoogleSignIn()
                                 },
                                 modifier = Modifier.Companion
+                                    .padding(top = 29.dp)
                                     .width(133.dp)
                                     .height(45.dp),
                                 contentPadding = PaddingValues(0.dp)
@@ -299,45 +302,14 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
-                            Button(
-                                onClick = { onRegisterClicked() },
-                                modifier = Modifier.Companion
-                                    //.background(colorResource(id = R.color.main))
-                                    .fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = colorResource(id = R.color.transparent),
-                                ),
-                                contentPadding = PaddingValues(0.dp)
+
+                            OnboardingBottomLink(
+                                text = stringResource(id = R.string.no_account),
+                                linkText = stringResource(id = R.string.register_here)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.Companion.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        10.dp,
-                                        Alignment.Companion.CenterHorizontally
-                                    ),
-                                    modifier = Modifier.Companion
-                                        .fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.no_account),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Medium,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.gray1),
-                                    )
-
-                                    Text(
-                                        text = stringResource(id = R.string.register_here),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Bold,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.main),
-                                    )
-                                }
+                                onRegisterClicked()
                             }
-
 
                         }
                     }

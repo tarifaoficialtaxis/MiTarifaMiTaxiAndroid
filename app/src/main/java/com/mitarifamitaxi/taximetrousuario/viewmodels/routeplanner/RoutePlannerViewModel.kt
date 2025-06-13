@@ -78,15 +78,15 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     fun setStartAddress() {
         getAddressFromCoordinates(
-            latitude = appViewModel.userData?.location?.latitude ?: 0.0,
-            longitude = appViewModel.userData?.location?.longitude ?: 0.0,
+            latitude = appViewModel.userLocation?.latitude ?: 0.0,
+            longitude = appViewModel.userLocation?.longitude ?: 0.0,
             callbackSuccess = { address ->
                 appViewModel.isLoading = false
                 startAddress = address
                 isSelectingStart = false
                 startLocation = UserLocation(
-                    latitude = appViewModel.userData?.location?.latitude ?: 0.0,
-                    longitude = appViewModel.userData?.location?.longitude ?: 0.0
+                    latitude = appViewModel.userLocation?.latitude ?: 0.0,
+                    longitude = appViewModel.userLocation?.longitude ?: 0.0
                 )
             },
             callbackError = {
@@ -189,8 +189,8 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
         getPlacePredictions(
             input = input,
-            latitude = appViewModel.userData?.location?.latitude ?: 0.0,
-            longitude = appViewModel.userData?.location?.longitude ?: 0.0,
+            latitude = appViewModel.userLocation?.latitude ?: 0.0,
+            longitude = appViewModel.userLocation?.longitude ?: 0.0,
             country = appViewModel.userData?.countryCode ?: "CO",
             callbackSuccess = { predictions ->
                 _places.value = predictions

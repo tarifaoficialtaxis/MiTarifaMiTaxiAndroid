@@ -61,6 +61,7 @@ class AppViewModel(context: Context) : ViewModel() {
     var isLoading by mutableStateOf(false)
 
     var userData: LocalUser? by mutableStateOf(null)
+    var userLocation: UserLocation? by mutableStateOf(null)
 
     var dialogType by mutableStateOf(DialogType.SUCCESS)
     var showDialog by mutableStateOf(false)
@@ -235,7 +236,7 @@ class AppViewModel(context: Context) : ViewModel() {
         task.addOnSuccessListener(executor) { location ->
             if (location != null) {
 
-                val previousUserLocation = userData?.location
+                val previousUserLocation = userLocation
                 val locationChanged = previousUserLocation == null ||
                         previousUserLocation.latitude != location.latitude ||
                         previousUserLocation.longitude != location.longitude
@@ -246,6 +247,11 @@ class AppViewModel(context: Context) : ViewModel() {
                         _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
                     }
                     return@addOnSuccessListener
+                } else {
+                    userLocation = UserLocation(
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
                 }
 
                 viewModelScope.launch {
@@ -312,14 +318,12 @@ class AppViewModel(context: Context) : ViewModel() {
     }
 
     private fun updateUserData(
-        location: UserLocation,
         city: String,
         countryCode: String,
         countryCodeWhatsapp: String,
         countryCurrency: String
     ) {
         userData = userData?.copy(
-            location = location,
             city = city,
             countryCode = countryCode,
             countryCodeWhatsapp = countryCodeWhatsapp,

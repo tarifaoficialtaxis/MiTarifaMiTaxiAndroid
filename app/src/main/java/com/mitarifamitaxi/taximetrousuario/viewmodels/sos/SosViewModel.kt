@@ -233,7 +233,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         onIntentReady: (Intent) -> Unit
     ) {
 
-        val userLocation = appViewModel.userData?.location
+        val userLocation = appViewModel.userLocation
         val message = buildString {
             append("*SOS ${sosType.uppercase()}*\n")
             if (event != null) {

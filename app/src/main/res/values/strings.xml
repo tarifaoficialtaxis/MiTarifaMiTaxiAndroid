@@ -21,6 +21,13 @@
     <string name="register_here">Registrate Aquí</string>
 
     <string name="register">¡Registrate!</string>
+    <string name="register_action">REGISTRARSE</string>
+
+    <string name="next">SIGUIENTE</string>
+    <string name="select_one_option">Selecciona una opción</string>
+
+    <string name="user">Usuario</string>
+    <string name="driver">Conductor</string>
 
     <string name="firstName">Nombres*</string>
     <string name="lastName">Apellidos*</string>
@@ -254,7 +261,6 @@
     <string name="grant_permission">Conceder Permiso</string>
 
     <string name="notification_permission_denied">El permiso de notificaciones ha sido denegado, conceda el permiso de notificaciones para que la app funcione correctamente.</string>
-
 
 
     <string name="error_on_save_trip">Ha ocurrido un error al intentar guardar el viaje.</string>
