@@ -12,10 +12,10 @@ data class LocalUser(
     val countryCodeWhatsapp: String? = null,
     val countryCurrency: String? = null,
     val city: String? = null,
-    val location: UserLocation? = null,
     val familyNumber: String? = null,
     val supportNumber: String? = null,
     val lastActive: Date? = null,
+    var role: UserRole? = null,
     var authProvider: AuthProvider? = null,
 )
 
@@ -23,5 +23,11 @@ enum class AuthProvider {
     google,
     email,
     apple
+}
+
+enum class UserRole {
+    USER,
+    DRIVER,
+    ADMIN
 }
 

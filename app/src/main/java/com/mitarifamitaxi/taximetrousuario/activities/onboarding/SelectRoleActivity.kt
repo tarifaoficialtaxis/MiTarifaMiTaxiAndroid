@@ -1,6 +1,7 @@
 package com.mitarifamitaxi.taximetrousuario.activities.onboarding
 
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,14 +16,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Mail
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.PhoneIphone
+import androidx.compose.material.icons.filled.LocalTaxi
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,53 +35,41 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.firestore.auth.User
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
-import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
-import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
-import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomContactBoxView
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
-import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModel
-import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModelFactory
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
-class RegisterActivity : BaseActivity() {
+class SelectRoleActivity : BaseActivity() {
 
-    private val viewModel: RegisterViewModel by viewModels {
-        RegisterViewModelFactory(this, appViewModel)
-    }
 
     @Composable
     override fun Content() {
         MainView(
             onLoginClicked = {
-
-
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                startActivity(intent)
+                finish()
             },
-            onRegisterClicked = {
-                viewModel.register { registerResult ->
-                    if (registerResult.first) {
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
-                    }
+            onOptionClicked = { option ->
+                if (option == UserRole.USER) {
+                    startActivity(Intent(this, RegisterActivity::class.java))
+                } else if (option == UserRole.DRIVER) {
+
                 }
             }
-
         )
     }
 
     @Composable
     private fun MainView(
         onLoginClicked: () -> Unit,
-        onRegisterClicked: () -> Unit,
+        onOptionClicked: (option: UserRole) -> Unit,
     ) {
         Column {
             Box(
@@ -119,70 +107,45 @@ class RegisterActivity : BaseActivity() {
                                 fontSize = 24.sp,
                                 color = colorResource(id = R.color.main),
                                 modifier = Modifier.Companion
-                                    .padding(bottom = 25.dp),
+                                    .padding(bottom = 58.dp),
                             )
 
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            Text(
+                                text = stringResource(id = R.string.select_one_option),
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Bold,
+                                fontSize = 16.sp,
+                                color = colorResource(id = R.color.black),
                                 modifier = Modifier.Companion
-                                    .padding(bottom = 10.dp)
-                            ) {
+                                    .padding(bottom = 29.dp),
+                            )
 
-                                CustomTextField(
-                                    value = viewModel.firstName,
-                                    onValueChange = { viewModel.firstName = it },
-                                    placeholder = stringResource(id = R.string.firstName),
-                                    leadingIcon = Icons.Rounded.Person,
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(29.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                            )
+                            {
+
+                                CustomContactBoxView(
+                                    icon = Icons.Default.Person,
+                                    text = stringResource(id = R.string.user),
+                                    onClick = { onOptionClicked(UserRole.USER) },
+                                    modifier = Modifier
+                                        .weight(1f)
                                 )
 
-                                CustomTextField(
-                                    value = viewModel.lastName,
-                                    onValueChange = { viewModel.lastName = it },
-                                    placeholder = stringResource(id = R.string.lastName),
-                                    leadingIcon = Icons.Rounded.Person,
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.mobilePhone,
-                                    onValueChange = { viewModel.mobilePhone = it },
-                                    placeholder = stringResource(id = R.string.mobilePhone),
-                                    leadingIcon = Icons.Rounded.PhoneIphone,
-                                    keyboardType = KeyboardType.Companion.Phone
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.email,
-                                    onValueChange = { viewModel.email = it },
-                                    placeholder = stringResource(id = R.string.email),
-                                    leadingIcon = Icons.Rounded.Mail,
-                                    keyboardType = KeyboardType.Companion.Email
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.password,
-                                    onValueChange = { viewModel.password = it },
-                                    placeholder = stringResource(id = R.string.password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.confirmPassword,
-                                    onValueChange = { viewModel.confirmPassword = it },
-                                    placeholder = stringResource(id = R.string.confirm_password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
+                                CustomContactBoxView(
+                                    icon = Icons.Default.LocalTaxi,
+                                    text = stringResource(id = R.string.driver),
+                                    onClick = { onOptionClicked(UserRole.ADMIN) },
+                                    modifier = Modifier
+                                        .weight(1f)
                                 )
                             }
 
                             Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                            CustomButton(
-                                text = stringResource(id = R.string.register_action).uppercase(),
-                                onClick = { onRegisterClicked() },
-                                modifier = Modifier.Companion
-                                    .fillMaxWidth()
-                            )
 
                             OnboardingBottomLink(
                                 text = stringResource(id = R.string.already_account),
