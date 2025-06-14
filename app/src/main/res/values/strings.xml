@@ -21,7 +21,12 @@
     <string name="register_here">Registrate Aquí</string>
 
     <string name="register">¡Registrate!</string>
+    <string name="personal_information">Información personal</string>
     <string name="register_action">REGISTRARSE</string>
+
+    <string name="camera">Camera</string>
+    <string name="gallery">Galería</string>
+    <string name="select_profile_photo">Elige una opción para tu foto de perfil.</string>
 
     <string name="next">SIGUIENTE</string>
     <string name="select_one_option">Selecciona una opción</string>

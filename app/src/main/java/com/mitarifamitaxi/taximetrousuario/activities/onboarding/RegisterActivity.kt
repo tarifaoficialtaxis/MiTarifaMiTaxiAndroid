@@ -60,8 +60,6 @@ class RegisterActivity : BaseActivity() {
     override fun Content() {
         MainView(
             onLoginClicked = {
-
-
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
