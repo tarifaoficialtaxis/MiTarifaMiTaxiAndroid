@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.components.ui
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,15 +10,20 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +46,7 @@ fun PhotoCardSelector(
     imageUri: Uri?,
     onClickCamera: () -> Unit,
     onClickGallery: () -> Unit,
+    onClickDelete: () -> Unit
 ) {
 
     Column(
@@ -69,8 +76,25 @@ fun PhotoCardSelector(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Fit
                 )
+
+                IconButton(
+                    onClick = onClickDelete,
+                    modifier = Modifier
+                        .padding(end = 5.dp, top = 5.dp)
+                        .align(Alignment.TopEnd)
+                        .clip(CircleShape)
+                        .background(colorResource(id = R.color.main))
+                        .size(30.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Edit Icon",
+                        tint = colorResource(id = R.color.white),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         } else {
 

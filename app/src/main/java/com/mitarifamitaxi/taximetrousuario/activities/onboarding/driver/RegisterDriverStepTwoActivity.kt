@@ -202,6 +202,9 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
                                     },
                                     onClickGallery = {
                                         onGalleryClicked(true)
+                                    },
+                                    onClickDelete = {
+                                        viewModel.frontImageUri = null
                                     }
                                 )
 
@@ -213,6 +216,9 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
                                     },
                                     onClickGallery = {
                                         onGalleryClicked(false)
+                                    },
+                                    onClickDelete = {
+                                        viewModel.backImageUri = null
                                     }
                                 )
                             }
