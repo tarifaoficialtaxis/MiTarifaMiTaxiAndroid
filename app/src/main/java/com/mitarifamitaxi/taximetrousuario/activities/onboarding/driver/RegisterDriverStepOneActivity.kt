@@ -93,6 +93,7 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                         val intent = Intent(this, RegisterDriverStepTwoActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         startActivity(intent)
+                        finish()
                     }
                 }
             }
