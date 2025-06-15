@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.text.SimpleDateFormat
@@ -39,11 +38,15 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
     private val appContext = context.applicationContext
 
-    var imageUri by mutableStateOf<Uri?>(null)
-    var tempImageUri by mutableStateOf<Uri?>(null)
+    var isFrontImageSelected by mutableStateOf(false)
+
+    var frontImageUri by mutableStateOf<Uri?>(null)
+    var frontTempImageUri by mutableStateOf<Uri?>(null)
         private set
 
-    var showDialog by mutableStateOf(false)
+    var backImageUri by mutableStateOf<Uri?>(null)
+    var backTempImageUri by mutableStateOf<Uri?>(null)
+        private set
 
     var hasCameraPermission by mutableStateOf(false)
         private set
@@ -64,12 +67,23 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
     }
 
     fun onImageSelected(uri: Uri?) {
-        imageUri = uri
+
+        if (isFrontImageSelected) {
+            frontImageUri = uri
+        } else {
+            backImageUri = uri
+        }
+
     }
 
     fun onImageCaptured(success: Boolean) {
         if (success) {
-            imageUri = tempImageUri
+
+            if (isFrontImageSelected) {
+                frontImageUri = frontTempImageUri
+            } else {
+                backImageUri = backTempImageUri
+            }
         }
     }
 
@@ -78,11 +92,16 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
         val imageFileName = "JPEG_${timeStamp}_"
         val storageDir = appContext.cacheDir
         val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-        tempImageUri = FileProvider.getUriForFile(
+        val tempImageUri = FileProvider.getUriForFile(
             Objects.requireNonNull(appContext),
             "${appContext.packageName}.provider",
             image
         )
+        if (isFrontImageSelected) {
+            frontTempImageUri = tempImageUri
+        } else {
+            backTempImageUri = tempImageUri
+        }
     }
 
 
