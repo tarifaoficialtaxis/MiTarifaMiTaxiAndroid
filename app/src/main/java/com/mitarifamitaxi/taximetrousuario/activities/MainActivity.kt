@@ -48,10 +48,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            //validateNextScreen()
-            startActivity(
+            validateNextScreen()
+            /*startActivity(
                 Intent(this, RegisterDriverStepTwoActivity::class.java)
-            )
+            )*/
         }
 
     }

@@ -298,6 +298,8 @@
     <string name="version_param">Versión: %1$s</string>
 
     <string name="driving_license">Licencia de conducción</string>
+    <string name="error_driving_license">Debes adjuntar las fotos de tu licencia de conducción: frente y reverso.</string>
+
     <string name="front">Frente</string>
     <string name="reverse">Reverso</string>
     <string name="side">Lateral</string>

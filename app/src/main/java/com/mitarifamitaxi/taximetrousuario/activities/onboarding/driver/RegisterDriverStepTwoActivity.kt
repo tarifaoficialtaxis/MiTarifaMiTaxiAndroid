@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver
 
 import android.Manifest
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -18,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -34,20 +33,44 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
-import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
 import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoCardSelector
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModelFactory
+import kotlinx.coroutines.launch
 
 class RegisterDriverStepTwoActivity : BaseActivity() {
     private val viewModel: RegisterDriverStepTwoViewModel by viewModels {
         RegisterDriverStepTwoViewModelFactory(this, appViewModel)
+    }
+
+
+    private fun observeViewModelEvents() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.stepTwoUpdateEvents.collect { event ->
+                    when (event) {
+                        is RegisterDriverStepTwoViewModel.StepTwoUpdateEvent.FirebaseUserUpdated -> {
+                            /*startActivity(
+                                Intent(this@SosActivity, ProfileActivity::class.java)
+                            )*/
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        observeViewModelEvents()
     }
 
     @Composable
@@ -105,9 +128,7 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
                 imagePickerLauncher.launch("image/*")
             },
             onNextClicked = {
-                viewModel.onNext { result ->
-
-                }
+                viewModel.onNext()
             }
         )
     }
