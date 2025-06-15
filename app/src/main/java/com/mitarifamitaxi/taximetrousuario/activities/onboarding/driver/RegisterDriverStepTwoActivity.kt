@@ -58,9 +58,13 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
                 viewModel.stepTwoUpdateEvents.collect { event ->
                     when (event) {
                         is RegisterDriverStepTwoViewModel.StepTwoUpdateEvent.FirebaseUserUpdated -> {
-                            /*startActivity(
-                                Intent(this@SosActivity, ProfileActivity::class.java)
-                            )*/
+                            startActivity(
+                                Intent(
+                                    this@RegisterDriverStepTwoActivity,
+                                    RegisterDriverStepThreeActivity::class.java
+                                )
+                            )
+                            finish()
                         }
                     }
                 }

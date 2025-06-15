@@ -307,12 +307,10 @@
     <string name="vehicle_information">Información del vehículo</string>
     <string name="brand_mandatory">Marca*</string>
     <string name="model_mandatory">Modelo*</string>
+    <string name="year_mandatory">Año*</string>
     <string name="plate_mandatory">Placa*</string>
 
     <string name="vehicle_pictures">Fotos del vehículo</string>
-
-
-
 
 
 </resources>
