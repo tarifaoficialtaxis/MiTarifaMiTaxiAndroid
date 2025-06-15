@@ -26,8 +26,10 @@ import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,18 +48,52 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            validateNextScreen()
+            //validateNextScreen()
+            startActivity(
+                Intent(this, RegisterDriverStepTwoActivity::class.java)
+            )
         }
 
     }
 
     private fun validateNextScreen() {
-        if (LocalUserManager(this).getUserState() != null) {
 
-            startActivity(
-                Intent(this, HomeActivity::class.java)
-            )
-            finish()
+        val userState = LocalUserManager(this).getUserState()
+
+        if (userState != null) {
+
+            if (userState.role == UserRole.DRIVER) {
+
+                if (userState.frontDrivingLicense.isNullOrEmpty() ||
+                    userState.backDrivingLicense.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepTwoActivity::class.java)
+                    )
+                } else if (userState.vehicleBrand.isNullOrEmpty() ||
+                    userState.vehicleModel.isNullOrEmpty() ||
+                    userState.vehiclePlate.isNullOrEmpty()
+                ) {
+                    /*startActivity(
+                        Intent(this, RegisterDriverStepThreeActivity::class.java)
+                    )*/
+                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
+                    userState.vehicleBackPicture.isNullOrEmpty() ||
+                    userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    /*startActivity(
+                        Intent(this, RegisterDriverStepFourActivity::class.java)
+                    )*/
+                }
+
+
+            } else {
+                startActivity(
+                    Intent(this, HomeActivity::class.java)
+                )
+                finish()
+            }
+
 
         } else {
             if (hasUserAcceptedTerms()) {

@@ -36,6 +36,13 @@
 
     <string name="firstName">Nombres*</string>
     <string name="lastName">Apellidos*</string>
+
+    <string name="documentNumber">Número de documento*</string>
+
+    <string name="error_image_required">Debes selecionar una foto de perfil.</string>
+    <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir un número y un símbolo.</string>
+    <string name="error_document_exists">Este número de documento ya está registrado.</string>
+
     <string name="mobilePhone">Celular*</string>
     <string name="email">Correo electrónico*</string>
     <string name="confirm_password">Confirmar contraseña*</string>
@@ -289,5 +296,21 @@
     <string name="account_deleted_message">Cuenta eliminada satisfactoriamente.</string>
 
     <string name="version_param">Versión: %1$s</string>
+
+    <string name="driving_license">Licencia de conducción</string>
+    <string name="front">Frente</string>
+    <string name="reverse">Reverso</string>
+    <string name="side">Lateral</string>
+
+    <string name="vehicle_information">Información del vehículo</string>
+    <string name="brand_mandatory">Marca*</string>
+    <string name="model_mandatory">Modelo*</string>
+    <string name="plate_mandatory">Placa*</string>
+
+    <string name="vehicle_pictures">Fotos del vehículo</string>
+
+
+
+
 
 </resources>

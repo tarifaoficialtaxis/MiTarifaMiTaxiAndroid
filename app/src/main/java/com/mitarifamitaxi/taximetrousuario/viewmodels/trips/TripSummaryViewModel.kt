@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
 import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
 import com.mitarifamitaxi.taximetrousuario.helpers.shareFormatDate
@@ -65,13 +65,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 appViewModel.isLoading = true
 
                 tripData.routeImage?.let { imageUrl ->
-                    try {
-                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                        storageRef.delete().await()
-                        Log.d("TripViewModel", "Imagen borrada de Storage correctamente.")
-                    } catch (e: Exception) {
-                        Log.e("TripViewModel", "Error al borrar imagen de Storage: ${e.message}")
-                    }
+                    FirebaseStorageUtils.deleteImage(imageUrl)
                 }
 
                 FirebaseFirestore.getInstance().collection("trips").document(tripId).delete()
@@ -102,7 +96,6 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             }
         }
     }
-
 
 
     fun sendWatsAppMessage(onIntentReady: (Intent) -> Unit) {

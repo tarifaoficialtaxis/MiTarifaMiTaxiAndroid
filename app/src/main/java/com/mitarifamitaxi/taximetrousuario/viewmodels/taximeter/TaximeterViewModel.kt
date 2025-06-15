@@ -54,6 +54,7 @@ import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storageMetadata
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -568,33 +569,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     // Upload image and save trip
 
-    private suspend fun uploadImage(bitmap: Bitmap): String? {
-        return try {
-            // Create a unique reference path
-            val fileName = "images/${System.currentTimeMillis()}.png"
-            val storageRef = FirebaseStorage.getInstance().reference.child(fileName)
-
-            // Set metadata, including content type
-            val metadata = storageMetadata {
-                contentType = "image/png"
-            }
-
-            // Convert bitmap to byte array
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream.toByteArray()
-
-            // Upload byte array directly
-            storageRef.putBytes(byteArray, metadata).await()
-
-            // Get download URL
-            storageRef.downloadUrl.await().toString()
-        } catch (error: Exception) {
-            Log.e("TripSummaryViewModel", "Error uploading image: ${error.message}")
-            null
-        }
-    }
-
 
     fun saveTripData(tripData: Trip, onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -602,7 +576,9 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
                 appViewModel.isLoading = true
 
-                val imageUrl = tripData.routeImageLocal?.let { uploadImage(it) }
+                val imageUrl = tripData.routeImageLocal?.let {
+                    FirebaseStorageUtils.uploadImage("trips", it)
+                }
 
                 val tripDataReq = mutableMapOf<String, Any?>().apply {
                     putIfNotNull("userId", appViewModel.userData?.id)

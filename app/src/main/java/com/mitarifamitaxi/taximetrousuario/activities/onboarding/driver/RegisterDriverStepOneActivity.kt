@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -28,8 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -85,7 +86,15 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                 startActivity(intent)
             },
             onNextClicked = {
-
+                viewModel.onNext { registerResult ->
+                    if (registerResult.first) {
+                        //startActivity(Intent(this, RegisterDriverStepTwoActivity::class.java))
+                        //finish()
+                        val intent = Intent(this, RegisterDriverStepTwoActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        startActivity(intent)
+                    }
+                }
             }
 
         )
@@ -174,7 +183,7 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.Companion
-                                    .padding(bottom = 10.dp)
+                                    .padding(vertical = 12.dp)
                             ) {
 
                                 CustomTextField(
@@ -189,6 +198,14 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                                     onValueChange = { viewModel.lastName = it },
                                     placeholder = stringResource(id = R.string.lastName),
                                     leadingIcon = Icons.Rounded.Person,
+                                )
+
+                                CustomTextField(
+                                    value = viewModel.documentNumber,
+                                    onValueChange = { viewModel.documentNumber = it },
+                                    placeholder = stringResource(id = R.string.documentNumber),
+                                    leadingIcon = ImageVector.vectorResource(id = R.drawable.id_card),
+                                    keyboardType = KeyboardType.Companion.Number
                                 )
 
                                 CustomTextField(
@@ -224,12 +241,12 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                             CustomButton(
-                                text = stringResource(id = R.string.register_action).uppercase(),
+                                text = stringResource(id = R.string.next).uppercase(),
                                 onClick = { onNextClicked() },
                                 modifier = Modifier.Companion
+                                    .padding(vertical = 20.dp)
                                     .fillMaxWidth()
                             )
 
