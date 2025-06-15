@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.text.SimpleDateFormat
@@ -18,20 +19,18 @@ import java.util.Locale
 import java.util.Objects
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
-import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
-import com.mitarifamitaxi.taximetrousuario.helpers.isValidPassword
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
-import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+
+
 
 class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -50,6 +49,13 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
     var hasCameraPermission by mutableStateOf(false)
         private set
+
+    sealed class StepTwoUpdateEvent {
+        object FirebaseUserUpdated : StepTwoUpdateEvent()
+    }
+
+    private val _stepTwoUpdateEvents = MutableSharedFlow<StepTwoUpdateEvent>()
+    val stepTwoUpdateEvents = _stepTwoUpdateEvents.asSharedFlow()
 
     init {
         checkCameraPermission()
@@ -105,8 +111,84 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
     }
 
 
-    fun onNext(onResult: (Pair<Boolean, String?>) -> Unit) {
+    fun onNext() {
+        if (frontImageUri == null || backImageUri == null) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.error_driving_license)
+            )
+            return
+        }
 
+        viewModelScope.launch {
+            val frontImageUrl = frontImageUri?.let { uri ->
+                uri.toBitmap(appContext)?.let { bitmap ->
+                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
+                }
+            }
+
+            val backImageUrl = backImageUri?.let { uri ->
+                uri.toBitmap(appContext)?.let { bitmap ->
+                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
+                }
+            }
+
+            updateUserData(
+                frontDrivingLicenseUrl = frontImageUrl,
+                backDrivingLicenseUrl = backImageUrl
+            )
+
+        }
+    }
+
+    private fun updateUserData(
+        frontDrivingLicenseUrl: String? = null,
+        backDrivingLicenseUrl: String? = null
+    ) {
+
+        appViewModel.isLoading = true
+
+        val userData = LocalUserManager(appContext).getUserState()
+
+        val userDataUpdated = userData?.copy(
+            frontDrivingLicense = frontDrivingLicenseUrl,
+            backDrivingLicense = backDrivingLicenseUrl
+        )
+
+        userDataUpdated?.let {
+            LocalUserManager(appContext).saveUserState(it)
+            updateUserDataOnFirebase(it)
+        }
+
+    }
+
+    private fun updateUserDataOnFirebase(user: LocalUser) {
+        val db = FirebaseFirestore.getInstance()
+        user.id?.let { userId ->
+            db.collection("users")
+                .document(userId)
+                .set(user)
+                .addOnSuccessListener {
+                    appViewModel.isLoading = false
+                    Log.d("RegisterDriverStepTwoViewModel", "User data updated in Firestore")
+                    viewModelScope.launch {
+                        _stepTwoUpdateEvents.emit(StepTwoUpdateEvent.FirebaseUserUpdated)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    appViewModel.isLoading = false
+                    Log.e(
+                        "RegisterDriverStepTwoViewModel",
+                        "Failed to update user data in Firestore: ${e.message}"
+                    )
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.something_went_wrong),
+                        message = appContext.getString(R.string.error_fetching_location)
+                    )
+                }
+        }
     }
 
 
