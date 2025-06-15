@@ -49,10 +49,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            //validateNextScreen()
-            startActivity(
+            validateNextScreen()/*startActivity(
                 Intent(this, RegisterDriverStepThreeActivity::class.java)
-            )
+            )*/
         }
 
     }
@@ -65,24 +64,14 @@ class MainActivity : AppCompatActivity() {
 
             if (userState.role == UserRole.DRIVER) {
 
-                if (userState.frontDrivingLicense.isNullOrEmpty() ||
-                    userState.backDrivingLicense.isNullOrEmpty()
-                ) {
+                if (userState.frontDrivingLicense.isNullOrEmpty() || userState.backDrivingLicense.isNullOrEmpty()) {
                     startActivity(
                         Intent(this, RegisterDriverStepTwoActivity::class.java)
                     )
-                } else if (userState.vehicleBrand.isNullOrEmpty() ||
-                    userState.vehicleModel.isNullOrEmpty() ||
-                    userState.vehiclePlate.isNullOrEmpty()
-                ) {
-                    /*startActivity(
+                } else if (userState.vehicleBrand.isNullOrEmpty() || userState.vehicleModel.isNullOrEmpty() || userState.vehiclePlate.isNullOrEmpty()) {/*startActivity(
                         Intent(this, RegisterDriverStepThreeActivity::class.java)
                     )*/
-                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
-                    userState.vehicleBackPicture.isNullOrEmpty() ||
-                    userState.vehicleSidePicture.isNullOrEmpty()
-                ) {
-                    /*startActivity(
+                } else if (userState.vehicleFrontPicture.isNullOrEmpty() || userState.vehicleBackPicture.isNullOrEmpty() || userState.vehicleSidePicture.isNullOrEmpty()) {/*startActivity(
                         Intent(this, RegisterDriverStepFourActivity::class.java)
                     )*/
                 }
@@ -162,8 +151,7 @@ class MainActivity : AppCompatActivity() {
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                     this.player = player
                 }
-            }
-        )
+            })
     }
 
 

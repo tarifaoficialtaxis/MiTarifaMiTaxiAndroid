@@ -1,5 +1,6 @@
 package com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.magnifier
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocalTaxi
 import androidx.compose.material.icons.outlined.Pin
-import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -56,12 +55,12 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
                 viewModel.stepThreeUpdateEvents.collect { event ->
                     when (event) {
                         is RegisterDriverStepThreeViewModel.StepThreeUpdateEvent.FirebaseUserUpdated -> {
-                            /*startActivity(
+                            startActivity(
                                 Intent(
                                     this@RegisterDriverStepThreeActivity,
-                                    RegisterDriverStepThreeActivity::class.java
+                                    RegisterDriverStepFourActivity::class.java
                                 )
-                            )*/
+                            )
                         }
                     }
                 }
@@ -80,8 +79,7 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
         MainView(
             onNextClicked = {
                 viewModel.onNext()
-            }
-        )
+            })
     }
 
     @Composable
@@ -91,8 +89,7 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
 
         Column {
             Box(
-                modifier = Modifier.Companion
-                    .fillMaxSize()
+                modifier = Modifier.Companion.fillMaxSize()
             ) {
                 Column(
                     modifier = Modifier.Companion
@@ -132,8 +129,7 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
                                 fontWeight = FontWeight.Companion.Bold,
                                 fontSize = 20.sp,
                                 color = colorResource(id = R.color.black),
-                                modifier = Modifier.Companion
-                                    .padding(vertical = 15.dp),
+                                modifier = Modifier.Companion.padding(vertical = 15.dp),
                             )
 
                             Column(
@@ -145,24 +141,21 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
                                     label = stringResource(id = R.string.brand_mandatory),
                                     options = viewModel.vehicleBrandNames,
                                     selectedOptionText = viewModel.selectedBrand ?: "",
-                                    onOptionSelected = { viewModel.onBrandSelected(it) }
-                                )
+                                    onOptionSelected = { viewModel.onBrandSelected(it) })
 
                                 CustomDropDown(
                                     leadingIcon = Icons.Default.LocalTaxi,
                                     label = stringResource(id = R.string.model_mandatory),
                                     options = viewModel.vehicleModelsNames,
                                     selectedOptionText = viewModel.selectedModel ?: "",
-                                    onOptionSelected = { viewModel.onModelSelected(it) }
-                                )
+                                    onOptionSelected = { viewModel.onModelSelected(it) })
 
                                 CustomDropDown(
                                     leadingIcon = Icons.Default.CalendarMonth,
                                     label = stringResource(id = R.string.year_mandatory),
                                     options = viewModel.vehicleYears,
                                     selectedOptionText = viewModel.selectedYear ?: "",
-                                    onOptionSelected = { viewModel.onYearSelected(it) }
-                                )
+                                    onOptionSelected = { viewModel.onYearSelected(it) })
 
                                 CustomTextField(
                                     value = viewModel.plate,
