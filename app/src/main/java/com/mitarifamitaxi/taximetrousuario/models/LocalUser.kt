@@ -25,6 +25,7 @@ data class LocalUser(
     var backDrivingLicense: String? = null,
     var vehicleBrand: String? = null,
     var vehicleModel: String? = null,
+    var vehicleYear: String? = null,
     var vehiclePlate: String? = null,
     var vehicleFrontPicture: String? = null,
     var vehicleBackPicture: String? = null,

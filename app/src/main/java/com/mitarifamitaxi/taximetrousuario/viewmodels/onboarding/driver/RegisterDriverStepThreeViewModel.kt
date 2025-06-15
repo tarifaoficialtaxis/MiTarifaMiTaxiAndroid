@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.time.Year
 import java.util.Calendar
 
 class RegisterDriverStepThreeViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -104,7 +103,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
 
     fun loadListOfYears() {
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        vehicleYears = (currentYear downTo (currentYear - 30)).map { it.toString() }
+        vehicleYears = (currentYear + 1 downTo (currentYear - 30)).map { it.toString() }
         selectedYear = null
     }
 
@@ -124,39 +123,33 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
     }
 
     fun onNext() {
-        /*if (frontImageUri == null || backImageUri == null) {
+
+        if (selectedBrand.isNullOrEmpty() ||
+            selectedModel.isNullOrEmpty() ||
+            selectedYear.isNullOrEmpty() ||
+            plate.isEmpty()
+        ) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.attention),
-                message = appContext.getString(R.string.error_driving_license)
+                message = appContext.getString(R.string.all_fields_required)
             )
             return
         }
 
-        viewModelScope.launch {
-            val frontImageUrl = frontImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
-                }
-            }
-
-            val backImageUrl = backImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
-                }
-            }
-
-            updateUserData(
-                frontDrivingLicenseUrl = frontImageUrl,
-                backDrivingLicenseUrl = backImageUrl
-            )
-
-        }*/
+        updateUserData(
+            brand = selectedBrand ?: "",
+            model = selectedModel ?: "",
+            year = selectedYear ?: "",
+            plate = plate.uppercase()
+        )
     }
 
     private fun updateUserData(
-        frontDrivingLicenseUrl: String? = null,
-        backDrivingLicenseUrl: String? = null
+        brand: String,
+        model: String,
+        year: String,
+        plate: String
     ) {
 
         appViewModel.isLoading = true
@@ -164,8 +157,10 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
         val userData = LocalUserManager(appContext).getUserState()
 
         val userDataUpdated = userData?.copy(
-            frontDrivingLicense = frontDrivingLicenseUrl,
-            backDrivingLicense = backDrivingLicenseUrl
+            vehicleBrand = brand,
+            vehicleModel = model,
+            vehicleYear = year,
+            vehiclePlate = plate,
         )
 
         userDataUpdated?.let {
@@ -183,7 +178,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                 .set(user)
                 .addOnSuccessListener {
                     appViewModel.isLoading = false
-                    Log.d("RegisterDriverStepTwoViewModel", "User data updated in Firestore")
+                    Log.d("RegisterDriverStepThreeViewModel", "User data updated in Firestore")
                     viewModelScope.launch {
                         _stepThreeUpdateEvents.emit(StepThreeUpdateEvent.FirebaseUserUpdated)
                     }
@@ -191,13 +186,13 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                 .addOnFailureListener { e ->
                     appViewModel.isLoading = false
                     Log.e(
-                        "RegisterDriverStepTwoViewModel",
+                        "RegisterDriverStepThreeViewModel",
                         "Failed to update user data in Firestore: ${e.message}"
                     )
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.error_fetching_location)
+                        message = appContext.getString(R.string.general_error)
                     )
                 }
         }

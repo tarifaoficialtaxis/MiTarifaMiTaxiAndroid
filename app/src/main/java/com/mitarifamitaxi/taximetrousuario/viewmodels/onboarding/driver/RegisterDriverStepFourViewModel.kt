@@ -30,14 +30,18 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-
-
-class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel: AppViewModel) :
+class RegisterDriverStepFourViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
+
+    enum class VehiclePhotoType {
+        FRONT,
+        BACK,
+        SIDE
+    }
 
     private val appContext = context.applicationContext
 
-    var isFrontImageSelected by mutableStateOf(false)
+    var vehiclePhotoType by mutableStateOf(VehiclePhotoType.FRONT)
 
     var frontImageUri by mutableStateOf<Uri?>(null)
     var frontTempImageUri by mutableStateOf<Uri?>(null)
@@ -47,15 +51,19 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
     var backTempImageUri by mutableStateOf<Uri?>(null)
         private set
 
+    var sideImageUri by mutableStateOf<Uri?>(null)
+    var sideTempImageUri by mutableStateOf<Uri?>(null)
+        private set
+
     var hasCameraPermission by mutableStateOf(false)
         private set
 
-    sealed class StepTwoUpdateEvent {
-        object FirebaseUserUpdated : StepTwoUpdateEvent()
+    sealed class StepFourUpdateEvent {
+        object FirebaseUserUpdated : StepFourUpdateEvent()
     }
 
-    private val _stepTwoUpdateEvents = MutableSharedFlow<StepTwoUpdateEvent>()
-    val stepTwoUpdateEvents = _stepTwoUpdateEvents.asSharedFlow()
+    private val _stepFourUpdateEvents = MutableSharedFlow<StepFourUpdateEvent>()
+    val stepFourUpdateEvents = _stepFourUpdateEvents.asSharedFlow()
 
     init {
         checkCameraPermission()
@@ -74,21 +82,24 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
     fun onImageSelected(uri: Uri?) {
 
-        if (isFrontImageSelected) {
+        if (vehiclePhotoType == VehiclePhotoType.FRONT) {
             frontImageUri = uri
-        } else {
+        } else if (vehiclePhotoType == VehiclePhotoType.BACK) {
             backImageUri = uri
+        } else {
+            sideImageUri = uri
         }
 
     }
 
     fun onImageCaptured(success: Boolean) {
         if (success) {
-
-            if (isFrontImageSelected) {
+            if (vehiclePhotoType == VehiclePhotoType.FRONT) {
                 frontImageUri = frontTempImageUri
-            } else {
+            } else if (vehiclePhotoType == VehiclePhotoType.BACK) {
                 backImageUri = backTempImageUri
+            } else {
+                sideImageUri = sideTempImageUri
             }
         }
     }
@@ -103,20 +114,23 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
             "${appContext.packageName}.provider",
             image
         )
-        if (isFrontImageSelected) {
+
+        if (vehiclePhotoType == VehiclePhotoType.FRONT) {
             frontTempImageUri = tempImageUri
-        } else {
+        } else if (vehiclePhotoType == VehiclePhotoType.BACK) {
             backTempImageUri = tempImageUri
+        } else {
+            sideTempImageUri = tempImageUri
         }
     }
 
 
     fun onNext() {
-        if (frontImageUri == null || backImageUri == null) {
+        if (frontImageUri == null || backImageUri == null || sideImageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.attention),
-                message = appContext.getString(R.string.error_driving_license)
+                message = appContext.getString(R.string.error_vehicle_pictures)
             )
             return
         }
@@ -124,27 +138,35 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
         viewModelScope.launch {
             val frontImageUrl = frontImageUri?.let { uri ->
                 uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
+                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
                 }
             }
 
             val backImageUrl = backImageUri?.let { uri ->
                 uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
+                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
+                }
+            }
+
+            val sideImageUrl = sideImageUri?.let { uri ->
+                uri.toBitmap(appContext)?.let { bitmap ->
+                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
                 }
             }
 
             updateUserData(
-                frontDrivingLicenseUrl = frontImageUrl,
-                backDrivingLicenseUrl = backImageUrl
+                frontVehicleUrl = frontImageUrl,
+                backVehicleUrl = backImageUrl,
+                sideVehicleUrl = sideImageUrl
             )
 
         }
     }
 
     private fun updateUserData(
-        frontDrivingLicenseUrl: String? = null,
-        backDrivingLicenseUrl: String? = null
+        frontVehicleUrl: String? = null,
+        backVehicleUrl: String? = null,
+        sideVehicleUrl: String? = null,
     ) {
 
         appViewModel.isLoading = true
@@ -152,8 +174,9 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
         val userData = LocalUserManager(appContext).getUserState()
 
         val userDataUpdated = userData?.copy(
-            frontDrivingLicense = frontDrivingLicenseUrl,
-            backDrivingLicense = backDrivingLicenseUrl
+            vehicleFrontPicture = frontVehicleUrl,
+            vehicleBackPicture = backVehicleUrl,
+            vehicleSidePicture = sideVehicleUrl
         )
 
         userDataUpdated?.let {
@@ -171,15 +194,15 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
                 .set(user)
                 .addOnSuccessListener {
                     appViewModel.isLoading = false
-                    Log.d("RegisterDriverStepTwoViewModel", "User data updated in Firestore")
+                    Log.d("RegisterDriverStepFourViewModel", "User data updated in Firestore")
                     viewModelScope.launch {
-                        _stepTwoUpdateEvents.emit(StepTwoUpdateEvent.FirebaseUserUpdated)
+                        _stepFourUpdateEvents.emit(StepFourUpdateEvent.FirebaseUserUpdated)
                     }
                 }
                 .addOnFailureListener { e ->
                     appViewModel.isLoading = false
                     Log.e(
-                        "RegisterDriverStepTwoViewModel",
+                        "RegisterDriverStepFourViewModel",
                         "Failed to update user data in Firestore: ${e.message}"
                     )
                     appViewModel.showMessage(
@@ -194,15 +217,15 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
 }
 
-class RegisterDriverStepTwoViewModelFactory(
+class RegisterDriverStepFourViewModelFactory(
     private val context: Context,
     private val appViewModel: AppViewModel
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RegisterDriverStepTwoViewModel::class.java)) {
-            return RegisterDriverStepTwoViewModel(context, appViewModel) as T
+        if (modelClass.isAssignableFrom(RegisterDriverStepFourViewModel::class.java)) {
+            return RegisterDriverStepFourViewModel(context, appViewModel) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

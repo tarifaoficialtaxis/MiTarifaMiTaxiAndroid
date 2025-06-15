@@ -304,6 +304,8 @@
     <string name="reverse">Reverso</string>
     <string name="side">Lateral</string>
 
+    <string name="error_vehicle_pictures">Debes adjuntar las fotos de tu vehículo: frente, reverso y lateral.</string>
+
     <string name="vehicle_information">Información del vehículo</string>
     <string name="brand_mandatory">Marca*</string>
     <string name="model_mandatory">Modelo*</string>
