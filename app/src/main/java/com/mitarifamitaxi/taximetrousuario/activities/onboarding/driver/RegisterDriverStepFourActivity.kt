@@ -44,6 +44,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoCardSelector
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel
+import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel.StepFourUpdateEvent
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel.VehiclePhotoType
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModelFactory
 import kotlinx.coroutines.launch
@@ -59,7 +60,7 @@ class RegisterDriverStepFourActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.stepFourUpdateEvents.collect { event ->
                     when (event) {
-                        is RegisterDriverStepFourViewModel.StepFourUpdateEvent.FirebaseUserUpdated -> {
+                        is StepFourUpdateEvent.RegistrationComplete -> {
                             startActivity(
                                 Intent(
                                     this@RegisterDriverStepFourActivity,

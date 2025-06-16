@@ -55,8 +55,15 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     init {
         if (Constants.IS_DEV) {
+
+            // USER
             userName = "mateotest1@yopmail.com"
             password = "12345678#"
+
+            // DRIVER
+            userName = "drivertest1@yopmail.com"
+            password = "12345678#"
+
         }
     }
 

@@ -42,6 +42,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoCardSelector
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModelFactory
 import kotlinx.coroutines.launch
@@ -55,9 +56,10 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.stepTwoUpdateEvents.collect { event ->
+                appViewModel.userDataUpdateEvents.collect { event ->
                     when (event) {
-                        is RegisterDriverStepTwoViewModel.StepTwoUpdateEvent.FirebaseUserUpdated -> {
+                        is UserDataUpdateEvent.FirebaseUserUpdated -> {
+                            appViewModel.isLoading = false
                             startActivity(
                                 Intent(
                                     this@RegisterDriverStepTwoActivity,

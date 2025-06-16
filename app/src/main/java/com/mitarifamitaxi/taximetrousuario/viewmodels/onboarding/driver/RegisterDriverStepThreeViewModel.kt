@@ -29,13 +29,6 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
     private val appContext = context.applicationContext
     private val vehicleBrandsObj = mutableStateOf(listOf<VehicleBrand>())
 
-    sealed class StepThreeUpdateEvent {
-        object FirebaseUserUpdated : StepThreeUpdateEvent()
-    }
-
-    private val _stepThreeUpdateEvents = MutableSharedFlow<StepThreeUpdateEvent>()
-    val stepThreeUpdateEvents = _stepThreeUpdateEvents.asSharedFlow()
-
     val vehicleBrandNames: List<String>
         get() = vehicleBrandsObj.value.map { it.name ?: "" }.sorted()
     var selectedBrand by mutableStateOf<String?>(null)
@@ -59,6 +52,9 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
     private fun getVehicleBrands() {
         viewModelScope.launch {
             try {
+
+                appViewModel.isLoading = true
+
                 val firestore = FirebaseFirestore.getInstance()
                 val brandsQuerySnapshot = withContext(Dispatchers.IO) {
                     firestore.collection("vehicleBrands")
@@ -70,11 +66,13 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                     try {
                         vehicleBrandsObj.value =
                             brandsQuerySnapshot.documents.mapNotNull { it.toObject(VehicleBrand::class.java) }
+                        appViewModel.isLoading = false
                     } catch (e: Exception) {
                         Log.e(
                             "RegisterDriverStepThreeViewModel",
                             "Error converting brands: ${e.message}"
                         )
+                        appViewModel.isLoading = false
                         appViewModel.showMessage(
                             type = DialogType.ERROR,
                             title = appContext.getString(R.string.something_went_wrong),
@@ -83,6 +81,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
 
                     }
                 } else {
+                    appViewModel.isLoading = false
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
@@ -91,6 +90,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                 }
             } catch (e: Exception) {
                 Log.e("RegisterDriverStepThreeViewModel", "Error fetching brands: ${e.message}")
+                appViewModel.isLoading = false
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -165,39 +165,10 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
 
         userDataUpdated?.let {
             LocalUserManager(appContext).saveUserState(it)
-            updateUserDataOnFirebase(it)
+            appViewModel.updateUserDataOnFirebase(it)
         }
 
     }
-
-    private fun updateUserDataOnFirebase(user: LocalUser) {
-        val db = FirebaseFirestore.getInstance()
-        user.id?.let { userId ->
-            db.collection("users")
-                .document(userId)
-                .set(user)
-                .addOnSuccessListener {
-                    appViewModel.isLoading = false
-                    Log.d("RegisterDriverStepThreeViewModel", "User data updated in Firestore")
-                    viewModelScope.launch {
-                        _stepThreeUpdateEvents.emit(StepThreeUpdateEvent.FirebaseUserUpdated)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    appViewModel.isLoading = false
-                    Log.e(
-                        "RegisterDriverStepThreeViewModel",
-                        "Failed to update user data in Firestore: ${e.message}"
-                    )
-                    appViewModel.showMessage(
-                        type = DialogType.ERROR,
-                        title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.general_error)
-                    )
-                }
-        }
-    }
-
 
 }
 

@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.text.SimpleDateFormat
@@ -19,15 +18,16 @@ import java.util.Locale
 import java.util.Objects
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
-import com.mitarifamitaxi.taximetrousuario.models.LocalUser
+import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
+import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class RegisterDriverStepFourViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -59,14 +59,28 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
         private set
 
     sealed class StepFourUpdateEvent {
-        object FirebaseUserUpdated : StepFourUpdateEvent()
+        object RegistrationComplete : StepFourUpdateEvent()
     }
 
     private val _stepFourUpdateEvents = MutableSharedFlow<StepFourUpdateEvent>()
     val stepFourUpdateEvents = _stepFourUpdateEvents.asSharedFlow()
 
+    private fun observeAppViewModelEvents() {
+        viewModelScope.launch {
+            appViewModel.userDataUpdateEvents.collectLatest { event ->
+                when (event) {
+                    is UserDataUpdateEvent.FirebaseUserUpdated -> {
+                        appViewModel.isLoading = false
+                        showSuccessMessage()
+                    }
+                }
+            }
+        }
+    }
+
     init {
         checkCameraPermission()
+        observeAppViewModelEvents()
     }
 
     private fun checkCameraPermission() {
@@ -136,6 +150,9 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
         }
 
         viewModelScope.launch {
+
+            appViewModel.isLoading = true
+
             val frontImageUrl = frontImageUri?.let { uri ->
                 uri.toBitmap(appContext)?.let { bitmap ->
                     FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
@@ -154,6 +171,16 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
                 }
             }
 
+            if (frontImageUrl == null || backImageUrl == null || sideImageUrl == null) {
+                appViewModel.isLoading = false
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = appContext.getString(R.string.general_error)
+                )
+                return@launch
+            }
+
             updateUserData(
                 frontVehicleUrl = frontImageUrl,
                 backVehicleUrl = backImageUrl,
@@ -169,51 +196,42 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
         sideVehicleUrl: String? = null,
     ) {
 
-        appViewModel.isLoading = true
-
         val userData = LocalUserManager(appContext).getUserState()
 
         val userDataUpdated = userData?.copy(
             vehicleFrontPicture = frontVehicleUrl,
             vehicleBackPicture = backVehicleUrl,
-            vehicleSidePicture = sideVehicleUrl
+            vehicleSidePicture = sideVehicleUrl,
+            driverStatus = DriverStatus.PENDING
         )
 
         userDataUpdated?.let {
             LocalUserManager(appContext).saveUserState(it)
-            updateUserDataOnFirebase(it)
+            appViewModel.updateUserDataOnFirebase(it)
         }
 
     }
 
-    private fun updateUserDataOnFirebase(user: LocalUser) {
-        val db = FirebaseFirestore.getInstance()
-        user.id?.let { userId ->
-            db.collection("users")
-                .document(userId)
-                .set(user)
-                .addOnSuccessListener {
-                    appViewModel.isLoading = false
-                    Log.d("RegisterDriverStepFourViewModel", "User data updated in Firestore")
-                    viewModelScope.launch {
-                        _stepFourUpdateEvents.emit(StepFourUpdateEvent.FirebaseUserUpdated)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    appViewModel.isLoading = false
-                    Log.e(
-                        "RegisterDriverStepFourViewModel",
-                        "Failed to update user data in Firestore: ${e.message}"
-                    )
-                    appViewModel.showMessage(
-                        type = DialogType.ERROR,
-                        title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.general_error)
-                    )
-                }
-        }
+    fun showSuccessMessage() {
+        appViewModel.showMessage(
+            type = DialogType.SUCCESS,
+            title = appContext.getString(R.string.account_created),
+            buttonText = appContext.getString(R.string.login),
+            message = appContext.getString(R.string.account_created_success_message),
+            onDismiss = {
+                emitProcessCompletedEvent()
+            },
+            onButtonClicked = {
+                emitProcessCompletedEvent()
+            }
+        )
     }
 
+    fun emitProcessCompletedEvent() {
+        viewModelScope.launch {
+            _stepFourUpdateEvents.emit(StepFourUpdateEvent.RegistrationComplete)
+        }
+    }
 
 }
 

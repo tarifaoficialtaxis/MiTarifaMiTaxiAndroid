@@ -314,5 +314,10 @@
 
     <string name="vehicle_pictures">Fotos del vehículo</string>
 
+    <string name="account_created">¡Cuenta creada con éxito!</string>
+    <string name="account_created_success_message">Ahora, nuestro equipo verificará los datos. Te notificaremos por correo electrónico cuando tu cuenta esté activa.</string>
+
+
+
 
 </resources>

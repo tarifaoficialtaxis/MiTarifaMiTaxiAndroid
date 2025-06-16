@@ -30,6 +30,8 @@ data class LocalUser(
     var vehicleFrontPicture: String? = null,
     var vehicleBackPicture: String? = null,
     var vehicleSidePicture: String? = null,
+
+    var driverStatus: DriverStatus? = null,
 )
 
 enum class AuthProvider {
@@ -44,3 +46,8 @@ enum class UserRole {
     ADMIN
 }
 
+enum class DriverStatus {
+    PENDING,
+    APPROVED,
+    REJECTED
+}

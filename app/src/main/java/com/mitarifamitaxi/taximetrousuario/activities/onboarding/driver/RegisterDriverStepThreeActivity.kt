@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomDropDown
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepThreeViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepThreeViewModelFactory
 
@@ -52,9 +53,10 @@ class RegisterDriverStepThreeActivity : BaseActivity() {
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.stepThreeUpdateEvents.collect { event ->
+                appViewModel.userDataUpdateEvents.collect { event ->
                     when (event) {
-                        is RegisterDriverStepThreeViewModel.StepThreeUpdateEvent.FirebaseUserUpdated -> {
+                        is UserDataUpdateEvent.FirebaseUserUpdated -> {
+                            appViewModel.isLoading = false
                             startActivity(
                                 Intent(
                                     this@RegisterDriverStepThreeActivity,
