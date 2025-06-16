@@ -88,8 +88,6 @@ class RegisterDriverStepOneActivity : BaseActivity() {
             onNextClicked = {
                 viewModel.onNext { registerResult ->
                     if (registerResult.first) {
-                        //startActivity(Intent(this, RegisterDriverStepTwoActivity::class.java))
-                        //finish()
                         val intent = Intent(this, RegisterDriverStepTwoActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         startActivity(intent)

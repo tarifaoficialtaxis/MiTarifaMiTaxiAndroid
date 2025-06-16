@@ -315,26 +315,29 @@ class AppViewModel(context: Context) : ViewModel() {
 
     }
 
-    private fun updateUserDataOnFirebase(user: LocalUser) {
-        val db = FirebaseFirestore.getInstance()
-        user.id?.let { userId ->
-            db.collection("users")
-                .document(userId)
-                .set(user)
-                .addOnSuccessListener {
-                    Log.d("HomeViewModel", "User data updated in Firestore")
-                    viewModelScope.launch {
-                        _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e("HomeViewModel", "Failed to update user data in Firestore: ${e.message}")
+    fun updateUserDataOnFirebase(
+        user: LocalUser
+    ) {
+        viewModelScope.launch {
+            try {
+                val userId = user.id ?: throw IllegalArgumentException("User ID is null")
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(userId)
+                    .set(user)
+                    .await()
+                Log.d("HomeViewModel", "User data updated in Firestore")
+                _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Failed to update user data in Firestore: ${e.message}")
+                withContext(Dispatchers.Main) {
                     showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.error_fetching_location)
+                        message = appContext.getString(R.string.general_error)
                     )
                 }
+            }
         }
     }
 

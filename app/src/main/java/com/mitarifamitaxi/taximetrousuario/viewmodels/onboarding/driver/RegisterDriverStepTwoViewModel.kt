@@ -50,13 +50,6 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
     var hasCameraPermission by mutableStateOf(false)
         private set
 
-    sealed class StepTwoUpdateEvent {
-        object FirebaseUserUpdated : StepTwoUpdateEvent()
-    }
-
-    private val _stepTwoUpdateEvents = MutableSharedFlow<StepTwoUpdateEvent>()
-    val stepTwoUpdateEvents = _stepTwoUpdateEvents.asSharedFlow()
-
     init {
         checkCameraPermission()
     }
@@ -122,6 +115,9 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
         }
 
         viewModelScope.launch {
+
+            appViewModel.isLoading = true
+
             val frontImageUrl = frontImageUri?.let { uri ->
                 uri.toBitmap(appContext)?.let { bitmap ->
                     FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
@@ -132,6 +128,16 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
                 uri.toBitmap(appContext)?.let { bitmap ->
                     FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
                 }
+            }
+
+            if (frontImageUrl == null || backImageUrl == null) {
+                appViewModel.isLoading = false
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = appContext.getString(R.string.general_error)
+                )
+                return@launch
             }
 
             updateUserData(
@@ -147,8 +153,6 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
         backDrivingLicenseUrl: String? = null
     ) {
 
-        appViewModel.isLoading = true
-
         val userData = LocalUserManager(appContext).getUserState()
 
         val userDataUpdated = userData?.copy(
@@ -158,38 +162,11 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
         userDataUpdated?.let {
             LocalUserManager(appContext).saveUserState(it)
-            updateUserDataOnFirebase(it)
+            appViewModel.updateUserDataOnFirebase(it)
         }
 
     }
 
-    private fun updateUserDataOnFirebase(user: LocalUser) {
-        val db = FirebaseFirestore.getInstance()
-        user.id?.let { userId ->
-            db.collection("users")
-                .document(userId)
-                .set(user)
-                .addOnSuccessListener {
-                    appViewModel.isLoading = false
-                    Log.d("RegisterDriverStepTwoViewModel", "User data updated in Firestore")
-                    viewModelScope.launch {
-                        _stepTwoUpdateEvents.emit(StepTwoUpdateEvent.FirebaseUserUpdated)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    appViewModel.isLoading = false
-                    Log.e(
-                        "RegisterDriverStepTwoViewModel",
-                        "Failed to update user data in Firestore: ${e.message}"
-                    )
-                    appViewModel.showMessage(
-                        type = DialogType.ERROR,
-                        title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.general_error)
-                    )
-                }
-        }
-    }
 
 
 }

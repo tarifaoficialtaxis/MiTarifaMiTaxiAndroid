@@ -26,6 +26,7 @@ import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepFourActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepThreeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
@@ -49,7 +50,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            validateNextScreen()/*startActivity(
+            validateNextScreen()
+            /*startActivity(
                 Intent(this, RegisterDriverStepThreeActivity::class.java)
             )*/
         }
@@ -64,17 +66,50 @@ class MainActivity : AppCompatActivity() {
 
             if (userState.role == UserRole.DRIVER) {
 
-                if (userState.frontDrivingLicense.isNullOrEmpty() || userState.backDrivingLicense.isNullOrEmpty()) {
+                if (!userState.frontDrivingLicense.isNullOrEmpty() &&
+                    !userState.backDrivingLicense.isNullOrEmpty() &&
+                    !userState.vehicleBrand.isNullOrEmpty() &&
+                    !userState.vehicleModel.isNullOrEmpty() &&
+                    !userState.vehicleYear.isNullOrEmpty() &&
+                    !userState.vehiclePlate.isNullOrEmpty() &&
+                    !userState.vehicleFrontPicture.isNullOrEmpty() &&
+                    !userState.vehicleBackPicture.isNullOrEmpty() &&
+                    !userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, HomeActivity::class.java)
+                    )
+                    finish()
+                } else {
+                    startActivity(
+                        Intent(this, LoginActivity::class.java)
+                    )
+                    finish()
+                }
+
+                /*if (userState.frontDrivingLicense.isNullOrEmpty() ||
+                    userState.backDrivingLicense.isNullOrEmpty()
+                ) {
                     startActivity(
                         Intent(this, RegisterDriverStepTwoActivity::class.java)
                     )
-                } else if (userState.vehicleBrand.isNullOrEmpty() || userState.vehicleModel.isNullOrEmpty() || userState.vehiclePlate.isNullOrEmpty()) {/*startActivity(
+                } else if (userState.vehicleBrand.isNullOrEmpty() ||
+                    userState.vehicleModel.isNullOrEmpty() ||
+                    userState.vehicleYear.isNullOrEmpty() ||
+                    userState.vehiclePlate.isNullOrEmpty()
+                ) {
+                    startActivity(
                         Intent(this, RegisterDriverStepThreeActivity::class.java)
-                    )*/
-                } else if (userState.vehicleFrontPicture.isNullOrEmpty() || userState.vehicleBackPicture.isNullOrEmpty() || userState.vehicleSidePicture.isNullOrEmpty()) {/*startActivity(
+                    )
+                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
+                    userState.vehicleBackPicture.isNullOrEmpty() ||
+                    userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
                         Intent(this, RegisterDriverStepFourActivity::class.java)
-                    )*/
-                }
+                    )
+                }*/
+
 
 
             } else {
