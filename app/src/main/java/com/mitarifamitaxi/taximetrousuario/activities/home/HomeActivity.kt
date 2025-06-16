@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -59,7 +60,9 @@ import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
 import com.mitarifamitaxi.taximetrousuario.models.Trip
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModelFactory
 
@@ -122,7 +125,6 @@ class HomeActivity : BaseActivity() {
         onTripClicked: (Trip) -> Unit
     ) {
         val openDrawer = LocalOpenDrawer.current
-        val trips by viewModel.trips
 
         Column(
             modifier = Modifier.Companion
@@ -243,126 +245,254 @@ class HomeActivity : BaseActivity() {
                 }
             } else {
 
-                Column(
-                    Modifier.Companion
-                        .padding(horizontal = 29.dp)
-                        .padding(top = 30.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-
-                    OutlinedButton(
-                        onClick = onTaximeterClick,
-                        modifier = Modifier.Companion
-                            .fillMaxWidth(),
-                        border = null,
-                        contentPadding = PaddingValues(0.dp),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.home_taximetro_button),
-                            contentDescription = null,
-                            contentScale = ContentScale.Companion.Fit,
-                            modifier = Modifier.Companion
-                                .fillMaxSize()
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(11.dp),
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                            .padding(vertical = 11.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = onSosClick,
-                            modifier = Modifier.Companion
-                                .weight(1.0f),
-                            border = null,
-                            contentPadding = PaddingValues(0.dp),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.home_sos_button),
-                                contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = onPqrsClick,
-                            modifier = Modifier.Companion
-                                .weight(1.0f),
-                            border = null,
-                            contentPadding = PaddingValues(0.dp),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.home_pqrs_button),
-                                contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                            )
-                        }
-                    }
-
-                    Column {
-                        Row {
-                            Text(
-                                text = stringResource(id = R.string.my_trips),
-                                color = colorResource(id = R.color.black),
-                                fontSize = 16.sp,
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
-                                modifier = Modifier.Companion
-                                    .padding(top = 15.dp)
-                            )
-
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                            if (trips.isNotEmpty()) {
-                                TextButton(onClick = onMyTripsClick) {
-                                    Text(
-                                        text = stringResource(id = R.string.see_all),
-                                        color = colorResource(id = R.color.main),
-                                        textDecoration = TextDecoration.Companion.Underline,
-                                        fontSize = 14.sp,
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Bold,
-                                    )
-                                }
-                            }
-                        }
-
-
-                        if (trips.isEmpty()) {
-                            NoTripsView()
-                        } else {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(11.dp),
-                                modifier = Modifier.Companion
-                                    .fillMaxWidth()
-                                    .background(colorResource(id = R.color.white))
-                                    .padding(top = 10.dp)
-                                    .padding(bottom = 40.dp)
-                            ) {
-                                trips.forEach { trip ->
-                                    TripItem(
-                                        trip, onTripClicked = {
-                                            onTripClicked(trip)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-
+                if (appViewModel.userData?.role == UserRole.USER) {
+                    UserView(
+                        onTaximeterClick = onTaximeterClick,
+                        onSosClick = onSosClick,
+                        onPqrsClick = onPqrsClick,
+                        onMyTripsClick = onMyTripsClick,
+                        onTripClicked = onTripClicked
+                    )
+                } else {
+                    DriverView(
+                        onTaximeterClick = onTaximeterClick,
+                        onSosClick = onSosClick
+                    )
                 }
 
             }
         }
     }
+
+    @Composable
+    private fun UserView(
+        onTaximeterClick: () -> Unit,
+        onSosClick: () -> Unit,
+        onPqrsClick: () -> Unit,
+        onMyTripsClick: () -> Unit,
+        onTripClicked: (Trip) -> Unit
+    ) {
+        val trips by viewModel.trips
+
+        Column(
+            Modifier.Companion
+                .padding(horizontal = 29.dp)
+                .padding(top = 30.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+
+            OutlinedButton(
+                onClick = onTaximeterClick,
+                modifier = Modifier.Companion
+                    .fillMaxWidth(),
+                border = null,
+                contentPadding = PaddingValues(0.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.home_taximetro_button),
+                    contentDescription = null,
+                    contentScale = ContentScale.Companion.Fit,
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(11.dp),
+                modifier = Modifier.Companion
+                    .fillMaxWidth()
+                    .padding(vertical = 11.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onSosClick,
+                    modifier = Modifier.Companion
+                        .weight(1.0f),
+                    border = null,
+                    contentPadding = PaddingValues(0.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.home_sos_button),
+                        contentDescription = null,
+                        contentScale = ContentScale.Companion.Fit,
+                        modifier = Modifier.Companion
+                            .fillMaxSize()
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = onPqrsClick,
+                    modifier = Modifier.Companion
+                        .weight(1.0f),
+                    border = null,
+                    contentPadding = PaddingValues(0.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.home_pqrs_button),
+                        contentDescription = null,
+                        contentScale = ContentScale.Companion.Fit,
+                        modifier = Modifier.Companion
+                            .fillMaxSize()
+                    )
+                }
+            }
+
+            Column {
+                Row {
+                    Text(
+                        text = stringResource(id = R.string.my_trips),
+                        color = colorResource(id = R.color.black),
+                        fontSize = 16.sp,
+                        fontFamily = MontserratFamily,
+                        fontWeight = FontWeight.Companion.Bold,
+                        modifier = Modifier.Companion
+                            .padding(top = 15.dp)
+                    )
+
+                    Spacer(modifier = Modifier.Companion.weight(1.0f))
+
+                    if (trips.isNotEmpty()) {
+                        TextButton(onClick = onMyTripsClick) {
+                            Text(
+                                text = stringResource(id = R.string.see_all),
+                                color = colorResource(id = R.color.main),
+                                textDecoration = TextDecoration.Companion.Underline,
+                                fontSize = 14.sp,
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Bold,
+                            )
+                        }
+                    }
+                }
+
+
+                if (trips.isEmpty()) {
+                    NoTripsView()
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(11.dp),
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .background(colorResource(id = R.color.white))
+                            .padding(top = 10.dp)
+                            .padding(bottom = 40.dp)
+                    ) {
+                        trips.forEach { trip ->
+                            TripItem(
+                                trip, onTripClicked = {
+                                    onTripClicked(trip)
+                                }
+                            )
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    @Composable
+    private fun DriverView(
+        onTaximeterClick: () -> Unit,
+        onSosClick: () -> Unit
+    ) {
+        Column(
+            Modifier.Companion
+                .padding(horizontal = 29.dp)
+                .padding(top = 30.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
+        ) {
+            OutlinedButton(
+                onClick = onTaximeterClick,
+                modifier = Modifier.Companion
+                    .fillMaxWidth(),
+                border = null,
+                contentPadding = PaddingValues(0.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.home_taximetro_button),
+                    contentDescription = null,
+                    contentScale = ContentScale.Companion.Fit,
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                )
+            }
+
+            OutlinedButton(
+                onClick = onSosClick,
+                modifier = Modifier.Companion
+                    .fillMaxWidth(),
+                border = null,
+                contentPadding = PaddingValues(0.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.home_sos_driver_button),
+                    contentDescription = null,
+                    contentScale = ContentScale.Companion.Fit,
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                )
+            }
+
+            if (appViewModel.userData?.driverStatus == DriverStatus.PENDING) {
+                DriverPendingReviewView()
+            }
+        }
+    }
+
+    @Composable
+    private fun DriverPendingReviewView() {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(90.dp)
+                    .border(8.dp, colorResource(id = R.color.yellow2), CircleShape)
+                    .background(colorResource(id = R.color.main), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PriorityHigh,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            Text(
+                text = stringResource(id = R.string.account_pending_review),
+                color = colorResource(id = R.color.main),
+                fontFamily = MontserratFamily,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .padding(top = 10.dp, bottom = 5.dp),
+            )
+
+            Text(
+                text = stringResource(id = R.string.let_you_know),
+                color = colorResource(id = R.color.gray1),
+                fontFamily = MontserratFamily,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp
+            )
+
+
+        }
+    }
+
+
 }
