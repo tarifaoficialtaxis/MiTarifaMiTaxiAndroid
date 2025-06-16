@@ -26,10 +26,15 @@ import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.component3
 
 
 class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -118,19 +123,21 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
             appViewModel.isLoading = true
 
-            val frontImageUrl = frontImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
+            val deferreds = listOf(frontImageUri!!, backImageUri!!).map { uri ->
+                async(Dispatchers.IO) {
+                    uri.toBitmap(appContext)
+                        ?.let { bitmap ->
+                            FirebaseStorageUtils.uploadImage(
+                                "drivingLicenses",
+                                bitmap
+                            )
+                        }
                 }
             }
 
-            val backImageUrl = backImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("drivingLicenses", bitmap)
-                }
-            }
+            val (frontUrl, backUrl) = deferreds.awaitAll()
 
-            if (frontImageUrl == null || backImageUrl == null) {
+            if (frontUrl == null || backUrl == null) {
                 appViewModel.isLoading = false
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
@@ -140,10 +147,7 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
                 return@launch
             }
 
-            updateUserData(
-                frontDrivingLicenseUrl = frontImageUrl,
-                backDrivingLicenseUrl = backImageUrl
-            )
+            updateUserData(frontUrl, backUrl)
 
         }
     }
@@ -164,11 +168,7 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
             LocalUserManager(appContext).saveUserState(it)
             appViewModel.updateUserDataOnFirebase(it)
         }
-
     }
-
-
-
 }
 
 class RegisterDriverStepTwoViewModelFactory(
