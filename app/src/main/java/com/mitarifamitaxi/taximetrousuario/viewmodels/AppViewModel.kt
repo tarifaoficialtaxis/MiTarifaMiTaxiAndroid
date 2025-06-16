@@ -42,6 +42,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getCityFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.models.CountryArea
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.models.toUpdateMapReflective
 import java.util.Date
 import java.util.concurrent.Executor
 import com.google.firebase.database.ValueEventListener
@@ -344,10 +345,12 @@ class AppViewModel(context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 val userId = user.id ?: throw IllegalArgumentException("User ID is null")
+                val data = user.toUpdateMapReflective()
+
                 FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(userId)
-                    .set(user)
+                    .set(data, SetOptions.merge())
                     .await()
                 Log.d("HomeViewModel", "User data updated in Firestore")
                 _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
