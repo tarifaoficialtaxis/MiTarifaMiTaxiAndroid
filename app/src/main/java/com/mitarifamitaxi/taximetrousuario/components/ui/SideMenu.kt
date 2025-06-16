@@ -49,6 +49,9 @@ import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.core.net.toUri
+import coil.compose.AsyncImage
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 @Composable
 fun SideMenu(
@@ -57,7 +60,7 @@ fun SideMenu(
     onSectionClicked: (ItemSideMenu) -> Unit
 ) {
 
-    val sideMenuItems = sideMenuItems()
+    val sideMenuItems = sideMenuItems(userData)
 
     val itemLogOut = ItemSideMenu(
         id = "LOGOUT",
@@ -117,21 +120,33 @@ fun SideMenu(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(11.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(65.dp)
-                                .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                                .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "content description",
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(45.dp),
-                                tint = colorResource(id = R.color.white),
 
+
+                        if (userData.profilePicture != null) {
+                            AsyncImage(
+                                model = userData.profilePicture!!.toUri(),
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(colorResource(id = R.color.blue1))
+                                    .size(65.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(colorResource(id = R.color.blue1))
+                                    .size(65.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Profile Icon",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(40.dp)
                                 )
+                            }
                         }
 
                         Column {
@@ -233,8 +248,8 @@ fun SideMenu(
 }
 
 @Composable
-fun sideMenuItems(): List<ItemSideMenu> {
-    return listOf(
+fun sideMenuItems(userData: LocalUser): List<ItemSideMenu> {
+    return listOfNotNull(
         ItemSideMenu(
             id = "HOME",
             icon = Icons.Outlined.Home,
@@ -253,12 +268,12 @@ fun sideMenuItems(): List<ItemSideMenu> {
             iconColor = colorResource(id = R.color.red1),
             name = stringResource(id = R.string.sos)
         ),
-        ItemSideMenu(
+        if (userData.role == UserRole.USER) ItemSideMenu(
             id = "PQRS",
             icon = Icons.AutoMirrored.Outlined.Chat,
             iconColor = colorResource(id = R.color.blue2),
             name = stringResource(id = R.string.pqrs)
-        ),
+        ) else null,
         ItemSideMenu(
             id = "MY_TRIPS",
             icon = Icons.Default.Speed,
@@ -291,7 +306,6 @@ fun SideMenuItemRow(item: ItemSideMenu, showDivider: Boolean = true) {
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Bold,
             )
-
 
         }
 

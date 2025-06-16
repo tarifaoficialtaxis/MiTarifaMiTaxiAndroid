@@ -317,8 +317,8 @@
     <string name="account_created">¡Cuenta creada con éxito!</string>
     <string name="account_created_success_message">Ahora, nuestro equipo verificará los datos. Te notificaremos por correo electrónico cuando tu cuenta esté activa.</string>
 
-
-
+    <string name="account_pending_review">Tu cuenta está en revisión</string>
+    <string name="let_you_know">Te avisaremos cuando puedas\nempezar a recibir servicios.</string>
 
 
 
