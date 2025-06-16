@@ -134,6 +134,12 @@ class LoginActivity : BaseActivity() {
                             .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
                     )
                 }
+            } else {
+                if (tempUserRole == UserRole.DRIVER) {
+                    startActivity(Intent(this, RegisterDriverStepOneActivity::class.java))
+                } else {
+                    startActivity(Intent(this, RegisterActivity::class.java))
+                }
             }
         }
 
