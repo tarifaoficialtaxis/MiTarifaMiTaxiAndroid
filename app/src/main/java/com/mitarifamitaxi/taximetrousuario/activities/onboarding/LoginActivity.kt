@@ -21,6 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalTaxi
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Button
@@ -44,12 +46,14 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepFourActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepOneActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepThreeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
@@ -67,24 +71,20 @@ class LoginActivity : BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             viewModel.handleSignInResult(result.data) { signInResult ->
-                if (signInResult.first == "home") {
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    finish()
-                } else if (signInResult.first == "complete_profile") {
-                    val userJson = Gson().toJson(signInResult.second)
-                    val intent = Intent(this, CompleteProfileActivity::class.java)
-                    intent.putExtra("user_data", userJson)
-                    startActivity(intent)
-                }
+                viewModel.showDialog = true
+                viewModel.mustCompleteProfile = signInResult.first
+                viewModel.tempUserData = signInResult.second
             }
         }
     }
 
-    private fun validateNextScreen() {
+    private fun validateNextScreen(tempUserRole: UserRole? = null) {
         val userState = LocalUserManager(this).getUserState()
         if (userState != null) {
 
             if (userState.role == UserRole.DRIVER) {
+
+
                 if (userState.frontDrivingLicense.isNullOrEmpty() ||
                     userState.backDrivingLicense.isNullOrEmpty()
                 ) {
@@ -112,15 +112,28 @@ class LoginActivity : BaseActivity() {
                     )
                     finish()
                 }
-            } else {
+            } else if (userState.role == UserRole.USER) {
                 startActivity(
                     Intent(this, HomeActivity::class.java)
                 )
                 finish()
             }
-
-
+        } else {
+            if (viewModel.mustCompleteProfile) {
+                if (tempUserRole == UserRole.DRIVER) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepOneActivity::class.java)
+                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                    )
+                } else {
+                    startActivity(
+                        Intent(this, CompleteProfileActivity::class.java)
+                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                    )
+                }
+            }
         }
+
     }
 
     @Composable
@@ -136,8 +149,7 @@ class LoginActivity : BaseActivity() {
                 }
             },
             onRegisterClicked = {
-                //startActivity(Intent(this, RegisterActivity::class.java))
-                startActivity(Intent(this, SelectRoleActivity::class.java))
+                viewModel.showDialog = true
             },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
@@ -146,6 +158,23 @@ class LoginActivity : BaseActivity() {
                 }
             }
         )
+
+        if (viewModel.showDialog) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_one_option),
+                primaryTitle = stringResource(id = R.string.user),
+                secondaryTitle = stringResource(id = R.string.driver),
+                primaryIcon = Icons.Default.Person,
+                secondaryIcon = Icons.Default.LocalTaxi,
+                onDismiss = { viewModel.showDialog = false },
+                onPrimaryActionClicked = {
+                    validateNextScreen(tempUserRole = UserRole.USER)
+                },
+                onSecondaryActionClicked = {
+                    validateNextScreen(tempUserRole = UserRole.DRIVER)
+                }
+            )
+        }
     }
 
 
@@ -290,7 +319,6 @@ class LoginActivity : BaseActivity() {
                                 modifier = Modifier.Companion
                                     .padding(vertical = 29.dp)
                             ) {
-
                                 CustomButton(
                                     text = stringResource(id = R.string.login).uppercase(),
                                     onClick = { onLoginClicked() }
