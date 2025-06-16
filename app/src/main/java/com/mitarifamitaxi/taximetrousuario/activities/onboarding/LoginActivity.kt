@@ -43,11 +43,16 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepFourActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepThreeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
+import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
 
@@ -75,6 +80,49 @@ class LoginActivity : BaseActivity() {
         }
     }
 
+    private fun validateNextScreen() {
+        val userState = LocalUserManager(this).getUserState()
+        if (userState != null) {
+
+            if (userState.role == UserRole.DRIVER) {
+                if (userState.frontDrivingLicense.isNullOrEmpty() ||
+                    userState.backDrivingLicense.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepTwoActivity::class.java)
+                    )
+                } else if (userState.vehicleBrand.isNullOrEmpty() ||
+                    userState.vehicleModel.isNullOrEmpty() ||
+                    userState.vehicleYear.isNullOrEmpty() ||
+                    userState.vehiclePlate.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepThreeActivity::class.java)
+                    )
+                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
+                    userState.vehicleBackPicture.isNullOrEmpty() ||
+                    userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepFourActivity::class.java)
+                    )
+                } else {
+                    startActivity(
+                        Intent(this, HomeActivity::class.java)
+                    )
+                    finish()
+                }
+            } else {
+                startActivity(
+                    Intent(this, HomeActivity::class.java)
+                )
+                finish()
+            }
+
+
+        }
+    }
+
     @Composable
     override fun Content() {
 
@@ -84,8 +132,7 @@ class LoginActivity : BaseActivity() {
             },
             onLoginClicked = {
                 viewModel.login {
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    finish()
+                    validateNextScreen()
                 }
             },
             onRegisterClicked = {
