@@ -39,6 +39,9 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
     ViewModel() {
 
     private val appContext = context.applicationContext
+
+    var userId by mutableStateOf("")
+
     var firstName by mutableStateOf("")
     var lastName by mutableStateOf("")
     var documentNumber by mutableStateOf("")
@@ -46,6 +49,8 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
+
+    var authProvider by mutableStateOf(AuthProvider.email)
 
     var imageUri by mutableStateOf<Uri?>(null)
     var tempImageUri by mutableStateOf<Uri?>(null)
@@ -104,7 +109,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
     }
 
 
-    fun onNext(onResult: (Pair<Boolean, String?>) -> Unit) {
+    fun onNextEmailPassword(onSuccess: () -> Unit) {
         if (firstName.isEmpty() ||
             lastName.isEmpty() ||
             documentNumber.isEmpty() ||
@@ -113,7 +118,6 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
             password.isEmpty() ||
             confirmPassword.isEmpty()
         ) {
-
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.attention),
@@ -160,7 +164,6 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
 
         viewModelScope.launch {
             try {
-                // Show loading indicator
                 appViewModel.isLoading = true
 
                 val documentExists = FirebaseFirestore.getInstance()
@@ -207,7 +210,6 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                 FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
                     .await()
 
-                // Hide loading indicator
                 appViewModel.isLoading = false
 
                 // Save user in SharedPreferences
@@ -224,13 +226,11 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                 )
                 LocalUserManager(appContext).saveUserState(localUser)
 
-                onResult(Pair(true, null))
+                onSuccess()
 
             } catch (e: Exception) {
                 Log.e("RegisterDriverStepOneViewModel", "Error registering user: ${e.message}")
-                // Hide loading indicator
                 appViewModel.isLoading = false
-
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -242,8 +242,102 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
         }
     }
 
+    fun onNextGoogle(onSuccess: () -> Unit) {
+        if (firstName.isEmpty() ||
+            lastName.isEmpty() ||
+            documentNumber.isEmpty() ||
+            mobilePhone.isEmpty()
+        ) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.all_fields_required),
+            )
+            return
+        }
 
+        if (imageUri == null) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.error_image_required),
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                appViewModel.isLoading = true
+
+                val documentExists = FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .whereEqualTo("documentNumber", documentNumber.trim())
+                    .get()
+                    .await()
+                    .isEmpty.not()
+
+                if (documentExists) {
+                    appViewModel.isLoading = false
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.attention),
+                        message = appContext.getString(R.string.error_document_exists)
+                    )
+                    return@launch
+                }
+
+                // Get current user from Firebase Auth
+                val user =
+                    FirebaseAuth.getInstance().currentUser ?: throw Exception("User not logged in")
+
+                val imageUrl = imageUri?.let { uri ->
+                    uri.toBitmap(appContext)?.let { bitmap ->
+                        FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                    }
+                }
+
+                // Save user information in Firestore
+                val userMap = hashMapOf(
+                    "id" to user.uid,
+                    "firstName" to firstName,
+                    "lastName" to lastName,
+                    "documentNumber" to documentNumber,
+                    "mobilePhone" to mobilePhone.trim(),
+                    "email" to user.email?.trim(),
+                    "profilePicture" to imageUrl,
+                    "role" to UserRole.DRIVER,
+                )
+                FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
+                    .await()
+
+                val localUser = LocalUser(
+                    id = user.uid,
+                    firstName = firstName,
+                    lastName = lastName,
+                    documentNumber = documentNumber,
+                    mobilePhone = mobilePhone.trim(),
+                    email = email.trim(),
+                    authProvider = AuthProvider.email,
+                    role = UserRole.DRIVER,
+                    profilePicture = imageUrl
+                )
+                LocalUserManager(appContext).saveUserState(localUser)
+
+                onSuccess()
+
+            } catch (e: Exception) {
+                appViewModel.isLoading = false
+                Log.e("RegisterDriverStepOneViewModel", "Error registering user: ${e.message}")
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.error),
+                    message = appContext.getString(R.string.general_error)
+                )
+            }
+        }
+    }
 }
+
 
 class RegisterDriverStepOneViewModelFactory(
     private val context: Context,

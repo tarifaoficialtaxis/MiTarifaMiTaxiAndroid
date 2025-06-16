@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver
 
 import android.Manifest
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -17,6 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Mail
 import androidx.compose.material.icons.rounded.Person
@@ -35,22 +38,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
-import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
+import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepOneViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepOneViewModelFactory
 
 class RegisterDriverStepOneActivity : BaseActivity() {
     private val viewModel: RegisterDriverStepOneViewModel by viewModels {
         RegisterDriverStepOneViewModelFactory(this, appViewModel)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val userJson = intent.getStringExtra("user_data")
+        userJson?.let {
+            val userData = Gson().fromJson(it, LocalUser::class.java)
+            viewModel.userId = userData.id ?: ""
+            viewModel.firstName = userData.firstName ?: ""
+            viewModel.lastName = userData.lastName ?: ""
+            viewModel.email = userData.email ?: ""
+            viewModel.mobilePhone = userData.mobilePhone ?: ""
+            viewModel.authProvider = userData.authProvider ?: AuthProvider.google
+        }
+    }
+
+    fun goNextScreen() {
+        val intent = Intent(this, RegisterDriverStepTwoActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
     }
 
     @Composable
@@ -86,12 +114,13 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                 startActivity(intent)
             },
             onNextClicked = {
-                viewModel.onNext { registerResult ->
-                    if (registerResult.first) {
-                        val intent = Intent(this, RegisterDriverStepTwoActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        startActivity(intent)
-                        finish()
+                if (viewModel.authProvider == AuthProvider.email) {
+                    viewModel.onNextEmailPassword {
+                        goNextScreen()
+                    }
+                } else if (viewModel.authProvider == AuthProvider.google) {
+                    viewModel.onNextGoogle {
+                        goNextScreen()
                     }
                 }
             }
@@ -99,8 +128,12 @@ class RegisterDriverStepOneActivity : BaseActivity() {
         )
 
         if (viewModel.showDialog) {
-            PhotoSelectorDialog(
+            TwoOptionSelectorDialog(
                 title = stringResource(id = R.string.select_profile_photo),
+                primaryTitle = stringResource(id = R.string.camera),
+                secondaryTitle = stringResource(id = R.string.gallery),
+                primaryIcon = Icons.Default.CameraAlt,
+                secondaryIcon = Icons.Default.Image,
                 onDismiss = { viewModel.showDialog = false },
                 onPrimaryActionClicked = {
                     if (viewModel.hasCameraPermission) {
@@ -223,21 +256,24 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                                     keyboardType = KeyboardType.Companion.Email
                                 )
 
-                                CustomTextField(
-                                    value = viewModel.password,
-                                    onValueChange = { viewModel.password = it },
-                                    placeholder = stringResource(id = R.string.password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
-                                )
+                                if (viewModel.authProvider == AuthProvider.email) {
 
-                                CustomTextField(
-                                    value = viewModel.confirmPassword,
-                                    onValueChange = { viewModel.confirmPassword = it },
-                                    placeholder = stringResource(id = R.string.confirm_password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
-                                )
+                                    CustomTextField(
+                                        value = viewModel.password,
+                                        onValueChange = { viewModel.password = it },
+                                        placeholder = stringResource(id = R.string.password),
+                                        isSecure = true,
+                                        leadingIcon = Icons.Rounded.Lock,
+                                    )
+
+                                    CustomTextField(
+                                        value = viewModel.confirmPassword,
+                                        onValueChange = { viewModel.confirmPassword = it },
+                                        placeholder = stringResource(id = R.string.confirm_password),
+                                        isSecure = true,
+                                        leadingIcon = Icons.Rounded.Lock,
+                                    )
+                                }
                             }
 
 
