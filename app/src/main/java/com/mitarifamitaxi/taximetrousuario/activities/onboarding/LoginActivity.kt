@@ -380,8 +380,6 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-
-
                             OnboardingBottomLink(
                                 text = stringResource(id = R.string.no_account),
                                 linkText = stringResource(id = R.string.register_here)
