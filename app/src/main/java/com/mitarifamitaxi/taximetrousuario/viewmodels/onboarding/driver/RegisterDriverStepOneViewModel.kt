@@ -32,8 +32,10 @@ import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class RegisterDriverStepOneViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -190,9 +192,12 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                         .await()
                 val user = authResult.user ?: throw Exception("User creation failed")
 
-                val imageUrl = imageUri?.let { uri ->
-                    uri.toBitmap(appContext)?.let { bitmap ->
-                        FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                val imageUrl = withContext(Dispatchers.IO) {
+                    imageUri?.let { uri ->
+                        uri.toBitmap(appContext)
+                            ?.let { bitmap ->
+                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                            }
                     }
                 }
 
@@ -290,9 +295,12 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                 val user =
                     FirebaseAuth.getInstance().currentUser ?: throw Exception("User not logged in")
 
-                val imageUrl = imageUri?.let { uri ->
-                    uri.toBitmap(appContext)?.let { bitmap ->
-                        FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                val imageUrl = withContext(Dispatchers.IO) {
+                    imageUri?.let { uri ->
+                        uri.toBitmap(appContext)
+                            ?.let { bitmap ->
+                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                            }
                     }
                 }
 

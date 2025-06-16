@@ -25,6 +25,9 @@ import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
 import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -153,25 +156,21 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
 
             appViewModel.isLoading = true
 
-            val frontImageUrl = frontImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
+            val deferreds = listOf(frontImageUri!!, backImageUri!!, sideImageUri!!).map { uri ->
+                async(Dispatchers.IO) {
+                    uri.toBitmap(appContext)
+                        ?.let { bitmap ->
+                            FirebaseStorageUtils.uploadImage(
+                                "vehiclesPictures",
+                                bitmap
+                            )
+                        }
                 }
             }
 
-            val backImageUrl = backImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
-                }
-            }
+            val (frontUrl, backUrl, sideUrl) = deferreds.awaitAll()
 
-            val sideImageUrl = sideImageUri?.let { uri ->
-                uri.toBitmap(appContext)?.let { bitmap ->
-                    FirebaseStorageUtils.uploadImage("vehiclesPictures", bitmap)
-                }
-            }
-
-            if (frontImageUrl == null || backImageUrl == null || sideImageUrl == null) {
+            if (frontUrl == null || backUrl == null || sideUrl == null) {
                 appViewModel.isLoading = false
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
@@ -181,11 +180,7 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
                 return@launch
             }
 
-            updateUserData(
-                frontVehicleUrl = frontImageUrl,
-                backVehicleUrl = backImageUrl,
-                sideVehicleUrl = sideImageUrl
-            )
+            updateUserData(frontUrl, backUrl, sideUrl)
 
         }
     }

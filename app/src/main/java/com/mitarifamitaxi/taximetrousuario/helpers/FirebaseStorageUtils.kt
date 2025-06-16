@@ -1,6 +1,5 @@
 package com.mitarifamitaxi.taximetrousuario.helpers
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
@@ -8,7 +7,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storageMetadata
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
-
 
 object FirebaseStorageUtils {
     suspend fun uploadImage(folder: String, bitmap: Bitmap): String? {
