@@ -57,9 +57,7 @@ class CompleteProfileActivity : BaseActivity() {
 
         val userJson = intent.getStringExtra("user_data")
         userJson?.let {
-            val gson = Gson()
-            val userData = gson.fromJson(it, LocalUser::class.java)
-
+            val userData = Gson().fromJson(it, LocalUser::class.java)
             viewModel.userId = userData.id ?: ""
             viewModel.firstName = userData.firstName ?: ""
             viewModel.lastName = userData.lastName ?: ""

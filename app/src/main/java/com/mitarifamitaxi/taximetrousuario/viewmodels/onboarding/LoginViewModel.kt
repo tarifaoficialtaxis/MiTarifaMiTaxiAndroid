@@ -48,6 +48,9 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     var rememberMe by mutableStateOf(false)
 
+    var mustCompleteProfile by mutableStateOf(false)
+    var tempUserData by mutableStateOf<LocalUser?>(null)
+    var showDialog by mutableStateOf(false)
 
     companion object {
         private const val TAG = "LoginViewModel"
@@ -149,7 +152,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
         GoogleSignIn.getClient(appContext, gso)
     }
 
-    fun handleSignInResult(data: Intent?, onResult: (Pair<String, LocalUser?>) -> Unit) {
+    fun handleSignInResult(data: Intent?, onResult: (Pair<Boolean, LocalUser?>) -> Unit) {
         val task = GoogleSignIn.getSignedInAccountFromIntent(data)
         try {
             val account: GoogleSignInAccount? = task.getResult(ApiException::class.java)
@@ -176,7 +179,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     private fun firebaseAuthWithGoogle(
         idToken: String,
-        onResult: (Pair<String, LocalUser?>) -> Unit
+        onResult: (Pair<Boolean, LocalUser?>) -> Unit
     ) {
         appViewModel.isLoading = true
         val credential = GoogleAuthProvider.getCredential(idToken, null)
@@ -186,24 +189,27 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                     val user = auth.currentUser
                     Log.d(TAG, "Firebase Sign-In success. User: ${user?.displayName}")
                     viewModelScope.launch {
-                        getUserInformation(user?.uid ?: "", authProvider = AuthProvider.google, userExistsCallback = {
-                            appViewModel.isLoading = false
-                            if (it) {
-                                onResult(Pair("home", null))
-                            } else {
-                                user?.let {
-                                    val userData = LocalUser(
-                                        id = it.uid,
-                                        email = it.email,
-                                        firstName = it.displayName?.split(" ")?.get(0),
-                                        lastName = it.displayName?.split(" ")?.get(1),
-                                        mobilePhone = it.phoneNumber,
-                                        authProvider = AuthProvider.google
-                                    )
-                                    onResult(Pair("complete_profile", userData))
+                        getUserInformation(
+                            user?.uid ?: "",
+                            authProvider = AuthProvider.google,
+                            userExistsCallback = {
+                                appViewModel.isLoading = false
+                                if (it) {
+                                    onResult(Pair(false, null))
+                                } else {
+                                    user?.let {
+                                        val userData = LocalUser(
+                                            id = it.uid,
+                                            email = it.email,
+                                            firstName = it.displayName?.split(" ")?.get(0),
+                                            lastName = it.displayName?.split(" ")?.get(1),
+                                            mobilePhone = it.phoneNumber,
+                                            authProvider = AuthProvider.google
+                                        )
+                                        onResult(Pair(true, userData))
+                                    }
                                 }
-                            }
-                        })
+                            })
                     }
                 } else {
                     appViewModel.isLoading = false

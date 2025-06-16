@@ -8,18 +8,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Whatsapp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,8 +23,12 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 
 @Composable
-fun PhotoSelectorDialog(
+fun TwoOptionSelectorDialog(
     title: String,
+    primaryTitle: String,
+    secondaryTitle: String,
+    primaryIcon: ImageVector,
+    secondaryIcon: ImageVector,
     onDismiss: () -> Unit,
     onPrimaryActionClicked: () -> Unit,
     onSecondaryActionClicked: () -> Unit
@@ -79,16 +79,16 @@ fun PhotoSelectorDialog(
                 {
 
                     CustomContactBoxView(
-                        icon = Icons.Default.CameraAlt,
-                        text = stringResource(id = R.string.camera),
+                        icon = primaryIcon,
+                        text = primaryTitle,
                         onClick = onPrimaryActionClicked,
                         modifier = Modifier
                             .weight(1f)
                     )
 
                     CustomContactBoxView(
-                        icon = Icons.Default.Image,
-                        text = stringResource(id = R.string.gallery),
+                        icon = secondaryIcon,
+                        text = secondaryTitle,
                         onClick = onSecondaryActionClicked,
                         modifier = Modifier
                             .weight(1f)
