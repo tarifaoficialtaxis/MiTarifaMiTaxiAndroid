@@ -362,7 +362,6 @@ class HomeActivity : BaseActivity() {
 
                 }
 
-
             }
         }
     }
