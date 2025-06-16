@@ -31,12 +31,14 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.SetOptions
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getCityFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.models.toUpdateMapReflective
 import java.util.Date
 import java.util.concurrent.Executor
 
@@ -321,10 +323,12 @@ class AppViewModel(context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 val userId = user.id ?: throw IllegalArgumentException("User ID is null")
+                val data = user.toUpdateMapReflective()
+
                 FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(userId)
-                    .set(user)
+                    .set(data, SetOptions.merge())
                     .await()
                 Log.d("HomeViewModel", "User data updated in Firestore")
                 _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)

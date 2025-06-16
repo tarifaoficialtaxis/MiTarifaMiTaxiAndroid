@@ -1,6 +1,7 @@
 package com.mitarifamitaxi.taximetrousuario.models
 
 import java.util.Date
+import kotlin.reflect.full.memberProperties
 
 data class LocalUser(
     val id: String? = null,
@@ -32,7 +33,8 @@ data class LocalUser(
     var vehicleSidePicture: String? = null,
 
     var driverStatus: DriverStatus? = null,
-)
+
+    )
 
 enum class AuthProvider {
     google,
@@ -51,3 +53,11 @@ enum class DriverStatus {
     APPROVED,
     REJECTED
 }
+
+fun LocalUser.toUpdateMapReflective(): Map<String, Any> =
+    this::class.memberProperties
+        .mapNotNull { prop ->
+            prop.getter.call(this)
+                ?.let { prop.name to it }
+        }
+        .toMap()
