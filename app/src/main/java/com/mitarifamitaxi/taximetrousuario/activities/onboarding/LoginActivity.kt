@@ -71,9 +71,13 @@ class LoginActivity : BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             viewModel.handleSignInResult(result.data) { signInResult ->
-                viewModel.showDialog = true
                 viewModel.mustCompleteProfile = signInResult.first
                 viewModel.tempUserData = signInResult.second
+                if (viewModel.mustCompleteProfile) {
+                    viewModel.showDialog = true
+                } else {
+                    validateNextScreen()
+                }
             }
         }
     }
@@ -83,7 +87,6 @@ class LoginActivity : BaseActivity() {
         if (userState != null) {
 
             if (userState.role == UserRole.DRIVER) {
-
 
                 if (userState.frontDrivingLicense.isNullOrEmpty() ||
                     userState.backDrivingLicense.isNullOrEmpty()
