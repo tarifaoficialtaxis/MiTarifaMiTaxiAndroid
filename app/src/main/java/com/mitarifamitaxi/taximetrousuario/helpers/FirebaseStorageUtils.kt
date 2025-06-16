@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.helpers
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storageMetadata
@@ -9,25 +10,39 @@ import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 
 
-
 object FirebaseStorageUtils {
     suspend fun uploadImage(folder: String, bitmap: Bitmap): String? {
         return try {
-            val fileName = "${folder}/${System.currentTimeMillis()}.png"
-            val storageRef = FirebaseStorage.getInstance().reference.child(fileName)
-            val metadata = storageMetadata {
-                contentType = "image/png"
-            }
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream.toByteArray()
-            storageRef.putBytes(byteArray, metadata).await()
-            storageRef.downloadUrl.await().toString()
-        } catch (error: Exception) {
-            Log.e("TripSummaryViewModel", "Error uploading image: ${error.message}")
+            // 1. Escalar (opcional)
+            val target = bitmap.scaled(1024, 1024)
+
+            // 2. Elegir formato y calidad
+            val useWebp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+            val format =
+                if (useWebp) Bitmap.CompressFormat.WEBP_LOSSY else Bitmap.CompressFormat.JPEG
+            val quality = 80
+
+            // 3. Preparar bytes
+            val baos = ByteArrayOutputStream()
+            target.compress(format, quality, baos)
+            val data = baos.toByteArray()
+
+            // 4. Metadata correcta
+            val mime = if (format == Bitmap.CompressFormat.JPEG) "image/jpeg" else "image/webp"
+            val metadata = storageMetadata { contentType = mime }
+
+            // 5. Subir
+            val fileName =
+                "$folder/${System.currentTimeMillis()}.${if (format == Bitmap.CompressFormat.JPEG) "jpg" else "webp"}"
+            val ref = FirebaseStorage.getInstance().reference.child(fileName)
+            ref.putBytes(data, metadata).await()
+            ref.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Log.e("FirebaseStorageUtils", "Error uploading image: ${e.message}")
             null
         }
     }
+
 
     suspend fun deleteImage(imageUrl: String) {
         try {
