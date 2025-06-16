@@ -48,15 +48,23 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.automirrored.filled.Logout
 
 @Composable
-fun DrawerContent(
+fun SideMenu(
     userData: LocalUser,
     onProfileClicked: () -> Unit,
     onSectionClicked: (ItemSideMenu) -> Unit
 ) {
 
     val sideMenuItems = sideMenuItems()
+
+    val itemLogOut = ItemSideMenu(
+        id = "LOGOUT",
+        icon = Icons.AutoMirrored.Filled.Logout,
+        iconColor = colorResource(id = R.color.red1),
+        name = stringResource(id = R.string.close_session)
+    )
 
     ModalDrawerSheet(
         drawerShape = RoundedCornerShape(0.dp),
@@ -186,8 +194,6 @@ fun DrawerContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
                 Text(
                     text = stringResource(
                         id = R.string.version_param,
@@ -201,6 +207,24 @@ fun DrawerContent(
                         .padding(20.dp)
                         .align(Alignment.CenterHorizontally)
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { onSectionClicked(itemLogOut) },
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent
+                    ),
+                    shape = RectangleShape,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp)
+                ) {
+                    SideMenuItemRow(itemLogOut, showDivider = false)
+                }
+
+
             }
 
 
@@ -245,7 +269,7 @@ fun sideMenuItems(): List<ItemSideMenu> {
 }
 
 @Composable
-fun SideMenuItemRow(item: ItemSideMenu) {
+fun SideMenuItemRow(item: ItemSideMenu, showDivider: Boolean = true) {
 
     Column {
         Row(
@@ -271,12 +295,14 @@ fun SideMenuItemRow(item: ItemSideMenu) {
 
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(colorResource(id = R.color.gray3))
-        )
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(colorResource(id = R.color.gray3))
+            )
+        }
     }
 
 
