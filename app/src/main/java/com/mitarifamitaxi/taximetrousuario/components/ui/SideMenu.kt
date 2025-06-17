@@ -2,7 +2,6 @@ package com.mitarifamitaxi.taximetrousuario.components.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.outlined.Home
@@ -50,7 +47,6 @@ import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.core.net.toUri
-import coil.compose.AsyncImage
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 @Composable
@@ -121,33 +117,12 @@ fun SideMenu(
                         horizontalArrangement = Arrangement.spacedBy(11.dp),
                     ) {
 
-
-                        if (userData.profilePicture != null) {
-                            AsyncImage(
-                                model = userData.profilePicture!!.toUri(),
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(colorResource(id = R.color.blue1))
-                                    .size(65.dp),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(colorResource(id = R.color.blue1))
-                                    .size(65.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Profile Icon",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        }
+                        ProfilePictureBox(
+                            imageUri = userData.profilePicture?.toUri(),
+                            editable = false,
+                            boxSize = 65,
+                            iconSize = 40
+                        )
 
                         Column {
                             Text(
