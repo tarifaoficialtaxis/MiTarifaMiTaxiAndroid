@@ -37,9 +37,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MiTarifaMiTaxi"
         tools:targetApi="31">
-        <activity
-            android:name=".activities.onboarding.driver.RegisterDriverStepFourActivity"
-            android:exported="false" />
+
         <activity
             android:name=".activities.BaseActivity"
             android:exported="false" />
@@ -121,6 +119,44 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="LockedOrientationActivity" />
+
+        <activity
+            android:name=".activities.profile.driver.DriverProfileVehiclePicsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activities.profile.driver.DriverProfileVehicleInfoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activities.profile.driver.DriverProfileDrivingLicenseActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activities.profile.driver.DriverProfilePersonalInfoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activities.profile.driver.DriverProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activities.onboarding.driver.RegisterDriverStepFourActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+
         <activity
             android:name=".activities.onboarding.CompleteProfileActivity"
             android:exported="false"

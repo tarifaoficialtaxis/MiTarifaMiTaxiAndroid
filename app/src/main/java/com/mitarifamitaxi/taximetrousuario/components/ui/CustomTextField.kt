@@ -42,6 +42,7 @@ fun CustomTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     isSecure: Boolean = false,
+    isEnabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     leadingIcon: ImageVector,
     trailingIcon: ImageVector? = null,
@@ -58,6 +59,7 @@ fun CustomTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = isEnabled,
             label = {
                 Text(
                     text = placeholder,
