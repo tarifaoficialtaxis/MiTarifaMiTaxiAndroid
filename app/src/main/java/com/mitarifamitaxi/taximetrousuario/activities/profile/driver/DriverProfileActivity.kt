@@ -46,14 +46,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
+import com.mitarifamitaxi.taximetrousuario.components.ui.ButtonLinkRow
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.driver.DriverProfileViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.driver.DriverProfileViewModelFactory
@@ -167,7 +170,7 @@ class DriverProfileActivity : BaseActivity() {
             Box(
                 modifier = Modifier.Companion
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(230.dp)
                     .background(
                         colorResource(id = R.color.main),
                         shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
@@ -235,22 +238,10 @@ class DriverProfileActivity : BaseActivity() {
 
                     }
 
-                    Box(
-                        modifier = Modifier.Companion
-                            .size(90.dp)
-                            .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                            .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description",
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.Center)
-                                .size(66.dp),
-                            tint = colorResource(id = R.color.white),
-
-                            )
-                    }
+                    ProfilePictureBox(
+                        imageUri = appViewModel.userData?.profilePicture?.toUri(),
+                        editable = false
+                    )
 
                     Text(
                         text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
@@ -288,7 +279,6 @@ class DriverProfileActivity : BaseActivity() {
                 modifier = Modifier.Companion
                     .padding(top = 20.dp)
                     .padding(horizontal = 29.dp)
-                    .verticalScroll(rememberScrollState())
             ) {
 
 
@@ -297,6 +287,38 @@ class DriverProfileActivity : BaseActivity() {
                         .padding(top = 10.dp)
                         .fillMaxWidth()
                 ) {
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(30.dp),
+                    ) {
+                        ButtonLinkRow(
+                            text = stringResource(id = R.string.personal_information).uppercase(),
+                            onClick = {
+                                startActivity(
+                                    Intent(
+                                        this@DriverProfileActivity,
+                                        DriverProfilePersonalInfoActivity::class.java
+                                    )
+                                )
+                            }
+                        )
+
+                        ButtonLinkRow(
+                            text = stringResource(id = R.string.vehicle_information).uppercase(),
+                            onClick = {
+                                startActivity(
+                                    Intent(
+                                        this@DriverProfileActivity,
+                                        DriverProfileVehicleInfoActivity::class.java
+                                    )
+                                )
+                            }
+                        )
+                    }
+
+
+
+                    Spacer(modifier = Modifier.Companion.weight(1f))
 
                     Button(
                         onClick = { onDeleteAccountClicked() },

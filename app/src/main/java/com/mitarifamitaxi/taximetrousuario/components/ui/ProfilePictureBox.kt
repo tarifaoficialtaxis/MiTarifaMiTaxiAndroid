@@ -26,7 +26,10 @@ import androidx.compose.ui.layout.ContentScale
 @Composable
 fun ProfilePictureBox(
     imageUri: Uri?,
-    onClickEdit: () -> Unit
+    editable: Boolean = true,
+    boxSize: Int = 90,
+    iconSize: Int = 55,
+    onClickEdit: () -> Unit = { }
 ) {
     Box(
         modifier = Modifier.size(90.dp)
@@ -39,7 +42,7 @@ fun ProfilePictureBox(
                     .align(Alignment.Center)
                     .clip(CircleShape)
                     .background(colorResource(id = R.color.blue1))
-                    .size(90.dp),
+                    .size(boxSize.dp),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -48,33 +51,35 @@ fun ProfilePictureBox(
                     .align(Alignment.Center)
                     .clip(CircleShape)
                     .background(colorResource(id = R.color.blue1))
-                    .size(90.dp),
+                    .size(boxSize.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Profile Icon",
                     tint = Color.White,
-                    modifier = Modifier.size(55.dp)
+                    modifier = Modifier.size(iconSize.dp)
                 )
             }
         }
 
-        IconButton(
-            onClick = { onClickEdit() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .clip(CircleShape)
-                .background(Color.White)
-                .border(1.dp, colorResource(id = R.color.blue1), CircleShape)
-                .size(30.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit Icon",
-                tint = colorResource(id = R.color.blue1),
-                modifier = Modifier.size(20.dp)
-            )
+        if (editable) {
+            IconButton(
+                onClick = { onClickEdit() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .border(1.dp, colorResource(id = R.color.blue1), CircleShape)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Icon",
+                    tint = colorResource(id = R.color.blue1),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
