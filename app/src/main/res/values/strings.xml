@@ -18,7 +18,7 @@
     <string name="login">INGRESAR</string>
     <string name="connect_with">Conectate con:</string>
     <string name="no_account">Aún no tienes cuenta?</string>
-    <string name="register_here">Registrate Aquí</string>
+    <string name="register_here">Registrate aquí</string>
 
     <string name="register">¡Registrate!</string>
     <string name="personal_information">Información personal</string>
@@ -52,6 +52,7 @@
 
     <string name="required_field">Este campo es requerido</string>
     <string name="invalid_email">Correo electrónico inválido</string>
+    <string name="wrong_password">Contraseña incorrecta</string>
 
     <string name="back">Regresar</string>
     <string name="input_email_message">Ingresa tu correo electrónico, te enviaremos un enlace para restablecer tu contraseña.</string>
@@ -144,8 +145,8 @@
     <string name="start_one_now">¡Inicia uno ahora!</string>
     <string name="profile">Perfil</string>
     <string name="trips_made">Viajes realizados</string>
-    <string name="km_made">Kilómetros Recorridos</string>
-    <string name="close_session">Cerrar Sesión</string>
+    <string name="km_made">Kilómetros recorridos</string>
+    <string name="close_session">Cerrar sesión</string>
     <string name="share">Compartir</string>
     <string name="finish">Finalizar</string>
 
@@ -160,9 +161,9 @@
     <string name="time">Tiempo</string>
     <string name="of_wait">de espera</string>
 
-    <string name="without_recharges">Sin Recargos</string>
+    <string name="without_recharges">Sin recargos</string>
     <string name="recharges">Recargos</string>
-    <string name="airport_surcharge">Recargo Aeropuerto</string>
+    <string name="airport_surcharge">Recargo aeropuerto</string>
     <string name="holiday_surcharge">Recargo nocturno dominical o festivo</string>
     <string name="holiday_surcharge_only">Recargo dominical o festivo</string>
     <string name="night_surcharge_only">Recargo nocturno</string>
@@ -207,7 +208,7 @@
     <string name="error_fetching_trips">Ha ocurrido un error al intentar obtener tus viajes.</string>
     <string name="error_updating_profile">Ha ocurrido un error al actualizar la información del perfil.</string>
 
-    <string name="profile_updated">¡Perfil Actualizado!</string>
+    <string name="profile_updated">¡Perfil actualizado!</string>
     <string name="user_updated_successfully">La información de tu perfil ha sido actualizada correctamente.</string>
     <string name="accept">Aceptar</string>
 
@@ -216,7 +217,7 @@
 
     <string name="error_deleting_account">Ha ocurrido un error al intentar eliminar tu cuenta. Por favor, inténtalo de nuevo.</string>
 
-    <string name="delete_trip">Eliminar Viaje</string>
+    <string name="delete_trip">Eliminar viaje</string>
     <string name="delete_trip_message">¿Eliminar este viaje? No podrás recuperarlo.</string>
     <string name="delete">Eliminar</string>
 
@@ -270,7 +271,7 @@
 
     <string name="background_location_permission_error">Vaya por favor a Ajustes, Aplicaciones, seleccione MiTarifaMiTaxi y conceda el permiso de ubicación "Permitir todo el tiempo" para que la app funcione correctamente.</string>
 
-    <string name="grant_permission">Conceder Permiso</string>
+    <string name="grant_permission">Conceder permiso</string>
 
     <string name="notification_permission_denied">El permiso de notificaciones ha sido denegado, conceda el permiso de notificaciones para que la app funcione correctamente.</string>
 
