@@ -25,12 +25,30 @@ import kotlinx.coroutines.tasks.await
 class RegisterViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
 
     private val appContext = context.applicationContext
+
     var firstName by mutableStateOf("")
+    var firstNameIsValid by mutableStateOf(true)
+    var firstNameErrorMessage by mutableStateOf("")
+
     var lastName by mutableStateOf("")
+    var lastNameIsValid by mutableStateOf(true)
+    var lastNameErrorMessage by mutableStateOf("")
+
     var mobilePhone by mutableStateOf("")
+    var mobilePhoneIsValid by mutableStateOf(true)
+    var mobilePhoneErrorMessage by mutableStateOf("")
+
     var email by mutableStateOf("")
+    var emailIsValid by mutableStateOf(true)
+    var emailErrorMessage by mutableStateOf("")
+
     var password by mutableStateOf("")
+    var passwordIsValid by mutableStateOf(true)
+    var passwordErrorMessage by mutableStateOf("")
+
     var confirmPassword by mutableStateOf("")
+    var confirmPasswordIsValid by mutableStateOf(true)
+    var confirmPasswordErrorMessage by mutableStateOf("")
 
     init {
         if (Constants.IS_DEV) {
@@ -43,42 +61,42 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         }
     }
 
+    private fun validateFields(): Boolean {
+        firstNameIsValid = firstName.isNotEmpty()
+        if (!firstNameIsValid) firstNameErrorMessage = appContext.getString(R.string.required_field)
+
+        lastNameIsValid = lastName.isNotEmpty()
+        if (!lastNameIsValid) lastNameErrorMessage = appContext.getString(R.string.required_field)
+
+        mobilePhoneIsValid = mobilePhone.length == 10
+        if (!mobilePhoneIsValid) {
+            mobilePhoneErrorMessage = if (mobilePhone.isEmpty()) appContext.getString(R.string.required_field)
+            else appContext.getString(R.string.invalid_phone_length)
+        }
+
+        emailIsValid = email.isValidEmail()
+        if (!emailIsValid) {
+            emailErrorMessage = if (email.isEmpty()) appContext.getString(R.string.required_field)
+            else appContext.getString(R.string.error_invalid_email)
+        }
+
+        passwordIsValid = password.isValidPassword()
+        if (!passwordIsValid) {
+            passwordErrorMessage = if (password.isEmpty()) appContext.getString(R.string.required_field)
+            else appContext.getString(R.string.error_invalid_password)
+        }
+
+        confirmPasswordIsValid = password == confirmPassword
+        if (!confirmPasswordIsValid) {
+            confirmPasswordErrorMessage = if (confirmPassword.isEmpty()) appContext.getString(R.string.required_field)
+            else appContext.getString(R.string.passwords_do_not_match)
+        }
+
+        return firstNameIsValid && lastNameIsValid && mobilePhoneIsValid && emailIsValid && passwordIsValid && confirmPasswordIsValid
+    }
+
     fun register(onResult: (Pair<Boolean, String?>) -> Unit) {
-        // Login logic
-        if (firstName.isEmpty() || lastName.isEmpty() || mobilePhone.isEmpty() || email.isEmpty() || password.isEmpty()) {
-
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.all_fields_required),
-            )
-            return
-        }
-
-        if (!email.isValidEmail()) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.error_invalid_email),
-            )
-            return
-        }
-
-        if (!password.isValidPassword()) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.error_invalid_password)
-            )
-            return
-        }
-
-        if (password != confirmPassword) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.passwords_do_not_match),
-            )
+        if (!validateFields()) {
             return
         }
 

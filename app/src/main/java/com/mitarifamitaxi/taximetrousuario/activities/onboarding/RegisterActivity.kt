@@ -131,6 +131,8 @@ class RegisterActivity : BaseActivity() {
                                     onValueChange = { viewModel.firstName = it },
                                     placeholder = stringResource(id = R.string.firstName),
                                     leadingIcon = Icons.Rounded.Person,
+                                    isError = !viewModel.firstNameIsValid,
+                                    errorMessage = viewModel.firstNameErrorMessage,
                                 )
 
                                 CustomTextField(
@@ -138,6 +140,8 @@ class RegisterActivity : BaseActivity() {
                                     onValueChange = { viewModel.lastName = it },
                                     placeholder = stringResource(id = R.string.lastName),
                                     leadingIcon = Icons.Rounded.Person,
+                                    isError = !viewModel.lastNameIsValid,
+                                    errorMessage = viewModel.lastNameErrorMessage,
                                 )
 
                                 CustomTextField(
@@ -145,7 +149,9 @@ class RegisterActivity : BaseActivity() {
                                     onValueChange = { viewModel.mobilePhone = it },
                                     placeholder = stringResource(id = R.string.mobilePhone),
                                     leadingIcon = Icons.Rounded.PhoneIphone,
-                                    keyboardType = KeyboardType.Companion.Phone
+                                    keyboardType = KeyboardType.Companion.Phone,
+                                    isError = !viewModel.mobilePhoneIsValid,
+                                    errorMessage = viewModel.mobilePhoneErrorMessage,
                                 )
 
                                 CustomTextField(
@@ -153,7 +159,9 @@ class RegisterActivity : BaseActivity() {
                                     onValueChange = { viewModel.email = it },
                                     placeholder = stringResource(id = R.string.email),
                                     leadingIcon = Icons.Rounded.Mail,
-                                    keyboardType = KeyboardType.Companion.Email
+                                    keyboardType = KeyboardType.Companion.Email,
+                                    isError = !viewModel.emailIsValid,
+                                    errorMessage = viewModel.emailErrorMessage
                                 )
 
                                 CustomTextField(
@@ -162,6 +170,8 @@ class RegisterActivity : BaseActivity() {
                                     placeholder = stringResource(id = R.string.password),
                                     isSecure = true,
                                     leadingIcon = Icons.Rounded.Lock,
+                                    isError = !viewModel.passwordIsValid,
+                                    errorMessage = viewModel.passwordErrorMessage,
                                 )
 
                                 CustomTextField(
@@ -170,6 +180,8 @@ class RegisterActivity : BaseActivity() {
                                     placeholder = stringResource(id = R.string.confirm_password),
                                     isSecure = true,
                                     leadingIcon = Icons.Rounded.Lock,
+                                    isError = !viewModel.confirmPasswordIsValid,
+                                    errorMessage = viewModel.confirmPasswordErrorMessage
                                 )
                             }
 

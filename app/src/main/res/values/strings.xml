@@ -51,12 +51,12 @@
     <string name="login_here">Inicia sesión aquí</string>
 
     <string name="required_field">Este campo es requerido</string>
+    <string name="invalid_phone_length">El número de celular debe tener 10 carácteres.</string>
     <string name="invalid_email">Correo electrónico inválido</string>
     <string name="wrong_password">Contraseña incorrecta</string>
 
     <string name="back">Regresar</string>
     <string name="input_email_message">Ingresa tu correo electrónico, te enviaremos un enlace para restablecer tu contraseña.</string>
-
 
     <string name="recoveryEmailSent">¡Correo enviado!</string>
     <string name="weHaveSentRecoveryEmailPassword">Por favor revisa tu correo para restablecer tu contraseña.</string>
