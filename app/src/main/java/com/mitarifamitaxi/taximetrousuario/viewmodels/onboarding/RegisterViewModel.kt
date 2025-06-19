@@ -1,10 +1,14 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -25,6 +29,12 @@ import kotlinx.coroutines.tasks.await
 class RegisterViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
 
     private val appContext = context.applicationContext
+
+    var imageUri by mutableStateOf<Uri?>(null)
+    var tempImageUri by mutableStateOf<Uri?>(null)
+
+    var showDialog by mutableStateOf(false)
+
     var firstName by mutableStateOf("")
     var lastName by mutableStateOf("")
     var mobilePhone by mutableStateOf("")
@@ -32,7 +42,12 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
 
+    var hasCameraPermission by mutableStateOf(false)
+        private set
+
     init {
+        checkCameraPermission()
+
         if (Constants.IS_DEV) {
             firstName = "Mateo"
             lastName = "Ortiz"
@@ -40,6 +55,28 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
             email = "mateotest1@yopmail.com"
             password = "12345678"
             confirmPassword = "12345678"
+        }
+    }
+
+
+    private fun checkCameraPermission() {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun onPermissionResult(isGranted: Boolean) {
+        hasCameraPermission = isGranted
+    }
+
+    fun onImageSelected(uri: Uri?) {
+        imageUri = uri
+    }
+
+    fun onImageCaptured(success: Boolean) {
+        if (success) {
+            imageUri = tempImageUri
         }
     }
 
