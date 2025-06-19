@@ -42,6 +42,7 @@ fun CustomTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     isSecure: Boolean = false,
+    isEnabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     leadingIcon: ImageVector,
     trailingIcon: ImageVector? = null,
@@ -58,6 +59,7 @@ fun CustomTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = isEnabled,
             label = {
                 Text(
                     text = placeholder,
@@ -120,6 +122,11 @@ fun CustomTextField(
                 errorCursorColor = colorResource(id = R.color.main),
                 errorIndicatorColor = colorResource(id = R.color.red),
                 errorPlaceholderColor = colorResource(id = R.color.red),
+
+                disabledContainerColor = colorResource(id = R.color.transparent),
+                disabledIndicatorColor = colorResource(id = R.color.transparent),
+                disabledTextColor = colorResource(id = R.color.gray1),
+                disabledLabelColor = colorResource(id = R.color.gray1),
 
             ),
             textStyle = TextStyle(

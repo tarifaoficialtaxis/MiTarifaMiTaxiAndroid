@@ -102,8 +102,8 @@ class RoutePlannerActivity : BaseActivity() {
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
                 LatLng(
-                    appViewModel.userData?.location?.latitude ?: 4.60971,
-                    appViewModel.userData?.location?.longitude ?: -74.08175
+                    appViewModel.userLocation?.latitude ?: 4.60971,
+                    appViewModel.userLocation?.longitude ?: -74.08175
                 ), 15f
             )
         }

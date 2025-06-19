@@ -7,3 +7,11 @@ fun String.isValidEmail(): Boolean {
 fun String.getShortAddress(): String {
     return this.split(",").getOrNull(0) ?: ""
 }
+
+fun String.isValidPassword(): Boolean {
+    val minLength = 8
+    val hasNumber = this.any { it.isDigit() }
+    val hasSymbol = this.any { !it.isLetterOrDigit() }
+
+    return this.length >= minLength && hasNumber && hasSymbol
+}

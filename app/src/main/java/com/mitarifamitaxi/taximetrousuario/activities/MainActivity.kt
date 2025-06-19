@@ -28,6 +28,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 
 class MainActivity : AppCompatActivity() {
@@ -52,12 +53,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun validateNextScreen() {
-        if (LocalUserManager(this).getUserState() != null) {
 
-            startActivity(
-                Intent(this, HomeActivity::class.java)
-            )
-            finish()
+        val userState = LocalUserManager(this).getUserState()
+
+        if (userState != null) {
+
+            if (userState.role == UserRole.DRIVER) {
+
+                if (!userState.frontDrivingLicense.isNullOrEmpty() &&
+                    !userState.backDrivingLicense.isNullOrEmpty() &&
+                    !userState.vehicleBrand.isNullOrEmpty() &&
+                    !userState.vehicleModel.isNullOrEmpty() &&
+                    !userState.vehicleYear.isNullOrEmpty() &&
+                    !userState.vehiclePlate.isNullOrEmpty() &&
+                    !userState.vehicleFrontPicture.isNullOrEmpty() &&
+                    !userState.vehicleBackPicture.isNullOrEmpty() &&
+                    !userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, HomeActivity::class.java)
+                    )
+                    finish()
+                } else {
+                    startActivity(
+                        Intent(this, LoginActivity::class.java)
+                    )
+                    finish()
+                }
+
+            } else {
+                startActivity(
+                    Intent(this, HomeActivity::class.java)
+                )
+                finish()
+            }
+
 
         } else {
             if (hasUserAcceptedTerms()) {
@@ -125,8 +155,7 @@ class MainActivity : AppCompatActivity() {
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                     this.player = player
                 }
-            }
-        )
+            })
     }
 
 

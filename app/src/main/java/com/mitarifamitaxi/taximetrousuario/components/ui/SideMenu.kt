@@ -2,7 +2,6 @@ package com.mitarifamitaxi.taximetrousuario.components.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.outlined.Home
@@ -48,15 +45,25 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.core.net.toUri
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 @Composable
-fun DrawerContent(
+fun SideMenu(
     userData: LocalUser,
     onProfileClicked: () -> Unit,
     onSectionClicked: (ItemSideMenu) -> Unit
 ) {
 
-    val sideMenuItems = sideMenuItems()
+    val sideMenuItems = sideMenuItems(userData)
+
+    val itemLogOut = ItemSideMenu(
+        id = "LOGOUT",
+        icon = Icons.AutoMirrored.Filled.Logout,
+        iconColor = colorResource(id = R.color.red1),
+        name = stringResource(id = R.string.close_session)
+    )
 
     ModalDrawerSheet(
         drawerShape = RoundedCornerShape(0.dp),
@@ -74,7 +81,7 @@ fun DrawerContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(110.dp)
+                    .height(120.dp)
                     .background(
                         colorResource(id = R.color.main),
                         shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
@@ -109,22 +116,13 @@ fun DrawerContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(11.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(65.dp)
-                                .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                                .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "content description",
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(45.dp),
-                                tint = colorResource(id = R.color.white),
 
-                                )
-                        }
+                        ProfilePictureBox(
+                            imageUri = userData.profilePicture?.toUri(),
+                            editable = false,
+                            boxSize = 65,
+                            iconSize = 40
+                        )
 
                         Column {
                             Text(
@@ -186,8 +184,6 @@ fun DrawerContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
                 Text(
                     text = stringResource(
                         id = R.string.version_param,
@@ -201,6 +197,24 @@ fun DrawerContent(
                         .padding(20.dp)
                         .align(Alignment.CenterHorizontally)
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { onSectionClicked(itemLogOut) },
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent
+                    ),
+                    shape = RectangleShape,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp)
+                ) {
+                    SideMenuItemRow(itemLogOut, showDivider = false)
+                }
+
+
             }
 
 
@@ -209,8 +223,8 @@ fun DrawerContent(
 }
 
 @Composable
-fun sideMenuItems(): List<ItemSideMenu> {
-    return listOf(
+fun sideMenuItems(userData: LocalUser): List<ItemSideMenu> {
+    return listOfNotNull(
         ItemSideMenu(
             id = "HOME",
             icon = Icons.Outlined.Home,
@@ -229,12 +243,12 @@ fun sideMenuItems(): List<ItemSideMenu> {
             iconColor = colorResource(id = R.color.red1),
             name = stringResource(id = R.string.sos)
         ),
-        ItemSideMenu(
+        if (userData.role == UserRole.USER) ItemSideMenu(
             id = "PQRS",
             icon = Icons.AutoMirrored.Outlined.Chat,
             iconColor = colorResource(id = R.color.blue2),
             name = stringResource(id = R.string.pqrs)
-        ),
+        ) else null,
         ItemSideMenu(
             id = "MY_TRIPS",
             icon = Icons.Default.Speed,
@@ -245,7 +259,7 @@ fun sideMenuItems(): List<ItemSideMenu> {
 }
 
 @Composable
-fun SideMenuItemRow(item: ItemSideMenu) {
+fun SideMenuItemRow(item: ItemSideMenu, showDivider: Boolean = true) {
 
     Column {
         Row(
@@ -268,15 +282,16 @@ fun SideMenuItemRow(item: ItemSideMenu) {
                 fontWeight = FontWeight.Bold,
             )
 
-
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(colorResource(id = R.color.gray3))
-        )
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(colorResource(id = R.color.gray3))
+            )
+        }
     }
 
 

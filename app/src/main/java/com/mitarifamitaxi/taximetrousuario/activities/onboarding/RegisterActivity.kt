@@ -41,8 +41,11 @@ import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
+import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModelFactory
@@ -57,7 +60,9 @@ class RegisterActivity : BaseActivity() {
     override fun Content() {
         MainView(
             onLoginClicked = {
-                finish()
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
             },
             onRegisterClicked = {
                 viewModel.register { registerResult ->
@@ -87,35 +92,7 @@ class RegisterActivity : BaseActivity() {
                         .background(colorResource(id = R.color.white))
                 ) {
 
-                    Box(
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                            .height(220.dp)
-                            .background(colorResource(id = R.color.black))
-                    ) {
-
-                        Box(
-                            modifier = Modifier.Companion
-                                .fillMaxSize()
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.city_background2),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                                    .align(Alignment.Companion.BottomCenter)
-                                    .offset(y = 20.dp)
-                            )
-
-                            Image(
-                                painter = painterResource(id = R.drawable.logo3),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .height(134.dp)
-                                    .align(Alignment.Companion.Center)
-                            )
-                        }
-                    }
+                    RegisterHeaderBox()
 
                     Card(
                         modifier = Modifier.Companion
@@ -199,48 +176,18 @@ class RegisterActivity : BaseActivity() {
                             Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                             CustomButton(
-                                text = stringResource(id = R.string.register).uppercase(),
-                                onClick = { onRegisterClicked() }
+                                text = stringResource(id = R.string.register_action).uppercase(),
+                                onClick = { onRegisterClicked() },
+                                modifier = Modifier.Companion
+                                    .fillMaxWidth()
                             )
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                            Button(
-                                onClick = { onLoginClicked() },
-                                modifier = Modifier.Companion
-                                    .fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = colorResource(id = R.color.transparent),
-                                ),
-                                contentPadding = PaddingValues(0.dp)
+                            OnboardingBottomLink(
+                                text = stringResource(id = R.string.already_account),
+                                linkText = stringResource(id = R.string.login_here)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.Companion.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        10.dp,
-                                        Alignment.Companion.CenterHorizontally
-                                    ),
-                                    modifier = Modifier.Companion
-                                        .fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.already_account),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Medium,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.gray1),
-                                    )
-
-                                    Text(
-                                        text = stringResource(id = R.string.login_here),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Bold,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.main),
-                                    )
-                                }
+                                onLoginClicked()
                             }
-
 
                         }
                     }

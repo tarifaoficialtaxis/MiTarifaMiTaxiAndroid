@@ -14,6 +14,7 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
+import com.mitarifamitaxi.taximetrousuario.helpers.isValidPassword
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
@@ -59,6 +60,15 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.something_went_wrong),
                 message = appContext.getString(R.string.error_invalid_email),
+            )
+            return
+        }
+
+        if (!password.isValidPassword()) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.something_went_wrong),
+                message = appContext.getString(R.string.error_invalid_password)
             )
             return
         }

@@ -21,6 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalTaxi
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Button
@@ -43,10 +45,18 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepFourActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepOneActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepThreeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
+import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
 
@@ -61,17 +71,78 @@ class LoginActivity : BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             viewModel.handleSignInResult(result.data) { signInResult ->
-                if (signInResult.first == "home") {
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    finish()
-                } else if (signInResult.first == "complete_profile") {
-                    val userJson = Gson().toJson(signInResult.second)
-                    val intent = Intent(this, CompleteProfileActivity::class.java)
-                    intent.putExtra("user_data", userJson)
-                    startActivity(intent)
+                viewModel.mustCompleteProfile = signInResult.first
+                viewModel.tempUserData = signInResult.second
+                if (viewModel.mustCompleteProfile) {
+                    viewModel.showDialog = true
+                } else {
+                    validateNextScreen()
                 }
             }
         }
+    }
+
+    private fun validateNextScreen(tempUserRole: UserRole? = null) {
+        val userState = LocalUserManager(this).getUserState()
+        if (userState != null) {
+
+            if (userState.role == UserRole.DRIVER) {
+
+                if (userState.frontDrivingLicense.isNullOrEmpty() ||
+                    userState.backDrivingLicense.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepTwoActivity::class.java)
+                    )
+                } else if (userState.vehicleBrand.isNullOrEmpty() ||
+                    userState.vehicleModel.isNullOrEmpty() ||
+                    userState.vehicleYear.isNullOrEmpty() ||
+                    userState.vehiclePlate.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepThreeActivity::class.java)
+                    )
+                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
+                    userState.vehicleBackPicture.isNullOrEmpty() ||
+                    userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepFourActivity::class.java)
+                    )
+                } else {
+                    startActivity(
+                        Intent(this, HomeActivity::class.java)
+                    )
+                    finish()
+                }
+            } else if (userState.role == UserRole.USER) {
+                startActivity(
+                    Intent(this, HomeActivity::class.java)
+                )
+                finish()
+            }
+        } else {
+            if (viewModel.mustCompleteProfile) {
+                if (tempUserRole == UserRole.DRIVER) {
+                    startActivity(
+                        Intent(this, RegisterDriverStepOneActivity::class.java)
+                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                    )
+                } else {
+                    startActivity(
+                        Intent(this, CompleteProfileActivity::class.java)
+                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                    )
+                }
+            } else {
+                if (tempUserRole == UserRole.DRIVER) {
+                    startActivity(Intent(this, RegisterDriverStepOneActivity::class.java))
+                } else {
+                    startActivity(Intent(this, RegisterActivity::class.java))
+                }
+            }
+        }
+
     }
 
     @Composable
@@ -83,12 +154,11 @@ class LoginActivity : BaseActivity() {
             },
             onLoginClicked = {
                 viewModel.login {
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    finish()
+                    validateNextScreen()
                 }
             },
             onRegisterClicked = {
-                startActivity(Intent(this, RegisterActivity::class.java))
+                viewModel.showDialog = true
             },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
@@ -97,6 +167,23 @@ class LoginActivity : BaseActivity() {
                 }
             }
         )
+
+        if (viewModel.showDialog) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_one_option),
+                primaryTitle = stringResource(id = R.string.user),
+                secondaryTitle = stringResource(id = R.string.driver),
+                primaryIcon = Icons.Default.Person,
+                secondaryIcon = Icons.Default.LocalTaxi,
+                onDismiss = { viewModel.showDialog = false },
+                onPrimaryActionClicked = {
+                    validateNextScreen(tempUserRole = UserRole.USER)
+                },
+                onSecondaryActionClicked = {
+                    validateNextScreen(tempUserRole = UserRole.DRIVER)
+                }
+            )
+        }
     }
 
 
@@ -241,13 +328,13 @@ class LoginActivity : BaseActivity() {
                                 modifier = Modifier.Companion
                                     .padding(vertical = 29.dp)
                             ) {
-
                                 CustomButton(
                                     text = stringResource(id = R.string.login).uppercase(),
                                     onClick = { onLoginClicked() }
                                 )
                             }
 
+                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                             Row(
                                 verticalAlignment = Alignment.Companion.CenterVertically,
@@ -279,7 +366,6 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
 
 
                             Button(
@@ -287,6 +373,7 @@ class LoginActivity : BaseActivity() {
                                     onGoogleSignIn()
                                 },
                                 modifier = Modifier.Companion
+                                    .padding(top = 29.dp)
                                     .width(133.dp)
                                     .height(45.dp),
                                 contentPadding = PaddingValues(0.dp)
@@ -299,45 +386,12 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                            Button(
-                                onClick = { onRegisterClicked() },
-                                modifier = Modifier.Companion
-                                    //.background(colorResource(id = R.color.main))
-                                    .fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = colorResource(id = R.color.transparent),
-                                ),
-                                contentPadding = PaddingValues(0.dp)
+                            OnboardingBottomLink(
+                                text = stringResource(id = R.string.no_account),
+                                linkText = stringResource(id = R.string.register_here)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.Companion.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        10.dp,
-                                        Alignment.Companion.CenterHorizontally
-                                    ),
-                                    modifier = Modifier.Companion
-                                        .fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.no_account),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Medium,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.gray1),
-                                    )
-
-                                    Text(
-                                        text = stringResource(id = R.string.register_here),
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Bold,
-                                        fontSize = 14.sp,
-                                        color = colorResource(id = R.color.main),
-                                    )
-                                }
+                                onRegisterClicked()
                             }
-
 
                         }
                     }

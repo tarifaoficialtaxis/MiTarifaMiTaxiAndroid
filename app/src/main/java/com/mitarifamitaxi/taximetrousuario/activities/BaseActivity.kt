@@ -17,15 +17,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
+import com.mitarifamitaxi.taximetrousuario.activities.profile.driver.DriverProfileActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
 import com.mitarifamitaxi.taximetrousuario.activities.routeplanner.RoutePlannerActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPopupDialog
-import com.mitarifamitaxi.taximetrousuario.components.ui.DrawerContent
+import com.mitarifamitaxi.taximetrousuario.components.ui.SideMenu
+import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.launch
@@ -68,9 +72,19 @@ open class BaseActivity : ComponentActivity() {
                     onMenuSectionClicked = { sectionId ->
                         when (sectionId) {
                             "PROFILE" -> {
-                                if (this !is ProfileActivity) {
-                                    startActivity(Intent(this, ProfileActivity::class.java))
+
+                                if (appViewModel.userData?.role == UserRole.USER) {
+                                    if (this !is ProfileActivity) {
+                                        startActivity(Intent(this, ProfileActivity::class.java))
+                                    }
+                                } else if (appViewModel.userData?.role == UserRole.DRIVER) {
+                                    if (this !is DriverProfileActivity) {
+                                        startActivity(
+                                            Intent(this, DriverProfileActivity::class.java)
+                                        )
+                                    }
                                 }
+
                             }
 
                             "HOME" -> {
@@ -102,6 +116,17 @@ open class BaseActivity : ComponentActivity() {
                                     startActivity(Intent(this, MyTripsActivity::class.java))
                                 }
                             }
+
+                            "LOGOUT" -> {
+                                LocalUserManager(this).deleteUserState()
+                                val intent = Intent(this, LoginActivity::class.java).apply {
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                                startActivity(intent)
+                                finish()
+                            }
+
                         }
                     }
                 )
@@ -132,7 +157,7 @@ open class BaseActivity : ComponentActivity() {
                     drawerState = drawerState,
                     drawerContent = {
                         appViewModel.userData?.let { userData ->
-                            DrawerContent(
+                            SideMenu(
                                 userData = userData,
                                 onProfileClicked = { handleMenuClick("PROFILE") },
                                 onSectionClicked = { handleMenuClick(it.id) }

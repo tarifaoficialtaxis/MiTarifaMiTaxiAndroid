@@ -31,12 +31,14 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.SetOptions
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getCityFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.models.toUpdateMapReflective
 import java.util.Date
 import java.util.concurrent.Executor
 
@@ -51,6 +53,7 @@ class AppViewModel(context: Context) : ViewModel() {
     var isLoading by mutableStateOf(false)
 
     var userData: LocalUser? by mutableStateOf(null)
+    var userLocation: UserLocation? by mutableStateOf(null)
 
     var dialogType by mutableStateOf(DialogType.SUCCESS)
     var showDialog by mutableStateOf(false)
@@ -225,7 +228,7 @@ class AppViewModel(context: Context) : ViewModel() {
         task.addOnSuccessListener(executor) { location ->
             if (location != null) {
 
-                val previousUserLocation = userData?.location
+                val previousUserLocation = userLocation
                 val locationChanged = previousUserLocation == null ||
                         previousUserLocation.latitude != location.latitude ||
                         previousUserLocation.longitude != location.longitude
@@ -236,6 +239,11 @@ class AppViewModel(context: Context) : ViewModel() {
                         _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
                     }
                     return@addOnSuccessListener
+                } else {
+                    userLocation = UserLocation(
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
                 }
 
                 viewModelScope.launch {
@@ -246,10 +254,6 @@ class AppViewModel(context: Context) : ViewModel() {
                         callbackSuccess = { city, countryCode, countryCodeWhatsapp, countryCurrency ->
                             isGettingLocation = false
                             updateUserData(
-                                location = UserLocation(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                ),
                                 city = city ?: "",
                                 countryCode = countryCode ?: "",
                                 countryCodeWhatsapp = countryCodeWhatsapp ?: "",
@@ -293,14 +297,12 @@ class AppViewModel(context: Context) : ViewModel() {
     }
 
     private fun updateUserData(
-        location: UserLocation,
         city: String,
         countryCode: String,
         countryCodeWhatsapp: String,
         countryCurrency: String
     ) {
         userData = userData?.copy(
-            location = location,
             city = city,
             countryCode = countryCode,
             countryCodeWhatsapp = countryCodeWhatsapp,
@@ -315,26 +317,31 @@ class AppViewModel(context: Context) : ViewModel() {
 
     }
 
-    private fun updateUserDataOnFirebase(user: LocalUser) {
-        val db = FirebaseFirestore.getInstance()
-        user.id?.let { userId ->
-            db.collection("users")
-                .document(userId)
-                .set(user)
-                .addOnSuccessListener {
-                    Log.d("HomeViewModel", "User data updated in Firestore")
-                    viewModelScope.launch {
-                        _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e("HomeViewModel", "Failed to update user data in Firestore: ${e.message}")
+    fun updateUserDataOnFirebase(
+        user: LocalUser
+    ) {
+        viewModelScope.launch {
+            try {
+                val userId = user.id ?: throw IllegalArgumentException("User ID is null")
+                val data = user.toUpdateMapReflective()
+
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(userId)
+                    .set(data, SetOptions.merge())
+                    .await()
+                Log.d("HomeViewModel", "User data updated in Firestore")
+                _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Failed to update user data in Firestore: ${e.message}")
+                withContext(Dispatchers.Main) {
                     showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.error_fetching_location)
+                        message = appContext.getString(R.string.general_error)
                     )
                 }
+            }
         }
     }
 
