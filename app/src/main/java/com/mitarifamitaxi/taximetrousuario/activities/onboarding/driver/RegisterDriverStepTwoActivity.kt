@@ -42,6 +42,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoCardSelector
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
 import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepTwoViewModelFactory
@@ -98,12 +99,13 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
         ) { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (isGranted) {
-                viewModel.createTempImageUri()
                 if (viewModel.isFrontImageSelected) {
+                    viewModel.frontTempImageUri = createTempImageUri(this)
                     viewModel.frontTempImageUri?.let { uri ->
                         takePictureLauncher.launch(uri)
                     }
                 } else {
+                    viewModel.backTempImageUri = createTempImageUri(this)
                     viewModel.backTempImageUri?.let { uri ->
                         takePictureLauncher.launch(uri)
                     }
@@ -115,12 +117,13 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
             onCameraClicked = { isFront ->
                 viewModel.isFrontImageSelected = isFront
                 if (viewModel.hasCameraPermission) {
-                    viewModel.createTempImageUri()
                     if (isFront) {
+                        viewModel.frontTempImageUri = createTempImageUri(this)
                         viewModel.frontTempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }
                     } else {
+                        viewModel.backTempImageUri = createTempImageUri(this)
                         viewModel.backTempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }
