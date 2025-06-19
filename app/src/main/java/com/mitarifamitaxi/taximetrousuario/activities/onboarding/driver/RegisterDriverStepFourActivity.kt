@@ -43,6 +43,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.PhotoCardSelector
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel.StepFourUpdateEvent
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepFourViewModel.VehiclePhotoType
@@ -99,17 +100,18 @@ class RegisterDriverStepFourActivity : BaseActivity() {
         ) { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (isGranted) {
-                viewModel.createTempImageUri()
-
                 if (viewModel.vehiclePhotoType == VehiclePhotoType.FRONT) {
+                    viewModel.frontTempImageUri = createTempImageUri(this)
                     viewModel.frontTempImageUri?.let { uri ->
                         takePictureLauncher.launch(uri)
                     }
                 } else if (viewModel.vehiclePhotoType == VehiclePhotoType.BACK) {
+                    viewModel.backTempImageUri = createTempImageUri(this)
                     viewModel.backTempImageUri?.let { uri ->
                         takePictureLauncher.launch(uri)
                     }
                 } else if (viewModel.vehiclePhotoType == VehiclePhotoType.SIDE) {
+                    viewModel.sideTempImageUri = createTempImageUri(this)
                     viewModel.sideTempImageUri?.let { uri ->
                         takePictureLauncher.launch(uri)
                     }
@@ -121,17 +123,18 @@ class RegisterDriverStepFourActivity : BaseActivity() {
             onCameraClicked = { type ->
                 viewModel.vehiclePhotoType = type
                 if (viewModel.hasCameraPermission) {
-                    viewModel.createTempImageUri()
-
                     if (viewModel.vehiclePhotoType == VehiclePhotoType.FRONT) {
+                        viewModel.frontTempImageUri = createTempImageUri(this)
                         viewModel.frontTempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }
                     } else if (viewModel.vehiclePhotoType == VehiclePhotoType.BACK) {
+                        viewModel.backTempImageUri = createTempImageUri(this)
                         viewModel.backTempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }
                     } else if (viewModel.vehiclePhotoType == VehiclePhotoType.SIDE) {
+                        viewModel.sideTempImageUri = createTempImageUri(this)
                         viewModel.sideTempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }

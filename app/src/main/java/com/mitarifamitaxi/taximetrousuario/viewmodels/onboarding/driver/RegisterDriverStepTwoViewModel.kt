@@ -10,31 +10,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Objects
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
-import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.component3
 
 
 class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -46,11 +32,9 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
     var frontImageUri by mutableStateOf<Uri?>(null)
     var frontTempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var backImageUri by mutableStateOf<Uri?>(null)
     var backTempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var hasCameraPermission by mutableStateOf(false)
         private set
@@ -90,24 +74,6 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
             }
         }
     }
-
-    fun createTempImageUri() {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${timeStamp}_"
-        val storageDir = appContext.cacheDir
-        val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-        val tempImageUri = FileProvider.getUriForFile(
-            Objects.requireNonNull(appContext),
-            "${appContext.packageName}.provider",
-            image
-        )
-        if (isFrontImageSelected) {
-            frontTempImageUri = tempImageUri
-        } else {
-            backTempImageUri = tempImageUri
-        }
-    }
-
 
     fun onNext() {
         if (frontImageUri == null || backImageUri == null) {

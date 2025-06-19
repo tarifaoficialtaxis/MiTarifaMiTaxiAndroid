@@ -81,7 +81,7 @@ fun SideMenu(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(110.dp)
+                    .height(120.dp)
                     .background(
                         colorResource(id = R.color.main),
                         shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)

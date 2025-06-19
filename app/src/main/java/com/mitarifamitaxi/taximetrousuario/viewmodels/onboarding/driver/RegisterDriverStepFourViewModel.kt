@@ -11,12 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Objects
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
@@ -48,15 +42,12 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
 
     var frontImageUri by mutableStateOf<Uri?>(null)
     var frontTempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var backImageUri by mutableStateOf<Uri?>(null)
     var backTempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var sideImageUri by mutableStateOf<Uri?>(null)
     var sideTempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var hasCameraPermission by mutableStateOf(false)
         private set
@@ -120,27 +111,6 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
             }
         }
     }
-
-    fun createTempImageUri() {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${timeStamp}_"
-        val storageDir = appContext.cacheDir
-        val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-        val tempImageUri = FileProvider.getUriForFile(
-            Objects.requireNonNull(appContext),
-            "${appContext.packageName}.provider",
-            image
-        )
-
-        if (vehiclePhotoType == VehiclePhotoType.FRONT) {
-            frontTempImageUri = tempImageUri
-        } else if (vehiclePhotoType == VehiclePhotoType.BACK) {
-            backTempImageUri = tempImageUri
-        } else {
-            sideTempImageUri = tempImageUri
-        }
-    }
-
 
     fun onNext() {
         if (frontImageUri == null || backImageUri == null || sideImageUri == null) {

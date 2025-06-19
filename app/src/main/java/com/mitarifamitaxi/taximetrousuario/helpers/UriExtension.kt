@@ -6,7 +6,13 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.Objects
 
 fun Uri.toBitmap(
     context: Context,
@@ -40,4 +46,16 @@ fun Uri.toBitmap(
     if (compressedBytes.size > maxSizeBytes) return null
 
     return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
+}
+
+fun createTempImageUri(appContext: Context): Uri {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val imageFileName = "JPEG_${timeStamp}_"
+    val storageDir = appContext.cacheDir
+    val image = File.createTempFile(imageFileName, ".jpg", storageDir)
+    return FileProvider.getUriForFile(
+        appContext,
+        "${appContext.packageName}.provider",
+        image
+    )
 }

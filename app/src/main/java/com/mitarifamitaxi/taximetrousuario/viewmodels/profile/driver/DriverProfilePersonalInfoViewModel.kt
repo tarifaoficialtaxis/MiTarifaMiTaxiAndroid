@@ -1,10 +1,15 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.profile.driver
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,19 +17,32 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
+import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class DriverProfilePersonalInfoViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
 
     private val appContext = context.applicationContext
+
+    private val originalProfilePictureUrl: String? = appViewModel.userData?.profilePicture
+    var imageUri by mutableStateOf<Uri?>(appViewModel.userData?.profilePicture?.toUri())
+    var tempImageUri by mutableStateOf<Uri?>(null)
+
+    var showDialog by mutableStateOf(false)
+
+    var hasCameraPermission by mutableStateOf(false)
+        private set
 
     var firstName by mutableStateOf(appViewModel.userData?.firstName)
     var lastName by mutableStateOf(appViewModel.userData?.lastName)
@@ -42,6 +60,31 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
 
     sealed class NavigationEvent {
         object Finish : NavigationEvent()
+    }
+
+    init {
+        checkCameraPermission()
+    }
+
+    private fun checkCameraPermission() {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun onPermissionResult(isGranted: Boolean) {
+        hasCameraPermission = isGranted
+    }
+
+    fun onImageSelected(uri: Uri?) {
+        imageUri = uri
+    }
+
+    fun onImageCaptured(success: Boolean) {
+        if (success) {
+            imageUri = tempImageUri
+        }
     }
 
     fun resetHideKeyboardEvent() {
@@ -75,16 +118,43 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
             return
         }
 
+
+        if (imageUri == null) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.error_image_required),
+            )
+            return
+        }
+
         viewModelScope.launch {
             appViewModel.isLoading = true
+
+            val finalImageUrl: String? = if (imageUri.toString() != originalProfilePictureUrl) {
+                val uploadedUrl = withContext(Dispatchers.IO) {
+                    imageUri
+                        ?.toBitmap(appContext)
+                        ?.let { bitmap ->
+                            FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                        }
+                }
+                originalProfilePictureUrl?.let { oldUrl ->
+                    FirebaseStorageUtils.deleteImage(oldUrl)
+                }
+                uploadedUrl
+            } else {
+                originalProfilePictureUrl
+            }
+
             val updatedUser = appViewModel.userData?.copy(
                 firstName = firstName,
                 lastName = lastName,
-                documentNumber = documentNumber,
                 mobilePhone = mobilePhone,
                 email = email,
                 familyNumber = familyNumber,
-                supportNumber = supportNumber
+                supportNumber = supportNumber,
+                profilePicture = finalImageUrl
             )
 
             try {
@@ -99,7 +169,8 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
                                 "mobilePhone" to user.mobilePhone,
                                 "email" to user.email,
                                 "familyNumber" to user.familyNumber,
-                                "supportNumber" to user.supportNumber
+                                "supportNumber" to user.supportNumber,
+                                "profilePicture" to user.profilePicture
                             )
                         ).await()
 
