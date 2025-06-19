@@ -25,6 +25,7 @@ import com.mitarifamitaxi.taximetrousuario.R
 import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
+import com.mitarifamitaxi.taximetrousuario.activities.onboarding.RegisterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
@@ -47,7 +48,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            validateNextScreen()
+            //validateNextScreen()
+            startActivity(
+                Intent(this, RegisterActivity::class.java)
+            )
         }
 
     }

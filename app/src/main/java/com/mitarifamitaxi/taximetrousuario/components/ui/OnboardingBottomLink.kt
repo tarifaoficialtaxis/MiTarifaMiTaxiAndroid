@@ -29,7 +29,7 @@ fun OnboardingBottomLink(
     Button(
         onClick = { onClick() },
         modifier = Modifier.Companion
-            .padding(vertical = 29.dp)
+            .padding(vertical = 20.dp)
             .fillMaxWidth()
             .height(17.dp),
         colors = ButtonDefaults.buttonColors(
