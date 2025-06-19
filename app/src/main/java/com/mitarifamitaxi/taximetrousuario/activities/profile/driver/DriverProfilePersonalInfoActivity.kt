@@ -59,6 +59,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
@@ -171,6 +172,20 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
                     imagePickerLauncher.launch("image/*")
                     viewModel.showDialog = false
                 }
+            )
+        }
+
+        if (viewModel.showPasswordPopUp) {
+            CustomPasswordPopupDialog(
+                title = stringResource(id = R.string.warning),
+                message = stringResource(id = R.string.re_auth_message),
+                buttonText = stringResource(id = R.string.delete_account),
+                onDismiss = { viewModel.showPasswordPopUp = false },
+                onPasswordValid = { password ->
+                    viewModel.showPasswordPopUp = false
+                    viewModel.authenticateUserByEmailAndPassword(password)
+                }
+
             )
         }
 
@@ -294,76 +309,82 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.Companion
                     .padding(top = 20.dp)
                     .padding(horizontal = 29.dp)
-                    .verticalScroll(rememberScrollState())
             ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.Companion
+                        .verticalScroll(rememberScrollState())
+                ) {
 
-                CustomTextField(
-                    value = viewModel.documentNumber ?: "",
-                    onValueChange = { viewModel.documentNumber = it },
-                    placeholder = stringResource(id = R.string.documentNumber).replace("*", ""),
-                    leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
-                    isEnabled = false,
-                    keyboardType = KeyboardType.Companion.Number
-                )
+                    CustomTextField(
+                        value = viewModel.documentNumber ?: "",
+                        onValueChange = { viewModel.documentNumber = it },
+                        placeholder = stringResource(id = R.string.documentNumber).replace("*", ""),
+                        leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
+                        isEnabled = false,
+                        keyboardType = KeyboardType.Companion.Number
+                    )
 
-                CustomTextField(
-                    value = viewModel.firstName ?: "",
-                    onValueChange = { viewModel.firstName = it },
-                    placeholder = stringResource(id = R.string.firstName),
-                    leadingIcon = Icons.Rounded.Person,
-                )
+                    CustomTextField(
+                        value = viewModel.firstName ?: "",
+                        onValueChange = { viewModel.firstName = it },
+                        placeholder = stringResource(id = R.string.firstName),
+                        leadingIcon = Icons.Rounded.Person,
+                    )
 
-                CustomTextField(
-                    value = viewModel.lastName ?: "",
-                    onValueChange = { viewModel.lastName = it },
-                    placeholder = stringResource(id = R.string.lastName),
-                    leadingIcon = Icons.Rounded.Person,
-                )
+                    CustomTextField(
+                        value = viewModel.lastName ?: "",
+                        onValueChange = { viewModel.lastName = it },
+                        placeholder = stringResource(id = R.string.lastName),
+                        leadingIcon = Icons.Rounded.Person,
+                    )
 
-                CustomTextField(
-                    value = viewModel.mobilePhone ?: "",
-                    onValueChange = { viewModel.mobilePhone = it },
-                    placeholder = stringResource(id = R.string.mobilePhone),
-                    leadingIcon = Icons.Rounded.PhoneIphone,
-                    keyboardType = KeyboardType.Companion.Phone
-                )
+                    CustomTextField(
+                        value = viewModel.mobilePhone ?: "",
+                        onValueChange = { viewModel.mobilePhone = it },
+                        placeholder = stringResource(id = R.string.mobilePhone),
+                        leadingIcon = Icons.Rounded.PhoneIphone,
+                        keyboardType = KeyboardType.Companion.Phone
+                    )
 
-                CustomTextField(
-                    value = viewModel.email ?: "",
-                    onValueChange = { viewModel.email = it },
-                    placeholder = stringResource(id = R.string.email),
-                    isEnabled = appViewModel.userData?.authProvider == AuthProvider.email,
-                    leadingIcon = Icons.Rounded.Mail,
-                    keyboardType = KeyboardType.Companion.Email
-                )
+                    CustomTextField(
+                        value = viewModel.email ?: "",
+                        onValueChange = { viewModel.email = it },
+                        placeholder = stringResource(id = R.string.email),
+                        leadingIcon = Icons.Rounded.Mail,
+                        keyboardType = KeyboardType.Companion.Email,
+                        isEnabled = appViewModel.userData?.authProvider == AuthProvider.email,
+                    )
+
+                    CustomTextField(
+                        value = viewModel.familyNumber ?: "",
+                        onValueChange = { viewModel.familyNumber = it },
+                        placeholder = stringResource(id = R.string.family_number),
+                        leadingIcon = Icons.Rounded.FamilyRestroom,
+                        keyboardType = KeyboardType.Companion.Phone
+                    )
+
+                    CustomTextField(
+                        value = viewModel.supportNumber ?: "",
+                        onValueChange = { viewModel.supportNumber = it },
+                        placeholder = stringResource(id = R.string.support_number),
+                        leadingIcon = Icons.Rounded.Groups,
+                        keyboardType = KeyboardType.Companion.Phone
+                    )
 
 
-                CustomTextField(
-                    value = viewModel.familyNumber ?: "",
-                    onValueChange = { viewModel.familyNumber = it },
-                    placeholder = stringResource(id = R.string.family_number),
-                    leadingIcon = Icons.Rounded.FamilyRestroom,
-                    keyboardType = KeyboardType.Companion.Phone
-                )
+                }
 
-                CustomTextField(
-                    value = viewModel.supportNumber ?: "",
-                    onValueChange = { viewModel.supportNumber = it },
-                    placeholder = stringResource(id = R.string.support_number),
-                    leadingIcon = Icons.Rounded.Groups,
-                    keyboardType = KeyboardType.Companion.Phone
-                )
+                Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                 Column(
                     modifier = Modifier.Companion
-                        .padding(top = 10.dp)
+                        .padding(top = 10.dp, bottom = 20.dp)
                         .fillMaxWidth()
                 ) {
-
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),

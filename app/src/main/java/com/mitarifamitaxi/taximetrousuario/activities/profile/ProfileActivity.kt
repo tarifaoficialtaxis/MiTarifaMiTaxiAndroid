@@ -62,6 +62,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModelFactory
 import kotlinx.coroutines.launch
@@ -400,12 +401,14 @@ class ProfileActivity : BaseActivity() {
                     keyboardType = KeyboardType.Companion.Phone
                 )
 
+
                 CustomTextField(
                     value = viewModel.email ?: "",
                     onValueChange = { viewModel.email = it },
                     placeholder = stringResource(id = R.string.email),
                     leadingIcon = Icons.Rounded.Mail,
-                    keyboardType = KeyboardType.Companion.Email
+                    keyboardType = KeyboardType.Companion.Email,
+                    isEnabled = appViewModel.userData?.authProvider == AuthProvider.email
                 )
 
                 CustomTextField(
