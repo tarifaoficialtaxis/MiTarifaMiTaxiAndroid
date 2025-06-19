@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
@@ -58,6 +59,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
@@ -173,9 +175,12 @@ class HomeActivity : BaseActivity() {
                             contentColor = colorResource(id = R.color.white)
                         ),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description"
+
+                        ProfilePictureBox(
+                            imageUri =  appViewModel.userData?.profilePicture?.toUri(),
+                            editable = false,
+                            boxSize = 45,
+                            iconSize = 30
                         )
                     }
 

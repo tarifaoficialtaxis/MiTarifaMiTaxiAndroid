@@ -1,12 +1,13 @@
 package com.mitarifamitaxi.taximetrousuario.activities.profile.driver
 
-import android.content.Intent
+import android.Manifest
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,13 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.rounded.FamilyRestroom
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Mail
@@ -58,10 +58,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.driver.DriverProfilePersonalInfoViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.driver.DriverProfilePersonalInfoViewModelFactory
@@ -74,7 +76,6 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
     private val viewModel: DriverProfilePersonalInfoViewModel by viewModels {
         DriverProfilePersonalInfoViewModelFactory(this, appViewModel)
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,16 +109,35 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
         }
     }
 
-    private fun logOutAction() {
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        finish()
-    }
 
     @Composable
     override fun Content() {
+
+
+        val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+            viewModel.onImageSelected(uri)
+        }
+
+        val takePictureLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture()
+        ) { success ->
+            viewModel.onImageCaptured(success)
+        }
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            viewModel.onPermissionResult(isGranted)
+            if (isGranted) {
+                viewModel.tempImageUri = createTempImageUri(this)
+                viewModel.tempImageUri?.let { uri ->
+                    takePictureLauncher.launch(uri)
+                }
+            }
+        }
+
         MainView(
             onClickBack = {
                 finish()
@@ -127,6 +147,32 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
             }
 
         )
+
+        if (viewModel.showDialog) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_profile_photo),
+                primaryTitle = stringResource(id = R.string.camera),
+                secondaryTitle = stringResource(id = R.string.gallery),
+                primaryIcon = Icons.Default.CameraAlt,
+                secondaryIcon = Icons.Default.Image,
+                onDismiss = { viewModel.showDialog = false },
+                onPrimaryActionClicked = {
+                    if (viewModel.hasCameraPermission) {
+                        viewModel.tempImageUri = createTempImageUri(this)
+                        viewModel.tempImageUri?.let { uri ->
+                            takePictureLauncher.launch(uri)
+                        }
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                    viewModel.showDialog = false
+                },
+                onSecondaryActionClicked = {
+                    imagePickerLauncher.launch("image/*")
+                    viewModel.showDialog = false
+                }
+            )
+        }
 
     }
 
@@ -144,7 +190,7 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
             Box(
                 modifier = Modifier.Companion
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(230.dp)
                     .background(
                         colorResource(id = R.color.main),
                         shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
@@ -212,22 +258,10 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
 
                     }
 
-                    Box(
-                        modifier = Modifier.Companion
-                            .size(90.dp)
-                            .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                            .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description",
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.Center)
-                                .size(66.dp),
-                            tint = colorResource(id = R.color.white),
-
-                            )
-                    }
+                    ProfilePictureBox(
+                        imageUri = viewModel.imageUri,
+                        onClickEdit = { viewModel.showDialog = true }
+                    )
 
                     Text(
                         text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
@@ -268,6 +302,15 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
             ) {
 
                 CustomTextField(
+                    value = viewModel.documentNumber ?: "",
+                    onValueChange = { viewModel.documentNumber = it },
+                    placeholder = stringResource(id = R.string.documentNumber).replace("*", ""),
+                    leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
+                    isEnabled = false,
+                    keyboardType = KeyboardType.Companion.Number
+                )
+
+                CustomTextField(
                     value = viewModel.firstName ?: "",
                     onValueChange = { viewModel.firstName = it },
                     placeholder = stringResource(id = R.string.firstName),
@@ -279,14 +322,6 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
                     onValueChange = { viewModel.lastName = it },
                     placeholder = stringResource(id = R.string.lastName),
                     leadingIcon = Icons.Rounded.Person,
-                )
-
-                CustomTextField(
-                    value = viewModel.documentNumber ?: "",
-                    onValueChange = { viewModel.documentNumber = it },
-                    placeholder = stringResource(id = R.string.documentNumber),
-                    leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
-                    keyboardType = KeyboardType.Companion.Number
                 )
 
                 CustomTextField(

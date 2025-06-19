@@ -89,6 +89,11 @@ class DriverProfileActivity : BaseActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        appViewModel.reloadUserData()
+    }
+
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

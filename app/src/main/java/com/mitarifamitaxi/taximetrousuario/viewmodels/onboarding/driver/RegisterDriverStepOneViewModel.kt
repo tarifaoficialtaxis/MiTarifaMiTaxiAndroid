@@ -12,12 +12,6 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Objects
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -56,7 +50,6 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
 
     var imageUri by mutableStateOf<Uri?>(null)
     var tempImageUri by mutableStateOf<Uri?>(null)
-        private set
 
     var showDialog by mutableStateOf(false)
 
@@ -97,19 +90,6 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
             imageUri = tempImageUri
         }
     }
-
-    fun createTempImageUri() {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${timeStamp}_"
-        val storageDir = appContext.cacheDir
-        val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-        tempImageUri = FileProvider.getUriForFile(
-            Objects.requireNonNull(appContext),
-            "${appContext.packageName}.provider",
-            image
-        )
-    }
-
 
     fun onNextEmailPassword(onSuccess: () -> Unit) {
         if (firstName.isEmpty() ||

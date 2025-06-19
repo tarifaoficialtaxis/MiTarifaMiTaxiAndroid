@@ -123,6 +123,11 @@ fun CustomTextField(
                 errorIndicatorColor = colorResource(id = R.color.red),
                 errorPlaceholderColor = colorResource(id = R.color.red),
 
+                disabledContainerColor = colorResource(id = R.color.transparent),
+                disabledIndicatorColor = colorResource(id = R.color.transparent),
+                disabledTextColor = colorResource(id = R.color.gray1),
+                disabledLabelColor = colorResource(id = R.color.gray1),
+
             ),
             textStyle = TextStyle(
                 fontSize = 14.sp,

@@ -49,6 +49,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.driver.RegisterDriverStepOneViewModel
@@ -100,7 +101,7 @@ class RegisterDriverStepOneActivity : BaseActivity() {
         ) { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (isGranted) {
-                viewModel.createTempImageUri()
+                viewModel.tempImageUri = createTempImageUri(this)
                 viewModel.tempImageUri?.let { uri ->
                     takePictureLauncher.launch(uri)
                 }
@@ -137,7 +138,7 @@ class RegisterDriverStepOneActivity : BaseActivity() {
                 onDismiss = { viewModel.showDialog = false },
                 onPrimaryActionClicked = {
                     if (viewModel.hasCameraPermission) {
-                        viewModel.createTempImageUri()
+                        viewModel.tempImageUri = createTempImageUri(this)
                         viewModel.tempImageUri?.let { uri ->
                             takePictureLauncher.launch(uri)
                         }
