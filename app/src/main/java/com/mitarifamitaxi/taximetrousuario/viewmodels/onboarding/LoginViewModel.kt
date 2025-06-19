@@ -72,19 +72,25 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     fun login(loginSuccess: () -> Unit) {
 
-        userNameIsValid = !userName.isEmpty()
-        passwordIsValid = !password.isEmpty()
+        userNameIsValid = true
+        passwordIsValid = true
 
-        if (!userName.isEmpty()) {
+        if (userName.isEmpty()) {
+            userNameIsValid = false
+            userNameErrorMessage = appContext.getString(R.string.required_field)
 
-            if (!userName.isValidEmail()) {
-                userNameIsValid = false
-                userNameErrorMessage = appContext.getString(R.string.invalid_email)
+        } else if (!userName.isValidEmail()) {
+            userNameIsValid = false
+            userNameErrorMessage = appContext.getString(R.string.invalid_email)
 
-            }
         }
 
-        if (!userNameIsValid && !passwordIsValid) {
+        if (password.isEmpty()) {
+            passwordIsValid = false
+            passwordErrorMessage = appContext.getString(R.string.required_field)
+        }
+
+        if (!userNameIsValid || !passwordIsValid) {
             return
         }
 
@@ -114,22 +120,34 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
                 Log.e(TAG, "Error logging in: ${e.message}")
 
-                val errorMessage = when (e) {
-                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    else -> appContext.getString(R.string.something_went_wrong)
+                when (e) {
+                    is FirebaseAuthInvalidUserException -> {
+                        userNameIsValid = false
+                        userNameErrorMessage = getFirebaseAuthErrorMessage(e.errorCode)
+                    }
+                    is FirebaseAuthInvalidCredentialsException -> {
+                        userNameIsValid = false
+                        passwordIsValid = false
+                        userNameErrorMessage = getFirebaseAuthErrorMessage(e.errorCode)
+                        passwordErrorMessage = getFirebaseAuthErrorMessage(e.errorCode)
+                    }
+                    is FirebaseAuthException -> {
+                        appViewModel.showMessage(
+                            type = DialogType.ERROR,
+                            title = appContext.getString(R.string.something_went_wrong),
+                            message = getFirebaseAuthErrorMessage(e.errorCode),
+                        )
+                    }
+                    else -> {
+                        appViewModel.showMessage(
+                            type = DialogType.ERROR,
+                            title = appContext.getString(R.string.something_went_wrong),
+                            message = appContext.getString(R.string.something_went_wrong),
+                        )
+                    }
                 }
-
-                appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    title = appContext.getString(R.string.something_went_wrong),
-                    message = errorMessage,
-                )
-
             }
         }
-
     }
 
     private fun getFirebaseAuthErrorMessage(errorCode: String): String {
