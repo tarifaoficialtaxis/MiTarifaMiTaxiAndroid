@@ -13,11 +13,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidPassword
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
@@ -70,14 +75,14 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     init {
         checkCameraPermission()
 
-        /*if (Constants.IS_DEV) {
+        if (Constants.IS_DEV) {
             firstName = "Mateo"
             lastName = "Ortiz"
             mobilePhone = "3167502612"
             email = "mateotest1@yopmail.com"
-            password = "12345678"
-            confirmPassword = "12345678"
-        }*/
+            password = "12345678#"
+            confirmPassword = "12345678#"
+        }
     }
 
 
@@ -207,7 +212,8 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                     mobilePhone = mobilePhone.trim(),
                     email = email.trim(),
                     profilePicture = imageUrl,
-                    authProvider = AuthProvider.email
+                    authProvider = AuthProvider.email,
+                    role = UserRole.USER
                 )
                 LocalUserManager(appContext).saveUserState(localUser)
 
@@ -215,11 +221,21 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
             } catch (e: Exception) {
                 Log.e("RegisterViewModel", "Error registering user: ${e.message}")
+
                 appViewModel.isLoading = false
+                val errorMessage = when (e) {
+                    is FirebaseAuthUserCollisionException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    else -> appContext.getString(R.string.general_error)
+                }
+
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
-                    message = appContext.getString(R.string.error_registering_user)
+                    message = errorMessage
                 )
 
             }

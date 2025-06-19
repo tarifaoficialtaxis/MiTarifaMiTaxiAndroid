@@ -48,10 +48,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Constants.IS_DEV) {
-            //validateNextScreen()
-            startActivity(
-                Intent(this, RegisterActivity::class.java)
-            )
+            validateNextScreen()
+            //startActivity(Intent(this, RegisterActivity::class.java))
         }
 
     }

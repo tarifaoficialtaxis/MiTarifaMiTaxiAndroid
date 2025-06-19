@@ -27,6 +27,7 @@ fun getFirebaseAuthErrorMessage(appContext: Context, errorCode: String): String 
         "ERROR_USER_DISABLED" -> appContext.getString(R.string.error_user_disabled)
         "ERROR_TOO_MANY_REQUESTS" -> appContext.getString(R.string.error_too_many_requests)
         "ERROR_OPERATION_NOT_ALLOWED" -> appContext.getString(R.string.error_operation_not_allowed)
+        "ERROR_EMAIL_ALREADY_IN_USE" -> appContext.getString(R.string.error_email_already_in_use)
         else -> appContext.getString(R.string.error_authentication_failed)
     }
 }
