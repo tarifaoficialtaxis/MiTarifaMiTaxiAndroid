@@ -275,7 +275,7 @@ class LoginActivity : BaseActivity() {
                                     placeholder = stringResource(id = R.string.user_name),
                                     leadingIcon = Icons.Rounded.Person,
                                     keyboardType = KeyboardType.Companion.Email,
-                                    isError = !viewModel.userNameIsValid,
+                                    isError = viewModel.userNameIsError,
                                     errorMessage = viewModel.userNameErrorMessage
                                 )
 
@@ -285,7 +285,7 @@ class LoginActivity : BaseActivity() {
                                     placeholder = stringResource(id = R.string.password),
                                     isSecure = true,
                                     leadingIcon = Icons.Rounded.Lock,
-                                    isError = !viewModel.passwordIsValid,
+                                    isError = viewModel.passwordIsError,
                                     errorMessage = viewModel.passwordErrorMessage
                                 )
                             }

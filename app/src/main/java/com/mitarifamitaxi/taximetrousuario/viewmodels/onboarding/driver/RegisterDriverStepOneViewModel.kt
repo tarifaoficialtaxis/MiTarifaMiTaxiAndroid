@@ -14,11 +14,16 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidPassword
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
@@ -316,11 +321,22 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
             } catch (e: Exception) {
                 appViewModel.isLoading = false
                 Log.e("RegisterDriverStepOneViewModel", "Error registering user: ${e.message}")
+
+                val errorMessage = when (e) {
+                    is FirebaseAuthUserCollisionException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    else -> appContext.getString(R.string.general_error)
+                }
+
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
-                    title = appContext.getString(R.string.error),
-                    message = appContext.getString(R.string.general_error)
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = errorMessage
                 )
+
             }
         }
     }
