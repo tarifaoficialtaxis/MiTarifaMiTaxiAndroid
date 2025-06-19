@@ -16,15 +16,20 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.Constants
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidPassword
+import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class RegisterViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
 
@@ -36,11 +41,28 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     var showDialog by mutableStateOf(false)
 
     var firstName by mutableStateOf("")
+    var firstNameIsError by mutableStateOf(false)
+    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+
     var lastName by mutableStateOf("")
+    var lastNameIsError by mutableStateOf(false)
+    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+
     var mobilePhone by mutableStateOf("")
+    var mobilePhoneIsError by mutableStateOf(false)
+    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+
     var email by mutableStateOf("")
+    var emailIsError by mutableStateOf(false)
+    var emailErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+
     var password by mutableStateOf("")
+    var passwordIsError by mutableStateOf(false)
+    var passwordErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+
     var confirmPassword by mutableStateOf("")
+    var confirmPasswordIsError by mutableStateOf(false)
+    var confirmPasswordErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
 
     var hasCameraPermission by mutableStateOf(false)
         private set
@@ -48,14 +70,14 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     init {
         checkCameraPermission()
 
-        if (Constants.IS_DEV) {
+        /*if (Constants.IS_DEV) {
             firstName = "Mateo"
             lastName = "Ortiz"
             mobilePhone = "3167502612"
             email = "mateotest1@yopmail.com"
             password = "12345678"
             confirmPassword = "12345678"
-        }
+        }*/
     }
 
 
@@ -81,47 +103,70 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     }
 
     fun register(onResult: (Pair<Boolean, String?>) -> Unit) {
-        // Login logic
-        if (firstName.isEmpty() || lastName.isEmpty() || mobilePhone.isEmpty() || email.isEmpty() || password.isEmpty()) {
 
+
+        if (imageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.all_fields_required),
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.error_image_required),
             )
-            return
         }
 
-        if (!email.isValidEmail()) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.error_invalid_email),
-            )
-            return
+
+        firstNameIsError = firstName.isEmpty()
+        lastNameIsError = lastName.isEmpty()
+        mobilePhoneIsError = mobilePhone.isEmpty()
+        emailIsError = email.isEmpty()
+        passwordIsError = password.isEmpty()
+        confirmPasswordIsError = confirmPassword.isEmpty()
+
+        if (email.isNotEmpty()) {
+            emailIsError = !email.isValidEmail()
+            if (emailIsError) {
+                emailErrorMessage = appContext.getString(R.string.error_invalid_email)
+            }
         }
 
-        if (!password.isValidPassword()) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.error_invalid_password)
-            )
-            return
+        if (password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+            if (password != confirmPassword) {
+
+                passwordIsError = true
+                passwordErrorMessage = appContext.getString(R.string.passwords_do_not_match)
+
+                confirmPasswordIsError = true
+                confirmPasswordErrorMessage = appContext.getString(R.string.passwords_do_not_match)
+
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.attention),
+                    message = appContext.getString(R.string.passwords_do_not_match),
+                )
+            } else if (!confirmPassword.isValidPassword()) {
+
+                passwordIsError = true
+                passwordErrorMessage = appContext.getString(R.string.error_invalid_password)
+
+                confirmPasswordIsError = true
+                confirmPasswordErrorMessage = appContext.getString(R.string.error_invalid_password)
+
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.attention),
+                    message = appContext.getString(R.string.error_invalid_password)
+                )
+            } else {
+                passwordIsError = false
+                confirmPasswordIsError = false
+            }
         }
 
-        if (password != confirmPassword) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.passwords_do_not_match),
-            )
+        if (firstNameIsError || lastNameIsError || mobilePhoneIsError || emailIsError || passwordIsError || confirmPasswordIsError || imageUri == null) {
             return
         }
 
         viewModelScope.launch {
             try {
-                // Show loading indicator
                 appViewModel.isLoading = true
 
                 // Create user with email and password in Firebase Auth
@@ -131,27 +176,37 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                         .await()
                 val user = authResult.user ?: throw Exception("User creation failed")
 
-                // Save user information in Firestore
+                val imageUrl = withContext(Dispatchers.IO) {
+                    imageUri?.let { uri ->
+                        uri.toBitmap(appContext)
+                            ?.let { bitmap ->
+                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                            }
+                    }
+                }
+
                 val userMap = hashMapOf(
                     "id" to user.uid,
                     "firstName" to firstName,
                     "lastName" to lastName,
                     "mobilePhone" to mobilePhone.trim(),
-                    "email" to email.trim()
+                    "email" to email.trim(),
+                    "profilePicture" to imageUrl,
+                    "authProvider" to AuthProvider.email,
+                    "role" to UserRole.USER,
                 )
                 FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
                     .await()
 
-                // Hide loading indicator
                 appViewModel.isLoading = false
 
-                // Save user in SharedPreferences
                 val localUser = LocalUser(
                     id = user.uid,
                     firstName = firstName,
                     lastName = lastName,
                     mobilePhone = mobilePhone.trim(),
                     email = email.trim(),
+                    profilePicture = imageUrl,
                     authProvider = AuthProvider.email
                 )
                 LocalUserManager(appContext).saveUserState(localUser)
@@ -160,9 +215,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
             } catch (e: Exception) {
                 Log.e("RegisterViewModel", "Error registering user: ${e.message}")
-                // Hide loading indicator
                 appViewModel.isLoading = false
-
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),

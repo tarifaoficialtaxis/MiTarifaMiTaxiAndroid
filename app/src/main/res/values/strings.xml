@@ -323,5 +323,6 @@
 
     <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
 
+    <string name="mandatory_field">Este campo es obligatorio.</string>
 
 </resources>
