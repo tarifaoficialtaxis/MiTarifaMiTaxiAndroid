@@ -320,4 +320,8 @@
     <string name="account_pending_review">Tu cuenta está en revisión</string>
     <string name="let_you_know">Te avisaremos cuando puedas\nempezar a recibir servicios.</string>
 
+
+    <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
+
+
 </resources>

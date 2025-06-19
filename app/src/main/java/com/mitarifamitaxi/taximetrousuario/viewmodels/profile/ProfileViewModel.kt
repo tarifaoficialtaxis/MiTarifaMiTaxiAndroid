@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
@@ -277,9 +278,17 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                 Log.e("ProfileViewModel", "Error logging in: ${e.message}")
 
                 val errorMessage = when (e) {
-                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(e.errorCode)
+                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(appContext, e.errorCode)
                     else -> appContext.getString(R.string.something_went_wrong)
                 }
 
@@ -416,18 +425,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                     )
                 }
             }
-    }
-
-    private fun getFirebaseAuthErrorMessage(errorCode: String): String {
-        return when (errorCode) {
-            "ERROR_INVALID_EMAIL" -> appContext.getString(R.string.error_invalid_email)
-            "ERROR_INVALID_CREDENTIAL" -> appContext.getString(R.string.error_wrong_credentials)
-            "ERROR_USER_NOT_FOUND" -> appContext.getString(R.string.error_user_not_found)
-            "ERROR_USER_DISABLED" -> appContext.getString(R.string.error_user_disabled)
-            "ERROR_TOO_MANY_REQUESTS" -> appContext.getString(R.string.error_too_many_requests)
-            "ERROR_OPERATION_NOT_ALLOWED" -> appContext.getString(R.string.error_operation_not_allowed)
-            else -> appContext.getString(R.string.error_authentication_failed)
-        }
     }
 
     fun logOut() {

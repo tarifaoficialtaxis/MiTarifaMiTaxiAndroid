@@ -15,10 +15,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
@@ -34,6 +40,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
     ViewModel() {
 
     private val appContext = context.applicationContext
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val originalProfilePictureUrl: String? = appViewModel.userData?.profilePicture
     var imageUri by mutableStateOf<Uri?>(appViewModel.userData?.profilePicture?.toUri())
@@ -48,7 +55,10 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
     var lastName by mutableStateOf(appViewModel.userData?.lastName)
     var documentNumber by mutableStateOf(appViewModel.userData?.documentNumber)
     var mobilePhone by mutableStateOf(appViewModel.userData?.mobilePhone)
+
+    private val originalEmail: String? = appViewModel.userData?.email
     var email by mutableStateOf(appViewModel.userData?.email)
+
     var familyNumber by mutableStateOf(appViewModel.userData?.familyNumber)
     var supportNumber by mutableStateOf(appViewModel.userData?.supportNumber)
 
@@ -57,6 +67,8 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
+
+    var showPasswordPopUp by mutableStateOf(false)
 
     sealed class NavigationEvent {
         object Finish : NavigationEvent()
@@ -147,11 +159,25 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
                 originalProfilePictureUrl
             }
 
+
+            val finalEmail: String? = if (email != originalEmail) {
+                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                    ?: throw IllegalStateException("Usuario no autenticado")
+
+                // Si la sesión es muy vieja, puede lanzar FirebaseAuthRecentLoginRequiredException
+                firebaseUser.verifyBeforeUpdateEmail(email!!)
+                    .await()
+                email
+            } else {
+                originalEmail
+            }
+
+
             val updatedUser = appViewModel.userData?.copy(
                 firstName = firstName,
                 lastName = lastName,
                 mobilePhone = mobilePhone,
-                email = email,
+                email = finalEmail,
                 familyNumber = familyNumber,
                 supportNumber = supportNumber,
                 profilePicture = finalImageUrl
@@ -176,7 +202,6 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
 
                     appViewModel.userData = user
                     LocalUserManager(appContext).saveUserState(user)
-                    appViewModel.isLoading = false
                     appViewModel.showMessage(
                         type = DialogType.SUCCESS,
                         title = appContext.getString(R.string.profile_updated),
@@ -191,18 +216,86 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
 
                 }
             } catch (error: Exception) {
-                Log.e("ProfileViewModel", "Error updating user: ${error.message}")
-                appViewModel.isLoading = false
-                appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    title = appContext.getString(R.string.something_went_wrong),
-                    message = appContext.getString(R.string.error_updating_user)
-                )
+                if (error is FirebaseAuthRecentLoginRequiredException) {
+                    appViewModel.showMessage(
+                        type = DialogType.WARNING,
+                        title = appContext.getString(R.string.attention),
+                        message = appContext.getString(R.string.for_security_login_again),
+                        buttonText = appContext.getString(R.string.accept),
+                        onButtonClicked = {
+                            showPasswordPopUp = true
+                        }
+                    )
+                } else {
+                    Log.e(
+                        "DriverProfilePersonalInfoViewModel",
+                        "Error actualizando email: ${error.message}"
+                    )
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.something_went_wrong),
+                        message = appContext.getString(R.string.error_updating_user)
+                    )
+                }
+
             } finally {
                 appViewModel.isLoading = false
             }
         }
     }
+
+    fun authenticateUserByEmailAndPassword(password: String) {
+
+        appViewModel.isLoading = true
+
+        viewModelScope.launch {
+            try {
+                if (email == null || email!!.isEmpty()) {
+                    appViewModel.isLoading = false
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.something_went_wrong),
+                        message = appContext.getString(R.string.error_invalid_email)
+                    )
+                    return@launch
+                }
+
+                val userCredential =
+                    auth.signInWithEmailAndPassword(email!!.trim(), password).await()
+                val user = userCredential.user
+                if (user != null) {
+
+                }
+            } catch (e: Exception) {
+                appViewModel.isLoading = false
+
+                Log.e("ProfileViewModel", "Error logging in: ${e.message}")
+
+                val errorMessage = when (e) {
+                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(appContext, e.errorCode)
+                    else -> appContext.getString(R.string.something_went_wrong)
+                }
+
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = errorMessage,
+                )
+
+            }
+        }
+    }
+
 }
 
 class DriverProfilePersonalInfoViewModelFactory(
