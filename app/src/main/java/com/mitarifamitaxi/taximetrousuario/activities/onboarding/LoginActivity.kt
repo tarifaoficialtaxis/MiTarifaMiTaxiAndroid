@@ -177,9 +177,11 @@ class LoginActivity : BaseActivity() {
                 secondaryIcon = Icons.Default.LocalTaxi,
                 onDismiss = { viewModel.showDialog = false },
                 onPrimaryActionClicked = {
+                    viewModel.showDialog = false
                     validateNextScreen(tempUserRole = UserRole.USER)
                 },
                 onSecondaryActionClicked = {
+                    viewModel.showDialog = false
                     validateNextScreen(tempUserRole = UserRole.DRIVER)
                 }
             )
