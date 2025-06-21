@@ -60,7 +60,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
-import com.mitarifamitaxi.taximetrousuario.models.uistate.LoginUiState
+import com.mitarifamitaxi.taximetrousuario.states.LoginState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
 
@@ -179,7 +179,7 @@ class LoginActivity : BaseActivity() {
 
     @Composable
     private fun LoginScreen(
-        uiState: LoginUiState,
+        uiState: LoginState,
         onRestorePassword: () -> Unit,
         onLoginClicked: () -> Unit,
         onRegisterClicked: () -> Unit,
@@ -409,7 +409,7 @@ class LoginActivity : BaseActivity() {
         }
     }
 
-    private val sampleUiState = LoginUiState(
+    private val sampleUiState = LoginState(
         userName = "usuario@ejemplo.com",
         password = "••••••••",
         rememberMe = true,

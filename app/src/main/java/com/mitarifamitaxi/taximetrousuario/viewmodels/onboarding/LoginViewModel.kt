@@ -25,7 +25,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
-import com.mitarifamitaxi.taximetrousuario.models.uistate.LoginUiState
+import com.mitarifamitaxi.taximetrousuario.states.LoginState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,28 +37,14 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     private val appContext = context.applicationContext
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState
+    private val _uiState = MutableStateFlow(LoginState())
+    val uiState: StateFlow<LoginState> = _uiState
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     companion object {
         private const val TAG = "LoginViewModel"
-    }
-
-    init {
-        /*if (Constants.IS_DEV) {
-
-            // USER
-            userName = "mateotest1@yopmail.com"
-            password = "12345678#"
-
-            // DRIVER
-            userName = "drivertest1@yopmail.com"
-            password = "12345678#"
-
-        }*/
     }
 
     fun onUserNameChange(value: String) = _uiState.update {
@@ -109,7 +95,6 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
         }
 
         appViewModel.isLoading = true
-        _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
             try {
@@ -117,7 +102,6 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                 val user = cred.user ?: throw Exception("No user")
                 getUserInfo(user.uid, AuthProvider.email) { exists ->
                     appViewModel.isLoading = false
-                    _uiState.update { it.copy(isLoading = false) }
                     if (exists) onSuccess()
                     else appViewModel.showMessage(
                         DialogType.ERROR,
@@ -127,7 +111,6 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                 }
             } catch (e: Exception) {
                 appViewModel.isLoading = false
-                _uiState.update { it.copy(isLoading = false) }
                 handleAuthError(e)
             }
         }

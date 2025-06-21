@@ -1,8 +1,8 @@
-package com.mitarifamitaxi.taximetrousuario.models.uistate
+package com.mitarifamitaxi.taximetrousuario.states
 
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 
-data class LoginUiState(
+data class LoginState(
     val userName: String = "",
     val userNameIsError: Boolean = false,
     val userNameErrorMessage: String = "",
@@ -10,7 +10,6 @@ data class LoginUiState(
     val passwordIsError: Boolean = false,
     val passwordErrorMessage: String = "",
     val rememberMe: Boolean = false,
-    val isLoading: Boolean = false,
     val mustCompleteProfile: Boolean = false,
     val tempUserData: LocalUser? = null,
     val showDialogSelectRole: Boolean = false
