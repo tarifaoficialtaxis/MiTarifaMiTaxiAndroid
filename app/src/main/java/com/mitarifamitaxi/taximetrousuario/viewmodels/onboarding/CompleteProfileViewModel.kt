@@ -40,15 +40,15 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
 
     var firstName by mutableStateOf("")
     var firstNameIsError by mutableStateOf(false)
-    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var lastName by mutableStateOf("")
     var lastNameIsError by mutableStateOf(false)
-    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var mobilePhone by mutableStateOf("")
     var mobilePhoneIsError by mutableStateOf(false)
-    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var email by mutableStateOf("")
     var authProvider by mutableStateOf(AuthProvider.google)

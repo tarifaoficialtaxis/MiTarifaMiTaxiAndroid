@@ -17,7 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Mail
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -172,9 +172,9 @@ class ForgotPasswordActivity : BaseActivity() {
                                     value = viewModel.email,
                                     onValueChange = { viewModel.email = it },
                                     placeholder = stringResource(id = R.string.email),
-                                    leadingIcon = Icons.Rounded.Person,
+                                    leadingIcon = Icons.Rounded.Mail,
                                     keyboardType = KeyboardType.Companion.Email,
-                                    isError = !viewModel.emailIsValid,
+                                    isError = viewModel.emailIsError,
                                     errorMessage = viewModel.emailErrorMessage
                                 )
 

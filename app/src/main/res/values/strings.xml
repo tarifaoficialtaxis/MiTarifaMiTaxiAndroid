@@ -16,9 +16,9 @@
     <string name="remember_me">Recuerdame</string>
     <string name="recover_password">Recuperar contraseña</string>
     <string name="login">INGRESAR</string>
-    <string name="connect_with">Conectate con:</string>
+    <string name="connect_with">Conéctate con:</string>
     <string name="no_account">Aún no tienes cuenta?</string>
-    <string name="register_here">Registrate Aquí</string>
+    <string name="register_here">Registrate aquí</string>
 
     <string name="register">¡Registrate!</string>
     <string name="personal_information">Información personal</string>
@@ -330,7 +330,5 @@
     <string name="access_location_message">Para calcular la tarifa de tu viaje de forma precisa, esta aplicación recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso. Esto nos permite seguir calculando la distancia y el costo del viaje si cambias a otra aplicación o apagas la pantalla.\n\nTus datos de ubicación se utilizan únicamente para el cálculo de la tarifa y el historial de tus viajes. No se comparten con terceros para fines publicitarios. \n\n Por favor selecciona permitir todo el tiempo.</string>
 
     <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
-
-    <string name="mandatory_field">Este campo es obligatorio.</string>
 
 </resources>

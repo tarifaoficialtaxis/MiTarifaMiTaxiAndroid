@@ -47,27 +47,27 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
     var firstName by mutableStateOf("")
     var firstNameIsError by mutableStateOf(false)
-    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var lastName by mutableStateOf("")
     var lastNameIsError by mutableStateOf(false)
-    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var mobilePhone by mutableStateOf("")
     var mobilePhoneIsError by mutableStateOf(false)
-    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var email by mutableStateOf("")
     var emailIsError by mutableStateOf(false)
-    var emailErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var emailErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var password by mutableStateOf("")
     var passwordIsError by mutableStateOf(false)
-    var passwordErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var passwordErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var confirmPassword by mutableStateOf("")
     var confirmPasswordIsError by mutableStateOf(false)
-    var confirmPasswordErrorMessage by mutableStateOf(appContext.getString(R.string.mandatory_field))
+    var confirmPasswordErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     var hasCameraPermission by mutableStateOf(false)
         private set
@@ -75,14 +75,14 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     init {
         checkCameraPermission()
 
-        if (Constants.IS_DEV) {
+        /*if (Constants.IS_DEV) {
             firstName = "Mateo"
             lastName = "Ortiz"
             mobilePhone = "3167502612"
             email = "mateotest1@yopmail.com"
             password = "12345678#"
             confirmPassword = "12345678#"
-        }
+        }*/
     }
 
 
@@ -129,7 +129,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         if (email.isNotEmpty()) {
             emailIsError = !email.isValidEmail()
             if (emailIsError) {
-                emailErrorMessage = appContext.getString(R.string.error_invalid_email)
+                emailErrorMessage = appContext.getString(R.string.invalid_email)
             }
         }
 

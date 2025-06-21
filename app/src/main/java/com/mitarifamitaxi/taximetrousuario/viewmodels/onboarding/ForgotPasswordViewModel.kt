@@ -22,7 +22,7 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     var email by mutableStateOf("")
-    var emailIsValid by mutableStateOf(true)
+    var emailIsError by mutableStateOf(false)
     var emailErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
@@ -33,18 +33,25 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     }
 
     init {
-        if (Constants.IS_DEV) {
+        /*if (Constants.IS_DEV) {
             email = "mateotest1@yopmail.com"
-        }
+        }*/
     }
 
     fun validateEmail() {
-        emailIsValid = email.isNotEmpty() && email.isValidEmail()
-        if (!emailIsValid) {
-            emailErrorMessage = appContext.getString(R.string.invalid_email)
+
+        emailIsError = email.isEmpty()
+
+        if (email.isNotEmpty()) {
+
+            if (!email.isValidEmail()) {
+                emailIsError = true
+                emailErrorMessage = appContext.getString(R.string.invalid_email)
+            }
+
         }
 
-        if (emailIsValid) {
+        if (!emailIsError) {
             sendPasswordReset()
         }
     }
@@ -57,7 +64,7 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
                 appViewModel.isLoading = false
                 if (task.isSuccessful) {
                     appViewModel.showMessage(
-                        type = DialogType.SUCCESS,
+                        type = DialogType.WARNING,
                         title = appContext.getString(R.string.recoveryEmailSent),
                         message = appContext.getString(R.string.weHaveSentRecoveryEmailPassword),
                         buttonText = appContext.getString(R.string.accept),

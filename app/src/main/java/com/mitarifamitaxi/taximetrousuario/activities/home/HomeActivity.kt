@@ -94,6 +94,9 @@ class HomeActivity : BaseActivity() {
     @Composable
     override fun Content() {
         MainView(
+            onRequestServiceClick = {
+
+            },
             onTaximeterClick = {
                 startActivity(Intent(this, RoutePlannerActivity::class.java))
                 //startActivity(Intent(this, TaximeterActivity::class.java))
@@ -120,6 +123,7 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     private fun MainView(
+        onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
         onPqrsClick: () -> Unit,
@@ -177,7 +181,7 @@ class HomeActivity : BaseActivity() {
                     ) {
 
                         ProfilePictureBox(
-                            imageUri =  appViewModel.userData?.profilePicture?.toUri(),
+                            imageUri = appViewModel.userData?.profilePicture?.toUri(),
                             editable = false,
                             boxSize = 45,
                             iconSize = 30
@@ -252,6 +256,7 @@ class HomeActivity : BaseActivity() {
 
                 if (appViewModel.userData?.role == UserRole.USER) {
                     UserView(
+                        onRequestServiceClick = onRequestServiceClick,
                         onTaximeterClick = onTaximeterClick,
                         onSosClick = onSosClick,
                         onPqrsClick = onPqrsClick,
@@ -271,6 +276,7 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     private fun UserView(
+        onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
         onPqrsClick: () -> Unit,
@@ -283,8 +289,26 @@ class HomeActivity : BaseActivity() {
             Modifier.Companion
                 .padding(horizontal = 29.dp)
                 .padding(top = 30.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
         ) {
+
+            OutlinedButton(
+                onClick = onRequestServiceClick,
+                modifier = Modifier.Companion
+                    .fillMaxWidth(),
+                border = null,
+                contentPadding = PaddingValues(0.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.home_request_service),
+                    contentDescription = null,
+                    contentScale = ContentScale.Companion.Fit,
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                )
+            }
 
             OutlinedButton(
                 onClick = onTaximeterClick,
@@ -307,7 +331,6 @@ class HomeActivity : BaseActivity() {
                 horizontalArrangement = Arrangement.spacedBy(11.dp),
                 modifier = Modifier.Companion
                     .fillMaxWidth()
-                    .padding(vertical = 11.dp)
             ) {
                 OutlinedButton(
                     onClick = onSosClick,
