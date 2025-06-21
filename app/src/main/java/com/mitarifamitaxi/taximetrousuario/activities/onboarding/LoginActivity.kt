@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +30,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -58,6 +59,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import com.mitarifamitaxi.taximetrousuario.models.uistate.LoginUiState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
 
@@ -72,10 +74,9 @@ class LoginActivity : BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             viewModel.handleSignInResult(result.data) { signInResult ->
-                viewModel.mustCompleteProfile = signInResult.first
-                viewModel.tempUserData = signInResult.second
-                if (viewModel.mustCompleteProfile) {
-                    viewModel.showDialog = true
+                viewModel.setTempData(signInResult.first, signInResult.second)
+                if (viewModel.uiState.value.mustCompleteProfile) {
+                    viewModel.showSelectRoleDialog()
                 } else {
                     validateNextScreen()
                 }
@@ -123,16 +124,22 @@ class LoginActivity : BaseActivity() {
                 finish()
             }
         } else {
-            if (viewModel.mustCompleteProfile) {
+            if (viewModel.uiState.value.mustCompleteProfile) {
                 if (tempUserRole == UserRole.DRIVER) {
                     startActivity(
                         Intent(this, RegisterDriverStepOneActivity::class.java)
-                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                            .putExtra(
+                                "user_data",
+                                Gson().toJson(viewModel.uiState.value.tempUserData)
+                            )
                     )
                 } else {
                     startActivity(
                         Intent(this, CompleteProfileActivity::class.java)
-                            .putExtra("user_data", Gson().toJson(viewModel.tempUserData))
+                            .putExtra(
+                                "user_data",
+                                Gson().toJson(viewModel.uiState.value.tempUserData)
+                            )
                     )
                 }
             } else {
@@ -146,53 +153,33 @@ class LoginActivity : BaseActivity() {
 
     }
 
+
     @Composable
     override fun Content() {
+        val uiState by viewModel.uiState.collectAsState()
 
-        MainView(
-            onRestorePasswordClicked = {
-                startActivity(Intent(this, ForgotPasswordActivity::class.java))
-            },
+        LoginScreen(
+            uiState = uiState,
+            onRestorePassword = { startActivity(Intent(this, ForgotPasswordActivity::class.java)) },
             onLoginClicked = {
                 viewModel.login {
                     validateNextScreen()
                 }
             },
-            onRegisterClicked = {
-                viewModel.showDialog = true
-            },
+            onRegisterClicked = { viewModel.showSelectRoleDialog() },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
-                    val signInIntent = viewModel.googleSignInClient.signInIntent
-                    googleSignInLauncher.launch(signInIntent)
+                    googleSignInLauncher.launch(viewModel.googleSignInClient.signInIntent)
                 }
             }
         )
-
-        if (viewModel.showDialog) {
-            TwoOptionSelectorDialog(
-                title = stringResource(id = R.string.select_one_option),
-                primaryTitle = stringResource(id = R.string.user),
-                secondaryTitle = stringResource(id = R.string.driver),
-                primaryIcon = Icons.Default.Person,
-                secondaryIcon = Icons.Default.LocalTaxi,
-                onDismiss = { viewModel.showDialog = false },
-                onPrimaryActionClicked = {
-                    viewModel.showDialog = false
-                    validateNextScreen(tempUserRole = UserRole.USER)
-                },
-                onSecondaryActionClicked = {
-                    viewModel.showDialog = false
-                    validateNextScreen(tempUserRole = UserRole.DRIVER)
-                }
-            )
-        }
     }
 
 
     @Composable
-    private fun MainView(
-        onRestorePasswordClicked: () -> Unit,
+    private fun LoginScreen(
+        uiState: LoginUiState,
+        onRestorePassword: () -> Unit,
         onLoginClicked: () -> Unit,
         onRegisterClicked: () -> Unit,
         onGoogleSignIn: () -> Unit
@@ -269,23 +256,23 @@ class LoginActivity : BaseActivity() {
                                     .padding(bottom = 10.dp)
                             ) {
                                 CustomTextField(
-                                    value = viewModel.userName,
-                                    onValueChange = { viewModel.userName = it },
+                                    value = uiState.userName,
+                                    onValueChange = { viewModel.onUserNameChange(it) },
                                     placeholder = stringResource(id = R.string.user_name),
                                     leadingIcon = Icons.Rounded.Person,
                                     keyboardType = KeyboardType.Companion.Email,
-                                    isError = viewModel.userNameIsError,
-                                    errorMessage = viewModel.userNameErrorMessage
+                                    isError = uiState.userNameIsError,
+                                    errorMessage = uiState.userNameErrorMessage
                                 )
 
                                 CustomTextField(
-                                    value = viewModel.password,
-                                    onValueChange = { viewModel.password = it },
+                                    value = uiState.password,
+                                    onValueChange = { viewModel.onPasswordChange(it) },
                                     placeholder = stringResource(id = R.string.password),
                                     isSecure = true,
                                     leadingIcon = Icons.Rounded.Lock,
-                                    isError = viewModel.passwordIsError,
-                                    errorMessage = viewModel.passwordErrorMessage
+                                    isError = uiState.passwordIsError,
+                                    errorMessage = uiState.passwordErrorMessage
                                 )
                             }
 
@@ -299,12 +286,12 @@ class LoginActivity : BaseActivity() {
 
                                 CustomCheckBox(
                                     text = stringResource(id = R.string.remember_me),
-                                    checked = viewModel.rememberMe,
-                                    onValueChange = { viewModel.rememberMe = it }
+                                    checked = uiState.rememberMe,
+                                    onValueChange = { viewModel.onRememberMeChange(it) }
                                 )
 
                                 Button(
-                                    onClick = { onRestorePasswordClicked() },
+                                    onClick = { onRestorePassword() },
                                     shape = RoundedCornerShape(0.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = colorResource(id = R.color.transparent),
@@ -399,6 +386,25 @@ class LoginActivity : BaseActivity() {
 
 
             }
+        }
+
+        if (uiState.showDialogSelectRole) {
+            TwoOptionSelectorDialog(
+                title = stringResource(R.string.select_one_option),
+                primaryTitle = stringResource(R.string.user),
+                secondaryTitle = stringResource(R.string.driver),
+                primaryIcon = Icons.Default.Person,
+                secondaryIcon = Icons.Default.LocalTaxi,
+                onDismiss = { viewModel.hideSelectRoleDialog() },
+                onPrimaryActionClicked = {
+                    viewModel.showSelectRoleDialog()
+                    validateNextScreen(tempUserRole = UserRole.USER)
+                },
+                onSecondaryActionClicked = {
+                    viewModel.showSelectRoleDialog()
+                    validateNextScreen(tempUserRole = UserRole.USER)
+                }
+            )
         }
     }
 }
