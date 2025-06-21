@@ -1,12 +1,17 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.profile
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -41,6 +46,12 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
     private val appContext = context.applicationContext
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    private val originalProfilePictureUrl: String? = appViewModel.userData?.profilePicture
+    var imageUri by mutableStateOf<Uri?>(appViewModel.userData?.profilePicture?.toUri())
+    var tempImageUri by mutableStateOf<Uri?>(null)
+
+    var showDialog by mutableStateOf(false)
+
     var firstName by mutableStateOf(appViewModel.userData?.firstName)
     var lastName by mutableStateOf(appViewModel.userData?.lastName)
     var mobilePhone by mutableStateOf(appViewModel.userData?.mobilePhone)
@@ -73,11 +84,37 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         GoogleSignIn.getClient(appContext, gso)
     }
 
+    var hasCameraPermission by mutableStateOf(false)
+        private set
+
     init {
+        checkCameraPermission()
         viewModelScope.launch {
             getTripsByUserId(appViewModel.userData?.id ?: "")
         }
     }
+
+    private fun checkCameraPermission() {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun onPermissionResult(isGranted: Boolean) {
+        hasCameraPermission = isGranted
+    }
+
+    fun onImageSelected(uri: Uri?) {
+        imageUri = uri
+    }
+
+    fun onImageCaptured(success: Boolean) {
+        if (success) {
+            imageUri = tempImageUri
+        }
+    }
+
 
     fun resetHideKeyboardEvent() {
         _hideKeyboardEvent.value = false
@@ -116,9 +153,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         if ((firstName ?: "").isEmpty() ||
             (lastName ?: "").isEmpty() ||
             (mobilePhone ?: "").isEmpty() ||
-            (email ?: "").isEmpty() ||
-            (familyNumber ?: "").isEmpty() ||
-            (supportNumber ?: "").isEmpty()
+            (email ?: "").isEmpty()
         ) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,

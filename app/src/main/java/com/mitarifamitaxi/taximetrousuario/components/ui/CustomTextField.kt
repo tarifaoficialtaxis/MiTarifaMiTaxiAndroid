@@ -1,10 +1,14 @@
 package com.mitarifamitaxi.taximetrousuario.components.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,11 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -55,17 +63,22 @@ fun CustomTextField(
 ) {
     val isPasswordVisible = remember { mutableStateOf(isSecure) }
 
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val labelFontSize by mutableFloatStateOf(if (isFocused || value.isNotEmpty()) 12f else 14f)
+
     Column(modifier = Modifier.fillMaxWidth()) {
         TextField(
             value = value,
             onValueChange = onValueChange,
             enabled = isEnabled,
+            interactionSource = interactionSource,
             label = {
                 Text(
                     text = placeholder,
                     fontFamily = MontserratFamily,
                     fontWeight = FontWeight.Normal,
-                    fontSize = 12.sp,
+                    fontSize = labelFontSize.sp
                 )
             },
             isError = isError,
@@ -118,6 +131,9 @@ fun CustomTextField(
                 focusedIndicatorColor = focusedIndicatorColor,
                 unfocusedIndicatorColor = unfocusedIndicatorColor,
 
+                //focusedIndicatorColor = colorResource(id = R.color.transparent),
+                //unfocusedIndicatorColor = colorResource(id = R.color.transparent),
+
                 errorLabelColor = colorResource(id = R.color.red),
                 errorCursorColor = colorResource(id = R.color.main),
                 errorIndicatorColor = colorResource(id = R.color.red),
@@ -128,17 +144,34 @@ fun CustomTextField(
                 disabledTextColor = colorResource(id = R.color.gray1),
                 disabledLabelColor = colorResource(id = R.color.gray1),
 
-            ),
+                ),
             textStyle = TextStyle(
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Medium
             ),
             modifier = Modifier
                 .fillMaxWidth()
+                .height(56.dp)
                 .onFocusChanged { focusState ->
                     onFocusChanged(focusState.isFocused)
                 }
+
+            /*.drawWithContent {
+                // Primero dibujamos el contenido normal
+                drawContent()
+                // Luego, si está enfocado, dibujamos nuestra propia línea
+                val strokePx = 1.dp.toPx() * density
+                // La coordenada y de la línea, centrada en el borde inferior
+                val y = size.height - strokePx / 2
+                drawLine(
+                    color = if (isFocused) focusedIndicatorColor else unfocusedIndicatorColor,
+                    start = Offset(6.dp.toPx(), y),
+                    end = Offset(size.width - 6.dp.toPx(), y),
+                    strokeWidth = strokePx
+                )
+
+            },*/
         )
 
         if (isError && !errorMessage.isNullOrEmpty()) {

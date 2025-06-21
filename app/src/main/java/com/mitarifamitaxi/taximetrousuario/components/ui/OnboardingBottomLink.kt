@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -28,10 +29,11 @@ fun OnboardingBottomLink(
 
     Button(
         onClick = { onClick() },
+        shape = RoundedCornerShape(0.dp),
         modifier = Modifier.Companion
-            .padding(vertical = 20.dp)
+            .padding(vertical = 15.dp)
             .fillMaxWidth()
-            .height(17.dp),
+            .height(20.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(id = R.color.transparent),
         ),
