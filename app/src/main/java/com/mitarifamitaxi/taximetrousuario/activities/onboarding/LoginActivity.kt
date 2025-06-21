@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -204,46 +205,42 @@ class LoginActivity : BaseActivity() {
                 modifier = Modifier.Companion
                     .fillMaxSize()
             ) {
-                Column(
+                Box(
                     modifier = Modifier.Companion
                         .fillMaxSize()
-                        .background(colorResource(id = R.color.white))
                 ) {
 
                     Box(
                         modifier = Modifier.Companion
                             .fillMaxWidth()
-                            .height(250.dp)
+                            .height(LocalConfiguration.current.screenHeightDp.dp * 0.35f)
                             .background(colorResource(id = R.color.main))
                     ) {
 
-                        Box(
+                        Image(
+                            painter = painterResource(id = R.drawable.city_background),
+                            contentDescription = null,
                             modifier = Modifier.Companion
-                                .fillMaxSize()
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.city_background),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                                    .align(Alignment.Companion.BottomCenter)
-                                    .offset(y = 40.dp)
-                            )
+                                .fillMaxWidth()
+                                .align(Alignment.Companion.BottomCenter)
+                                .padding(bottom = 30.dp)
+                        )
 
-                            Image(
-                                painter = painterResource(id = R.drawable.logo2),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .height(134.dp)
-                                    .align(Alignment.Companion.Center)
-                            )
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.logo2),
+                            contentDescription = null,
+                            modifier = Modifier.Companion
+                                .height(LocalConfiguration.current.screenHeightDp.dp * 0.23f)
+                                .align(Alignment.Companion.TopCenter)
+                                .padding(top = 40.dp)
+                        )
+
                     }
 
                     Card(
                         modifier = Modifier.Companion
                             .fillMaxSize()
-                            .offset(y = (-24).dp),
+                            .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.3f),
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = colorResource(id = R.color.white),
@@ -308,6 +305,7 @@ class LoginActivity : BaseActivity() {
 
                                 Button(
                                     onClick = { onRestorePasswordClicked() },
+                                    shape = RoundedCornerShape(0.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = colorResource(id = R.color.transparent),
                                     ),

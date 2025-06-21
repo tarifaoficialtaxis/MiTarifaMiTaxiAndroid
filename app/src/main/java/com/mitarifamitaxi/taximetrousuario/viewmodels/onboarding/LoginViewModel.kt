@@ -121,28 +121,27 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                     passwordIsError = true
                     passwordErrorMessage = appContext.getString(R.string.wrong_credentials)
 
-                }
+                } else {
+                    val errorMessage = when (e) {
+                        is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
+                            appContext,
+                            e.errorCode
+                        )
 
-                val errorMessage = when (e) {
-                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(
-                        appContext,
-                        e.errorCode
+                        is FirebaseAuthException -> getFirebaseAuthErrorMessage(
+                            appContext,
+                            e.errorCode
+                        )
+
+                        else -> appContext.getString(R.string.general_error)
+                    }
+
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.something_went_wrong),
+                        message = errorMessage,
                     )
-
-                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
-                        appContext,
-                        e.errorCode
-                    )
-
-                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(appContext, e.errorCode)
-                    else -> appContext.getString(R.string.general_error)
                 }
-
-                appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    title = appContext.getString(R.string.something_went_wrong),
-                    message = errorMessage,
-                )
 
             }
         }

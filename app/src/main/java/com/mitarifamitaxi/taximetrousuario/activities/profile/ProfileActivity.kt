@@ -1,8 +1,10 @@
 package com.mitarifamitaxi.taximetrousuario.activities.profile
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
@@ -26,7 +28,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.FamilyRestroom
 import androidx.compose.material.icons.rounded.Groups
@@ -61,7 +65,10 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModelFactory
@@ -136,6 +143,31 @@ class ProfileActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
+
+        val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+            viewModel.onImageSelected(uri)
+        }
+
+        val takePictureLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture()
+        ) { success ->
+            viewModel.onImageCaptured(success)
+        }
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            viewModel.onPermissionResult(isGranted)
+            if (isGranted) {
+                viewModel.tempImageUri = createTempImageUri(this)
+                viewModel.tempImageUri?.let { uri ->
+                    takePictureLauncher.launch(uri)
+                }
+            }
+        }
+
         MainView(
             onClickBack = {
                 finish()
@@ -161,9 +193,35 @@ class ProfileActivity : BaseActivity() {
                     viewModel.showPasswordPopUp = false
                     viewModel.authenticateUserByEmailAndPassword(password)
                 }
-
             )
         }
+
+        if (viewModel.showDialog) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_profile_photo),
+                primaryTitle = stringResource(id = R.string.camera),
+                secondaryTitle = stringResource(id = R.string.gallery),
+                primaryIcon = Icons.Default.CameraAlt,
+                secondaryIcon = Icons.Default.Image,
+                onDismiss = { viewModel.showDialog = false },
+                onPrimaryActionClicked = {
+                    if (viewModel.hasCameraPermission) {
+                        viewModel.tempImageUri = createTempImageUri(this)
+                        viewModel.tempImageUri?.let { uri ->
+                            takePictureLauncher.launch(uri)
+                        }
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                    viewModel.showDialog = false
+                },
+                onSecondaryActionClicked = {
+                    imagePickerLauncher.launch("image/*")
+                    viewModel.showDialog = false
+                }
+            )
+        }
+
 
     }
 
@@ -251,22 +309,10 @@ class ProfileActivity : BaseActivity() {
 
                     }
 
-                    Box(
-                        modifier = Modifier.Companion
-                            .size(90.dp)
-                            .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                            .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description",
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.Center)
-                                .size(66.dp),
-                            tint = colorResource(id = R.color.white),
-
-                            )
-                    }
+                    ProfilePictureBox(
+                        imageUri = viewModel.imageUri,
+                        onClickEdit = { viewModel.showDialog = true }
+                    )
 
                     Text(
                         text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
