@@ -3,7 +3,6 @@ package com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -20,14 +19,17 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
+import com.mitarifamitaxi.taximetrousuario.models.uistate.LoginUiState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -35,23 +37,11 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     private val appContext = context.applicationContext
 
-    // Firebase Auth
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState
+
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
-    var userName by mutableStateOf("")
-    var userNameIsError by mutableStateOf(false)
-    var userNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
-
-    var password by mutableStateOf("")
-    var passwordIsError by mutableStateOf(false)
-    var passwordErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
-
-    var rememberMe by mutableStateOf(false)
-
-    var mustCompleteProfile by mutableStateOf(false)
-    var tempUserData by mutableStateOf<LocalUser?>(null)
-    var showDialog by mutableStateOf(false)
 
     companion object {
         private const val TAG = "LoginViewModel"
@@ -71,81 +61,76 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
         }*/
     }
 
-    fun login(loginSuccess: () -> Unit) {
+    fun onUserNameChange(value: String) = _uiState.update {
+        it.copy(userName = value)
+    }
 
-        userNameIsError = userName.isEmpty()
-        passwordIsError = password.isEmpty()
+    fun onPasswordChange(value: String) = _uiState.update {
+        it.copy(password = value)
+    }
 
-        if (!userName.isEmpty()) {
+    fun onRememberMeChange(value: Boolean) = _uiState.update {
+        it.copy(rememberMe = value)
+    }
 
-            if (!userName.isValidEmail()) {
-                userNameIsError = true
-                userNameErrorMessage = appContext.getString(R.string.invalid_email)
-            }
+    fun showSelectRoleDialog() {
+        _uiState.update { it.copy(showDialogSelectRole = true) }
+    }
+
+    fun hideSelectRoleDialog() {
+        _uiState.update { it.copy(showDialogSelectRole = false) }
+    }
+
+    fun setTempData(mustCompleteProfile: Boolean, tempUserData: LocalUser?) = _uiState.update {
+        it.copy(mustCompleteProfile = mustCompleteProfile, tempUserData = tempUserData)
+    }
+
+    fun login(onSuccess: () -> Unit) {
+        _uiState.update { state ->
+            state.copy(
+                userNameIsError = state.userName.isBlank(),
+                passwordIsError = state.password.isBlank(),
+                userNameErrorMessage = if (state.userName.isBlank()) appContext.getString(R.string.required_field) else "",
+                passwordErrorMessage = if (state.password.isBlank()) appContext.getString(R.string.required_field) else ""
+            )
         }
 
-        if (userNameIsError || passwordIsError) {
+        val st = _uiState.value
+        if (st.userNameIsError || st.passwordIsError) return
+
+        if (!st.userName.isValidEmail()) {
+            _uiState.update {
+                it.copy(
+                    userNameIsError = true,
+                    userNameErrorMessage = appContext.getString(R.string.invalid_email)
+                )
+            }
             return
         }
 
         appViewModel.isLoading = true
+        _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
             try {
-                val userCredential =
-                    auth.signInWithEmailAndPassword(userName.trim(), password).await()
-                val user = userCredential.user
-                if (user != null) {
-                    getUserInformation(user.uid, authProvider = AuthProvider.email) { userExists ->
-                        appViewModel.isLoading = false
-                        if (userExists) {
-                            loginSuccess()
-                        } else {
-                            appViewModel.showMessage(
-                                type = DialogType.ERROR,
-                                title = appContext.getString(R.string.something_went_wrong),
-                                message = appContext.getString(R.string.error_user_not_found)
-                            )
-                        }
-                    }
+                val cred = auth.signInWithEmailAndPassword(st.userName.trim(), st.password).await()
+                val user = cred.user ?: throw Exception("No user")
+                getUserInfo(user.uid, AuthProvider.email) { exists ->
+                    appViewModel.isLoading = false
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (exists) onSuccess()
+                    else appViewModel.showMessage(
+                        DialogType.ERROR,
+                        appContext.getString(R.string.something_went_wrong),
+                        appContext.getString(R.string.error_user_not_found)
+                    )
                 }
             } catch (e: Exception) {
                 appViewModel.isLoading = false
-
-                Log.e(TAG, "Error logging in: ${e.message}")
-
-                if (e is FirebaseAuthInvalidCredentialsException) {
-                    userNameIsError = true
-                    userNameErrorMessage = appContext.getString(R.string.wrong_credentials)
-
-                    passwordIsError = true
-                    passwordErrorMessage = appContext.getString(R.string.wrong_credentials)
-
-                } else {
-                    val errorMessage = when (e) {
-                        is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
-                            appContext,
-                            e.errorCode
-                        )
-
-                        is FirebaseAuthException -> getFirebaseAuthErrorMessage(
-                            appContext,
-                            e.errorCode
-                        )
-
-                        else -> appContext.getString(R.string.general_error)
-                    }
-
-                    appViewModel.showMessage(
-                        type = DialogType.ERROR,
-                        title = appContext.getString(R.string.something_went_wrong),
-                        message = errorMessage,
-                    )
-                }
-
+                _uiState.update { it.copy(isLoading = false) }
+                handleAuthError(e)
             }
         }
-
     }
 
     val googleSignInClient: GoogleSignInClient by lazy {
@@ -193,27 +178,26 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                     val user = auth.currentUser
                     Log.d(TAG, "Firebase Sign-In success. User: ${user?.displayName}")
                     viewModelScope.launch {
-                        getUserInformation(
-                            user?.uid ?: "",
-                            authProvider = AuthProvider.google,
-                            userExistsCallback = {
-                                appViewModel.isLoading = false
-                                if (it) {
-                                    onResult(Pair(false, null))
-                                } else {
-                                    user?.let {
-                                        val userData = LocalUser(
-                                            id = it.uid,
-                                            email = it.email,
-                                            firstName = it.displayName?.split(" ")?.get(0),
-                                            lastName = it.displayName?.split(" ")?.get(1),
-                                            mobilePhone = it.phoneNumber,
-                                            authProvider = AuthProvider.google
-                                        )
-                                        onResult(Pair(true, userData))
-                                    }
+
+                        getUserInfo(user?.uid ?: "", AuthProvider.google) { exists ->
+                            appViewModel.isLoading = false
+                            if (exists) {
+                                onResult(Pair(false, null))
+                            } else {
+                                user?.let {
+                                    val userData = LocalUser(
+                                        id = it.uid,
+                                        email = it.email,
+                                        firstName = it.displayName?.split(" ")?.get(0),
+                                        lastName = it.displayName?.split(" ")?.get(1),
+                                        mobilePhone = it.phoneNumber,
+                                        authProvider = AuthProvider.google
+                                    )
+                                    onResult(Pair(true, userData))
                                 }
-                            })
+                            }
+                        }
+
                     }
                 } else {
                     appViewModel.isLoading = false
@@ -227,43 +211,65 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
             }
     }
 
-    private suspend fun getUserInformation(
-        userId: String,
-        authProvider: AuthProvider,
-        userExistsCallback: (Boolean) -> Unit
+    private suspend fun getUserInfo(
+        uid: String,
+        provider: AuthProvider,
+        cb: (Boolean) -> Unit
     ) {
         try {
-            val userDoc = db.collection("users").document(userId).get().await()
-            if (userDoc.exists()) {
-                val userData = userDoc.toObject<LocalUser>()
-                if (userData != null) {
-                    userData.authProvider = authProvider
-                    LocalUserManager(appContext).saveUserState(userData)
-                    userExistsCallback(true)
-                } else {
-                    throw Exception("User data not found in Firestore")
-                }
-            } else {
-                userExistsCallback(false)
-            }
+            val doc = db.collection("users").document(uid).get().await()
+            if (doc.exists()) {
+                val user = doc.toObject<LocalUser>()!!.apply { authProvider = provider }
+                LocalUserManager(appContext).saveUserState(user)
+                cb(true)
+            } else cb(false)
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting user information", e)
             appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.something_went_wrong),
-                message = appContext.getString(R.string.error_getting_user_info)
+                DialogType.ERROR,
+                appContext.getString(R.string.something_went_wrong),
+                appContext.getString(R.string.error_getting_user_info)
+            )
+        }
+    }
+
+    private fun handleAuthError(e: Exception) {
+        when (e) {
+            is FirebaseAuthInvalidCredentialsException -> {
+                _uiState.update {
+                    it.copy(
+                        userNameIsError = true,
+                        passwordIsError = true,
+                        userNameErrorMessage = appContext.getString(R.string.wrong_credentials),
+                        passwordErrorMessage = appContext.getString(R.string.wrong_credentials)
+                    )
+                }
+            }
+
+            is FirebaseAuthInvalidUserException,
+            is FirebaseAuthException -> {
+                val msg = getFirebaseAuthErrorMessage(appContext, e.errorCode)
+                appViewModel.showMessage(
+                    DialogType.ERROR,
+                    appContext.getString(R.string.something_went_wrong),
+                    msg
+                )
+            }
+
+            else -> appViewModel.showMessage(
+                DialogType.ERROR,
+                appContext.getString(R.string.something_went_wrong),
+                appContext.getString(R.string.general_error)
             )
         }
     }
 }
 
-class LoginViewModelFactory(private val context: Context, private val appViewModel: AppViewModel) :
-    ViewModelProvider.Factory {
+class LoginViewModelFactory(
+    private val context: Context,
+    private val appViewModel: AppViewModel
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            return LoginViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    override fun <T : ViewModel> create(cls: Class<T>): T {
+        return LoginViewModel(context, appViewModel) as T
     }
 }
