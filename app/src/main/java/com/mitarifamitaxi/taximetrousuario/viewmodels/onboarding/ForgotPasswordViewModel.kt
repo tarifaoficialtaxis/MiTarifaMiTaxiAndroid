@@ -1,18 +1,20 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding
 
 import android.content.Context
-import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
+import com.mitarifamitaxi.taximetrousuario.states.ForgotPasswordState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ForgotPasswordViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -21,9 +23,8 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     private val appContext = context.applicationContext
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    var email by mutableStateOf("")
-    var emailIsError by mutableStateOf(false)
-    var emailErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
+    private val _uiState = MutableStateFlow(ForgotPasswordState())
+    val uiState: StateFlow<ForgotPasswordState> = _uiState
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
@@ -38,20 +39,31 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
         }*/
     }
 
+    fun onEmailChange(value: String) = _uiState.update {
+        it.copy(email = value)
+    }
+
     fun validateEmail() {
+        _uiState.update { state ->
+            state.copy(
+                emailIsError = state.email.isEmpty(),
+                emailErrorMessage = if (state.email.isBlank()) appContext.getString(R.string.required_field) else "",
+            )
+        }
 
-        emailIsError = email.isEmpty()
-
-        if (email.isNotEmpty()) {
-
-            if (!email.isValidEmail()) {
-                emailIsError = true
-                emailErrorMessage = appContext.getString(R.string.invalid_email)
+        if (_uiState.value.email.isNotEmpty()) {
+            if (!_uiState.value.email.isValidEmail()) {
+                _uiState.update { state ->
+                    state.copy(
+                        emailIsError = true,
+                        emailErrorMessage = appContext.getString(R.string.invalid_email)
+                    )
+                }
             }
 
         }
 
-        if (!emailIsError) {
+        if (!_uiState.value.emailIsError) {
             sendPasswordReset()
         }
     }
@@ -59,7 +71,7 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     fun sendPasswordReset() {
         appViewModel.isLoading = true
         auth.setLanguageCode("es")
-        auth.sendPasswordResetEmail(email.trim())
+        auth.sendPasswordResetEmail(_uiState.value.email.trim())
             .addOnCompleteListener { task ->
                 appViewModel.isLoading = false
                 if (task.isSuccessful) {
