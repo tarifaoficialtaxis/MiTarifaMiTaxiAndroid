@@ -404,12 +404,12 @@ class LoginActivity : BaseActivity() {
                 secondaryIcon = Icons.Default.LocalTaxi,
                 onDismiss = { viewModel.hideSelectRoleDialog() },
                 onPrimaryActionClicked = {
-                    viewModel.showSelectRoleDialog()
+                    viewModel.hideSelectRoleDialog()
                     validateNextScreen(tempUserRole = UserRole.USER)
                 },
                 onSecondaryActionClicked = {
-                    viewModel.showSelectRoleDialog()
-                    validateNextScreen(tempUserRole = UserRole.USER)
+                    viewModel.hideSelectRoleDialog()
+                    validateNextScreen(tempUserRole = UserRole.DRIVER)
                 }
             )
         }
