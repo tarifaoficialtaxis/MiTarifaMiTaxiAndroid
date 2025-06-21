@@ -239,7 +239,7 @@ class LoginActivity : BaseActivity() {
                             modifier = Modifier.Companion
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
-                                .padding(top = 29.dp, bottom = 10.dp, start = 29.dp, end = 29.dp)
+                                .padding(29.dp)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.welcome),
@@ -355,31 +355,37 @@ class LoginActivity : BaseActivity() {
                             }
 
 
-
-                            Button(
-                                onClick = {
-                                    onGoogleSignIn()
-                                },
-                                modifier = Modifier.Companion
-                                    .padding(top = 29.dp)
-                                    .width(133.dp)
-                                    .height(45.dp),
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.button_google),
-                                    contentDescription = null,
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(29.dp),
+                                horizontalAlignment = Alignment.Companion.CenterHorizontally
+                            )
+                            {
+                                Button(
+                                    onClick = {
+                                        onGoogleSignIn()
+                                    },
                                     modifier = Modifier.Companion
-                                        .fillMaxSize()
-                                )
+                                        .padding(top = 29.dp)
+                                        .width(133.dp)
+                                        .height(45.dp),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.button_google),
+                                        contentDescription = null,
+                                        modifier = Modifier.Companion
+                                            .fillMaxSize()
+                                    )
+                                }
+
+                                OnboardingBottomLink(
+                                    text = stringResource(id = R.string.no_account),
+                                    linkText = stringResource(id = R.string.register_here)
+                                ) {
+                                    onRegisterClicked()
+                                }
                             }
 
-                            OnboardingBottomLink(
-                                text = stringResource(id = R.string.no_account),
-                                linkText = stringResource(id = R.string.register_here)
-                            ) {
-                                onRegisterClicked()
-                            }
 
                         }
                     }

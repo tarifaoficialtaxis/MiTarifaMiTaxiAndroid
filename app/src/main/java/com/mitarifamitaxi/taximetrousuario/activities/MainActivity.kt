@@ -32,26 +32,27 @@ import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        setContent {
-            SplashScreen {
-                if (!Constants.IS_DEV) {
-                    validateNextScreen()
-                }
-            }
-        }
-
         if (Constants.IS_DEV) {
             validateNextScreen()
             //startActivity(Intent(this, RegisterActivity::class.java))
         }
 
+    }
+
+    @Composable
+    override fun Content() {
+        SplashScreen {
+            if (!Constants.IS_DEV) {
+                validateNextScreen()
+            }
+        }
     }
 
     private fun validateNextScreen() {

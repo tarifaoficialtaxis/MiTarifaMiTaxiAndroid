@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.core.view.WindowCompat
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
@@ -66,6 +67,8 @@ open class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             MyTheme {
                 BaseScreen(
@@ -95,7 +98,12 @@ open class BaseActivity : ComponentActivity() {
 
                             "TAXIMETER" -> {
                                 if (this !is TaximeterActivity) {
-                                    startActivity(Intent(this, RoutePlannerActivity::class.java))
+                                    startActivity(
+                                        Intent(
+                                            this,
+                                            RoutePlannerActivity::class.java
+                                        )
+                                    )
                                 }
                             }
 
@@ -165,7 +173,11 @@ open class BaseActivity : ComponentActivity() {
                         }
                     }
                 ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .windowInsetsPadding(WindowInsets.systemBars)
+                    ) {
                         Content()
                         LoadingOverlayCompose()
                         CustomPopUpDialogCompose()
@@ -175,7 +187,11 @@ open class BaseActivity : ComponentActivity() {
         } else {
             // When the drawer is disabled, provide a no-op openDrawer lambda.
             CompositionLocalProvider(LocalOpenDrawer provides {}) {
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.systemBars)
+                ) {
                     Content()
                     LoadingOverlayCompose()
                     CustomPopUpDialogCompose()
