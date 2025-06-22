@@ -16,11 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 @Composable
 fun TwoOptionSelectorDialog(
@@ -52,20 +50,18 @@ fun TwoOptionSelectorDialog(
                     Color.White,
                     shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                 )
-                .padding(29.dp)
+                .padding(K.GENERAL_PADDING)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
 
-                Text(
-                    text = title,
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.main)
+                MainSubtitle(
+                    subtitle = title,
+                    subtitleColor = colorResource(id = R.color.main)
                 )
+
 
                 Spacer(modifier = Modifier.height(29.dp))
 
@@ -106,17 +102,13 @@ fun TwoOptionSelectorDialog(
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = colorResource(id = R.color.gray7),
                         contentColor = colorResource(id = R.color.white)
-                    ),
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "content description"
                     )
                 }
-
-
-
-                Spacer(modifier = Modifier.height(16.dp))
 
             }
         }
