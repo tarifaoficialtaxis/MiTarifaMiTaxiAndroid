@@ -2,9 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.activities
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.compose.setContent
 import androidx.annotation.OptIn
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,9 +23,8 @@ import com.mitarifamitaxi.taximetrousuario.R
 import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.RegisterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
@@ -39,7 +36,7 @@ class MainActivity : BaseActivity() {
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        if (Constants.IS_DEV) {
+        if (K.IS_DEV) {
             validateNextScreen()
             //startActivity(Intent(this, RegisterActivity::class.java))
         }
@@ -49,7 +46,7 @@ class MainActivity : BaseActivity() {
     @Composable
     override fun Content() {
         SplashScreen {
-            if (!Constants.IS_DEV) {
+            if (!K.IS_DEV) {
                 validateNextScreen()
             }
         }

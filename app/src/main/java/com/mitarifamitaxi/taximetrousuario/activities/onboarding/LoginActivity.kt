@@ -55,8 +55,10 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.Register
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
 import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
@@ -239,16 +241,12 @@ class LoginActivity : BaseActivity() {
                             modifier = Modifier.Companion
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
-                                .padding(29.dp)
+                                .padding(K.GENERAL_PADDING)
                         ) {
-                            Text(
-                                text = stringResource(id = R.string.welcome),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
-                                fontSize = 24.sp,
-                                color = colorResource(id = R.color.main),
-                                modifier = Modifier.Companion
-                                    .padding(bottom = 25.dp),
+
+                            MainTitleText(
+                                title = stringResource(id = R.string.welcome),
+                                modifier = Modifier.Companion.padding(bottom = 25.dp)
                             )
 
                             Column(
@@ -314,7 +312,7 @@ class LoginActivity : BaseActivity() {
 
                             Box(
                                 modifier = Modifier.Companion
-                                    .padding(vertical = 29.dp)
+                                    .padding(vertical = K.GENERAL_PADDING)
                             ) {
                                 CustomButton(
                                     text = stringResource(id = R.string.login).uppercase(),
@@ -356,7 +354,7 @@ class LoginActivity : BaseActivity() {
 
 
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(29.dp),
+                                verticalArrangement = Arrangement.spacedBy(K.GENERAL_PADDING),
                                 horizontalAlignment = Alignment.Companion.CenterHorizontally
                             )
                             {

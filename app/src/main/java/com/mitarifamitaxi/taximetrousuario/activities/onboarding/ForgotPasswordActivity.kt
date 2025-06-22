@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Mail
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,12 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -38,8 +34,9 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
-import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.states.ForgotPasswordState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.ForgotPasswordViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.ForgotPasswordViewModelFactory
@@ -118,32 +115,19 @@ class ForgotPasswordActivity : BaseActivity() {
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
                             modifier = Modifier.Companion
                                 .fillMaxSize()
-                                .padding(top = 29.dp, start = 29.dp, end = 29.dp)
+                                .padding(K.GENERAL_PADDING)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            Text(
-                                text = stringResource(id = R.string.recover_password),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
-                                fontSize = 24.sp,
-                                color = colorResource(id = R.color.main),
-                                modifier = Modifier.Companion
-                                    .padding(bottom = 20.dp),
-                            )
 
-                            Text(
+                            MainTitleText(
+                                title = stringResource(id = R.string.recover_password),
                                 text = stringResource(id = R.string.input_email_message),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Normal,
-                                fontSize = 14.sp,
-                                color = colorResource(id = R.color.gray),
-                                textAlign = TextAlign.Companion.Center,
                             )
 
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.Companion
-                                    .padding(top = 32.dp)
+                                    .padding(top = K.GENERAL_PADDING)
                             ) {
 
                                 CustomTextField(
@@ -161,9 +145,7 @@ class ForgotPasswordActivity : BaseActivity() {
                             Spacer(modifier = Modifier.Companion.weight(1.0f))
 
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.Companion
-                                    .padding(bottom = 29.dp)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 CustomButton(
                                     text = stringResource(id = R.string.confirm).uppercase(),

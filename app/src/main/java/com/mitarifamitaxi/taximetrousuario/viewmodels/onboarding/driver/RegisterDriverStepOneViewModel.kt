@@ -14,13 +14,10 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
@@ -64,7 +61,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
     init {
         checkCameraPermission()
 
-        if (Constants.IS_DEV) {
+        if (K.IS_DEV) {
             firstName = "Carlos"
             lastName = "Ruiz"
             mobilePhone = "3167502612"

@@ -60,7 +60,7 @@ fun getAddressFromCoordinates(
     callbackError: (Exception) -> Unit
 ) {
     val url =
-        "${Constants.MAPS_API_URL}geocode/json?latlng=$latitude,$longitude&key=${Constants.GOOGLE_API_KEY}"
+        "${K.MAPS_API_URL}geocode/json?latlng=$latitude,$longitude&key=${K.GOOGLE_API_KEY}"
 
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
@@ -107,14 +107,14 @@ fun getPlacePredictions(
     val encodedInput = URLEncoder.encode(input, "UTF-8")
 
     val url =
-        "${Constants.MAPS_API_URL}place/autocomplete/json?" +
+        "${K.MAPS_API_URL}place/autocomplete/json?" +
                 "input=$encodedInput" +
                 "&location=$latitude,$longitude" +
                 "&radius=$radius" +
                 "&language=es" +
                 "&strictbounds" +
                 "&components=country:$country" +
-                "&key=${Constants.GOOGLE_API_KEY}"
+                "&key=${K.GOOGLE_API_KEY}"
 
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
@@ -161,7 +161,7 @@ fun getPlaceDetails(
     callbackError: (Exception) -> Unit
 ) {
     val url =
-        "${Constants.MAPS_API_URL}place/details/json?place_id=$placeId&key=${Constants.GOOGLE_API_KEY}&language=es"
+        "${K.MAPS_API_URL}place/details/json?place_id=$placeId&key=${K.GOOGLE_API_KEY}&language=es"
 
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
@@ -210,7 +210,7 @@ fun fetchRoute(
 
 
     val url =
-        "${Constants.MAPS_API_URL}directions/json?origin=$origin&destination=$destination&key=${Constants.GOOGLE_API_KEY}"
+        "${K.MAPS_API_URL}directions/json?origin=$origin&destination=$destination&key=${K.GOOGLE_API_KEY}"
 
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
