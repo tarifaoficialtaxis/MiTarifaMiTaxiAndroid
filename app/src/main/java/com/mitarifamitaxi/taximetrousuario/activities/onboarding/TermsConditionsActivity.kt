@@ -149,7 +149,7 @@ class TermsConditionsActivity : BaseActivity() {
 
     @Preview
     @Composable
-    fun LoginScreenPreview() {
+    fun ScreenPreview() {
         TermsConditionsScreen(
             onAcceptClicked = { }
         )

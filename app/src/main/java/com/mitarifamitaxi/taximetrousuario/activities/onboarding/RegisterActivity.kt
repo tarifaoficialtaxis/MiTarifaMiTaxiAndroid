@@ -5,18 +5,13 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,33 +23,32 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Mail
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PhoneIphone
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
-import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.RegisterHeaderBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
-import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
+import com.mitarifamitaxi.taximetrousuario.states.RegisterState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.RegisterViewModelFactory
 
@@ -66,6 +60,35 @@ class RegisterActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
+
+        val uiState by viewModel.uiState.collectAsState()
+
+        RegisterScreen(
+            uiState = uiState,
+            onLoginClicked = {
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            },
+            onRegisterClicked = {
+                viewModel.register { registerResult ->
+                    if (registerResult.first) {
+                        startActivity(Intent(this, HomeActivity::class.java))
+                        finish()
+                    }
+                }
+            }
+        )
+
+
+    }
+
+    @Composable
+    private fun RegisterScreen(
+        uiState: RegisterState,
+        onLoginClicked: () -> Unit,
+        onRegisterClicked: () -> Unit,
+    ) {
 
         val imagePickerLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent()
@@ -84,68 +107,19 @@ class RegisterActivity : BaseActivity() {
         ) { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (isGranted) {
-                viewModel.tempImageUri = createTempImageUri(this)
-                viewModel.tempImageUri?.let { uri ->
+                viewModel.onTempImageUriChange(createTempImageUri(this))
+                uiState.tempImageUri?.let { uri ->
                     takePictureLauncher.launch(uri)
                 }
             }
         }
 
-        MainView(
-            onLoginClicked = {
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                startActivity(intent)
-            },
-            onRegisterClicked = {
-                viewModel.register { registerResult ->
-                    if (registerResult.first) {
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
-                    }
-                }
-            }
-
-        )
-
-        if (viewModel.showDialog) {
-            TwoOptionSelectorDialog(
-                title = stringResource(id = R.string.select_profile_photo),
-                primaryTitle = stringResource(id = R.string.camera),
-                secondaryTitle = stringResource(id = R.string.gallery),
-                primaryIcon = Icons.Default.CameraAlt,
-                secondaryIcon = Icons.Default.Image,
-                onDismiss = { viewModel.showDialog = false },
-                onPrimaryActionClicked = {
-                    if (viewModel.hasCameraPermission) {
-                        viewModel.tempImageUri = createTempImageUri(this)
-                        viewModel.tempImageUri?.let { uri ->
-                            takePictureLauncher.launch(uri)
-                        }
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                    viewModel.showDialog = false
-                },
-                onSecondaryActionClicked = {
-                    imagePickerLauncher.launch("image/*")
-                    viewModel.showDialog = false
-                }
-            )
-        }
-    }
-
-    @Composable
-    private fun MainView(
-        onLoginClicked: () -> Unit,
-        onRegisterClicked: () -> Unit,
-    ) {
         Column {
             Box(
                 modifier = Modifier.Companion
                     .fillMaxSize()
             ) {
-                Column(
+                Box(
                     modifier = Modifier.Companion
                         .fillMaxSize()
                         .background(colorResource(id = R.color.white))
@@ -156,7 +130,7 @@ class RegisterActivity : BaseActivity() {
                     Card(
                         modifier = Modifier.Companion
                             .fillMaxSize()
-                            .offset(y = (-24).dp),
+                            .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.23f),
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = colorResource(id = R.color.white),
@@ -166,115 +140,119 @@ class RegisterActivity : BaseActivity() {
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
                             modifier = Modifier.Companion
                                 .fillMaxSize()
-                                .padding(start = 29.dp, end = 29.dp)
+                                .padding(
+                                    top = K.GENERAL_PADDING,
+                                    start = K.GENERAL_PADDING,
+                                    end = K.GENERAL_PADDING
+                                )
                         ) {
 
                             Column(
-                                verticalArrangement = Arrangement.Center,
+                                verticalArrangement = Arrangement.Top,
                                 horizontalAlignment = Alignment.Companion.CenterHorizontally,
                                 modifier = Modifier.Companion
-                                    .weight(0.1f)
+                                    .padding(bottom = K.GENERAL_PADDING)
+                                //.background(colorResource(id = R.color.green))
                             ) {
-
-                                Text(
-                                    text = stringResource(id = R.string.register),
-                                    fontFamily = MontserratFamily,
-                                    fontWeight = FontWeight.Companion.Bold,
-                                    fontSize = 24.sp,
-                                    color = colorResource(id = R.color.main)
+                                MainTitleText(
+                                    title = stringResource(id = R.string.register)
                                 )
                             }
 
                             Column(
                                 horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.Companion
-                                    .weight(0.7f)
+                                    .weight(1f)
                                     .verticalScroll(rememberScrollState())
                             ) {
 
-                                ProfilePictureBox(
-                                    imageUri = viewModel.imageUri,
-                                    onClickEdit = { viewModel.showDialog = true }
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.firstName,
-                                    onValueChange = { viewModel.firstName = it },
-                                    placeholder = stringResource(id = R.string.firstName),
-                                    leadingIcon = Icons.Rounded.Person,
-                                    isError = viewModel.firstNameIsError,
-                                    errorMessage = viewModel.firstNameErrorMessage
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.lastName,
-                                    onValueChange = { viewModel.lastName = it },
-                                    placeholder = stringResource(id = R.string.lastName),
-                                    leadingIcon = Icons.Rounded.Person,
-                                    isError = viewModel.lastNameIsError,
-                                    errorMessage = viewModel.lastNameErrorMessage
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.mobilePhone,
-                                    onValueChange = { viewModel.mobilePhone = it },
-                                    placeholder = stringResource(id = R.string.mobilePhone),
-                                    leadingIcon = Icons.Rounded.PhoneIphone,
-                                    keyboardType = KeyboardType.Companion.Phone,
-                                    isError = viewModel.mobilePhoneIsError,
-                                    errorMessage = viewModel.mobilePhoneErrorMessage,
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.email,
-                                    onValueChange = { viewModel.email = it },
-                                    placeholder = stringResource(id = R.string.email),
-                                    leadingIcon = Icons.Rounded.Mail,
-                                    keyboardType = KeyboardType.Companion.Email,
-                                    isError = viewModel.emailIsError,
-                                    errorMessage = viewModel.emailErrorMessage
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.password,
-                                    onValueChange = { viewModel.password = it },
-                                    placeholder = stringResource(id = R.string.password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
-                                    isError = viewModel.passwordIsError,
-                                    errorMessage = viewModel.passwordErrorMessage
-                                )
-
-                                CustomTextField(
-                                    value = viewModel.confirmPassword,
-                                    onValueChange = { viewModel.confirmPassword = it },
-                                    placeholder = stringResource(id = R.string.confirm_password),
-                                    isSecure = true,
-                                    leadingIcon = Icons.Rounded.Lock,
-                                    isError = viewModel.confirmPasswordIsError,
-                                    errorMessage = viewModel.confirmPasswordErrorMessage
-                                )
-                            }
-
-
-                            Column(
-                                modifier = Modifier.Companion
-                                    .weight(0.2f)
-                            ) {
-                                Spacer(modifier = Modifier.Companion.weight(1f))
-                                CustomButton(
-                                    text = stringResource(id = R.string.register_action).uppercase(),
-                                    onClick = { onRegisterClicked() },
-                                    modifier = Modifier.Companion
-                                        .fillMaxWidth()
-                                )
-
-                                OnboardingBottomLink(
-                                    text = stringResource(id = R.string.already_account),
-                                    linkText = stringResource(id = R.string.login_here)
+                                Column(
+                                    horizontalAlignment = Alignment.Companion.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    onLoginClicked()
+                                    ProfilePictureBox(
+                                        imageUri = uiState.imageUri,
+                                        onClickEdit = { viewModel.onShowDialogSelectPhotoChange(true) }
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.firstName,
+                                        onValueChange = { viewModel.onFistNameChange(it) },
+                                        placeholder = stringResource(id = R.string.firstName),
+                                        leadingIcon = Icons.Rounded.Person,
+                                        isError = uiState.firstNameIsError,
+                                        errorMessage = uiState.firstNameErrorMessage
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.lastName,
+                                        onValueChange = { viewModel.onLastNameChange(it) },
+                                        placeholder = stringResource(id = R.string.lastName),
+                                        leadingIcon = Icons.Rounded.Person,
+                                        isError = uiState.lastNameIsError,
+                                        errorMessage = uiState.lastNameErrorMessage
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.mobilePhone,
+                                        onValueChange = { viewModel.onMobilePhoneChange(it) },
+                                        placeholder = stringResource(id = R.string.mobilePhone),
+                                        leadingIcon = Icons.Rounded.PhoneIphone,
+                                        keyboardType = KeyboardType.Companion.Phone,
+                                        isError = uiState.mobilePhoneIsError,
+                                        errorMessage = uiState.mobilePhoneErrorMessage,
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.email,
+                                        onValueChange = { viewModel.onEmailChange(it) },
+                                        placeholder = stringResource(id = R.string.email),
+                                        leadingIcon = Icons.Rounded.Mail,
+                                        keyboardType = KeyboardType.Companion.Email,
+                                        isError = uiState.emailIsError,
+                                        errorMessage = uiState.emailErrorMessage
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.password,
+                                        onValueChange = { viewModel.onPasswordChange(it) },
+                                        placeholder = stringResource(id = R.string.password),
+                                        isSecure = true,
+                                        leadingIcon = Icons.Rounded.Lock,
+                                        isError = uiState.passwordIsError,
+                                        errorMessage = uiState.passwordErrorMessage
+                                    )
+
+                                    CustomTextField(
+                                        value = uiState.confirmPassword,
+                                        onValueChange = { viewModel.onConfirmPasswordChange(it) },
+                                        placeholder = stringResource(id = R.string.confirm_password),
+                                        isSecure = true,
+                                        leadingIcon = Icons.Rounded.Lock,
+                                        isError = uiState.confirmPasswordIsError,
+                                        errorMessage = uiState.confirmPasswordErrorMessage
+                                    )
+                                }
+
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.Companion
+                                        .padding(vertical = K.GENERAL_PADDING)
+                                    //.background(colorResource(id = R.color.green))
+                                ) {
+                                    CustomButton(
+                                        text = stringResource(id = R.string.register_action).uppercase(),
+                                        onClick = { onRegisterClicked() },
+                                        modifier = Modifier.Companion
+                                            .fillMaxWidth()
+                                    )
+
+                                    OnboardingBottomLink(
+                                        text = stringResource(id = R.string.already_account),
+                                        linkText = stringResource(id = R.string.login_here)
+                                    ) {
+                                        onLoginClicked()
+                                    }
                                 }
                             }
 
@@ -286,5 +264,44 @@ class RegisterActivity : BaseActivity() {
 
             }
         }
+
+        if (uiState.showDialogSelectPhoto) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_profile_photo),
+                primaryTitle = stringResource(id = R.string.camera),
+                secondaryTitle = stringResource(id = R.string.gallery),
+                primaryIcon = Icons.Default.CameraAlt,
+                secondaryIcon = Icons.Default.Image,
+                onDismiss = { viewModel.onShowDialogSelectPhotoChange(false) },
+                onPrimaryActionClicked = {
+                    if (uiState.hasCameraPermission) {
+                        viewModel.onTempImageUriChange(createTempImageUri(this))
+                        uiState.tempImageUri?.let { uri ->
+                            takePictureLauncher.launch(uri)
+                        }
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                    viewModel.onShowDialogSelectPhotoChange(false)
+                },
+                onSecondaryActionClicked = {
+                    imagePickerLauncher.launch("image/*")
+                    viewModel.onShowDialogSelectPhotoChange(false)
+                }
+            )
+        }
+
+    }
+
+    private val sampleUiState = RegisterState()
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        RegisterScreen(
+            uiState = sampleUiState,
+            onLoginClicked = { },
+            onRegisterClicked = { }
+        )
     }
 }
