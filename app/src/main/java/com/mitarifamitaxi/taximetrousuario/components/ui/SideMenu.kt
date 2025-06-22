@@ -45,6 +45,8 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
@@ -68,9 +70,10 @@ fun SideMenu(
     ModalDrawerSheet(
         drawerShape = RoundedCornerShape(0.dp),
         drawerContainerColor = colorResource(id = R.color.white),
-        windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         modifier = Modifier
             .fillMaxWidth(0.87f)
+            .windowInsetsPadding(WindowInsets.systemBars)
+
     ) {
         Column(
             modifier = Modifier
