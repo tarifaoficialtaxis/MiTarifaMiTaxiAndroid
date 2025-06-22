@@ -181,6 +181,8 @@
 
     <string name="select_start_and_end_points">Selecciona punto de origen y destino para continuar.</string>
     <string name="attention">Atención</string>
+    <string name="profile_photo_required">Foto de perfil requerida</string>
+    <string name="must_select_profile_photo">Para continuar, debes subir\nuna foto de perfil.</string>
 
     <string name="set_point_on_map">Fijar punto de inicio en el mapa</string>
     <string name="set_end_point_on_map">Fijar punto de destino en el mapa</string>
