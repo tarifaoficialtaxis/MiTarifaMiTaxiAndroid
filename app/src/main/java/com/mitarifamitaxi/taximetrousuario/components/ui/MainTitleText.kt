@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
@@ -18,6 +19,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 @Composable
 fun MainTitleText(
     title: String,
+    titleSize: TextUnit = 24.sp,
     titleColor: Color = colorResource(id = R.color.main),
     text: String? = null,
     textColor: Color = colorResource(id = R.color.gray1),
@@ -32,7 +34,7 @@ fun MainTitleText(
         Text(
             text = title,
             color = titleColor,
-            fontSize = 24.sp,
+            fontSize = titleSize,
             fontFamily = MontserratFamily,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -48,6 +50,7 @@ fun MainTitleText(
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
+                lineHeight = 17.sp,
                 modifier = Modifier
                     .fillMaxWidth()
             )

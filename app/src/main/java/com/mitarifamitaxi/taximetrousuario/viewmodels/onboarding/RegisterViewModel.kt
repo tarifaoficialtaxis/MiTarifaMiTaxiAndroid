@@ -137,8 +137,8 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         if (stateVal.imageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
-                title = appContext.getString(R.string.attention),
-                message = appContext.getString(R.string.error_image_required),
+                title = appContext.getString(R.string.profile_photo_required),
+                message = appContext.getString(R.string.must_select_profile_photo),
             )
         }
 
