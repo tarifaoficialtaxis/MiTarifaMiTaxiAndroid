@@ -427,7 +427,7 @@ class LoginActivity : BaseActivity() {
 
     @Preview
     @Composable
-    fun LoginScreenPreview() {
+    fun ScreenPreview() {
         LoginScreen(
             uiState = sampleUiState,
             onRestorePassword = { },

@@ -175,7 +175,7 @@ class ForgotPasswordActivity : BaseActivity() {
 
     @Preview
     @Composable
-    fun LoginScreenPreview() {
+    fun ScreenPreview() {
         ForgotPasswordScreen(
             uiState = sampleUiState,
             onConfirmClicked = { },

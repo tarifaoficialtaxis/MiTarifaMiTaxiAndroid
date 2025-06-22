@@ -4,6 +4,7 @@ import android.net.Uri
 
 data class RegisterState(
     val imageUri: Uri? = null,
+    val tempImageUri: Uri? = null,
     val firstName: String = "",
     val firstNameIsError: Boolean = false,
     val firstNameErrorMessage: String = "",
