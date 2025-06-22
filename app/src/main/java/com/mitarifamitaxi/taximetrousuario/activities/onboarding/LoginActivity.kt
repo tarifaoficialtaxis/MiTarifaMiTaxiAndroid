@@ -169,7 +169,11 @@ class LoginActivity : BaseActivity() {
                     validateNextScreen()
                 }
             },
-            onRegisterClicked = { viewModel.showSelectRoleDialog() },
+            onRegisterClicked = {
+                LocalUserManager(this).deleteUserState()
+                viewModel.setTempData(false, null)
+                viewModel.showSelectRoleDialog()
+            },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
                     googleSignInLauncher.launch(viewModel.googleSignInClient.signInIntent)

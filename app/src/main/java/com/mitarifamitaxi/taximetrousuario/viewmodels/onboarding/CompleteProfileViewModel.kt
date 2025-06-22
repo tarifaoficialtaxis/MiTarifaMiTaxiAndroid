@@ -4,9 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -20,8 +17,12 @@ import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import com.mitarifamitaxi.taximetrousuario.states.CompleteProfileState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -31,71 +32,103 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
 
     private val appContext = context.applicationContext
 
-    var imageUri by mutableStateOf<Uri?>(null)
-    var tempImageUri by mutableStateOf<Uri?>(null)
-
-    var showDialog by mutableStateOf(false)
-
-    var userId by mutableStateOf("")
-
-    var firstName by mutableStateOf("")
-    var firstNameIsError by mutableStateOf(false)
-    var firstNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
-
-    var lastName by mutableStateOf("")
-    var lastNameIsError by mutableStateOf(false)
-    var lastNameErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
-
-    var mobilePhone by mutableStateOf("")
-    var mobilePhoneIsError by mutableStateOf(false)
-    var mobilePhoneErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
-
-    var email by mutableStateOf("")
-    var authProvider by mutableStateOf(AuthProvider.google)
-
-    var hasCameraPermission by mutableStateOf(false)
-        private set
+    private val _uiState = MutableStateFlow(CompleteProfileState())
+    val uiState: StateFlow<CompleteProfileState> = _uiState
 
     init {
         checkCameraPermission()
     }
 
+    fun onUserIdChange(value: String) = _uiState.update {
+        it.copy(userId = value)
+    }
+
+    fun onFistNameChange(value: String) = _uiState.update {
+        it.copy(firstName = value)
+    }
+
+    fun onLastNameChange(value: String) = _uiState.update {
+        it.copy(lastName = value)
+    }
+
+    fun onEmailChange(value: String) = _uiState.update {
+        it.copy(email = value)
+    }
+
+    fun onMobilePhoneChange(value: String) = _uiState.update {
+        it.copy(mobilePhone = value)
+    }
+
+    fun onTempImageUriChange(value: Uri?) = _uiState.update {
+        it.copy(tempImageUri = value)
+    }
+
+    fun onShowDialogSelectPhotoChange(value: Boolean) = _uiState.update {
+        it.copy(showDialogSelectPhoto = value)
+    }
+
+
     private fun checkCameraPermission() {
-        hasCameraPermission = ContextCompat.checkSelfPermission(
-            appContext,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
+        _uiState.update {
+            it.copy(
+                hasCameraPermission = ContextCompat.checkSelfPermission(
+                    appContext,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        }
     }
 
     fun onPermissionResult(isGranted: Boolean) {
-        hasCameraPermission = isGranted
+        _uiState.update {
+            it.copy(
+                hasCameraPermission = isGranted,
+            )
+        }
     }
 
     fun onImageSelected(uri: Uri?) {
-        imageUri = uri
+        _uiState.update {
+            it.copy(
+                imageUri = uri,
+            )
+        }
     }
 
     fun onImageCaptured(success: Boolean) {
         if (success) {
-            imageUri = tempImageUri
+            _uiState.update {
+                it.copy(
+                    imageUri = _uiState.value.tempImageUri,
+                )
+            }
         }
     }
 
-    fun completeProfile(onResult: (Pair<Boolean, String?>) -> Unit) {
 
-        if (imageUri == null) {
+    fun completeProfile(onResult: (Pair<Boolean, String?>) -> Unit) {
+        val stateVal = _uiState.value
+
+        if (stateVal.imageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
-                title = appContext.getString(R.string.attention),
-                message = appContext.getString(R.string.error_image_required),
+                title = appContext.getString(R.string.profile_photo_required),
+                message = appContext.getString(R.string.must_select_profile_photo),
             )
         }
 
-        firstNameIsError = firstName.isEmpty()
-        lastNameIsError = lastName.isEmpty()
-        mobilePhoneIsError = mobilePhone.isEmpty()
+        _uiState.update { state ->
+            state.copy(
+                firstNameIsError = state.firstName.isBlank(),
+                firstNameErrorMessage = if (state.firstName.isBlank()) appContext.getString(R.string.required_field) else "",
+                lastNameIsError = state.lastName.isBlank(),
+                lastNameErrorMessage = if (state.lastName.isBlank()) appContext.getString(R.string.required_field) else "",
+                mobilePhoneIsError = state.mobilePhone.isBlank(),
+                mobilePhoneErrorMessage = if (state.mobilePhone.isBlank()) appContext.getString(R.string.required_field) else ""
+            )
+        }
 
-        if (firstNameIsError || lastNameIsError || mobilePhoneIsError || imageUri == null) {
+        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.imageUri == null) {
             return
         }
 
@@ -105,8 +138,8 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
                 appViewModel.isLoading = true
 
                 val imageUrl = withContext(Dispatchers.IO) {
-                    imageUri?.let { uri ->
-                        uri.toBitmap(appContext)
+                    stateVal.imageUri.let { uri ->
+                        uri?.toBitmap(appContext)
                             ?.let { bitmap ->
                                 FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
                             }
@@ -115,16 +148,17 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
 
                 // Save user information in Firestore
                 val userMap = hashMapOf(
-                    "id" to userId,
-                    "firstName" to firstName,
-                    "lastName" to lastName,
-                    "mobilePhone" to mobilePhone.trim(),
-                    "email" to email,
+                    "id" to stateVal.userId,
+                    "firstName" to stateVal.firstName,
+                    "lastName" to stateVal.lastName,
+                    "mobilePhone" to stateVal.mobilePhone.trim(),
+                    "email" to stateVal.email,
                     "profilePicture" to imageUrl,
-                    "authProvider" to authProvider,
+                    "authProvider" to AuthProvider.google,
                     "role" to UserRole.USER,
                 )
-                FirebaseFirestore.getInstance().collection("users").document(userId).set(userMap)
+                FirebaseFirestore.getInstance().collection("users").document(stateVal.userId)
+                    .set(userMap)
                     .await()
 
                 // Hide loading indicator
@@ -132,13 +166,13 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
 
                 // Save user in SharedPreferences
                 val localUser = LocalUser(
-                    id = userId,
-                    firstName = firstName,
-                    lastName = lastName,
-                    mobilePhone = mobilePhone,
-                    email = email,
+                    id = stateVal.userId,
+                    firstName = stateVal.firstName,
+                    lastName = stateVal.lastName,
+                    mobilePhone = stateVal.mobilePhone,
+                    email = stateVal.email,
                     profilePicture = imageUrl,
-                    authProvider = authProvider,
+                    authProvider = AuthProvider.google,
                     role = UserRole.USER,
                 )
 

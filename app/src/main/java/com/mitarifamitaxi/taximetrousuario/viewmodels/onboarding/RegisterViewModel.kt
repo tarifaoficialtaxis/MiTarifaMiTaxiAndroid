@@ -5,9 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
@@ -26,7 +24,6 @@ import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
-import com.mitarifamitaxi.taximetrousuario.states.LoginState
 import com.mitarifamitaxi.taximetrousuario.states.RegisterState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
@@ -43,19 +40,22 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
     private val _uiState = MutableStateFlow(RegisterState())
     val uiState: StateFlow<RegisterState> = _uiState
-    private val stateVal = uiState.value
 
     init {
         checkCameraPermission()
 
-        /*if (Constants.IS_DEV) {
-            firstName = "Mateo"
-            lastName = "Ortiz"
-            mobilePhone = "3167502612"
-            email = "mateotest1@yopmail.com"
-            password = "12345678#"
-            confirmPassword = "12345678#"
-        }*/
+        if (K.IS_DEV) {
+            _uiState.update {
+                it.copy(
+                    firstName = "Mateo",
+                    lastName = "Ortiz",
+                    mobilePhone = "3167502612",
+                    email = "mateotest4@yopmail.com",
+                    password = "12345678#",
+                    confirmPassword = "12345678#"
+                )
+            }
+        }
     }
 
     fun onFistNameChange(value: String) = _uiState.update {
@@ -80,10 +80,6 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
     fun onConfirmPasswordChange(value: String) = _uiState.update {
         it.copy(confirmPassword = value)
-    }
-
-    fun onImageUriChange(value: Uri?) = _uiState.update {
-        it.copy(imageUri = value)
     }
 
     fun onTempImageUriChange(value: Uri?) = _uiState.update {
@@ -126,13 +122,15 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         if (success) {
             _uiState.update {
                 it.copy(
-                    imageUri = stateVal.tempImageUri,
+                    imageUri = _uiState.value.tempImageUri
                 )
             }
         }
     }
 
     fun register(onResult: (Pair<Boolean, String?>) -> Unit) {
+
+        val stateVal = _uiState.value
 
         if (stateVal.imageUri == null) {
             appViewModel.showMessage(
@@ -145,11 +143,19 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         _uiState.update { state ->
             state.copy(
                 firstNameIsError = state.firstName.isBlank(),
+                firstNameErrorMessage = if (state.firstName.isBlank()) appContext.getString(R.string.required_field) else "",
                 lastNameIsError = state.lastName.isBlank(),
+                lastNameErrorMessage = if (state.lastName.isBlank()) appContext.getString(R.string.required_field) else "",
                 mobilePhoneIsError = state.mobilePhone.isBlank(),
+                mobilePhoneErrorMessage = if (state.mobilePhone.isBlank()) appContext.getString(R.string.required_field) else "",
                 emailIsError = state.email.isBlank(),
+                emailErrorMessage = if (state.email.isBlank()) appContext.getString(R.string.required_field) else "",
                 passwordIsError = state.password.isBlank(),
-                confirmPasswordIsError = state.confirmPassword.isBlank()
+                passwordErrorMessage = if (state.password.isBlank()) appContext.getString(R.string.required_field) else "",
+                confirmPasswordIsError = state.confirmPassword.isBlank(),
+                confirmPasswordErrorMessage = if (state.confirmPassword.isBlank()) appContext.getString(
+                    R.string.required_field
+                ) else "",
             )
         }
 
@@ -205,7 +211,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
             newState
         }
 
-        if (stateVal.firstNameIsError || stateVal.lastNameIsError || stateVal.mobilePhoneIsError || stateVal.emailIsError || stateVal.passwordIsError || stateVal.confirmPasswordIsError || stateVal.imageUri == null) {
+        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.emailIsError || _uiState.value.passwordIsError || _uiState.value.confirmPasswordIsError || _uiState.value.imageUri == null) {
             return
         }
 
@@ -224,8 +230,8 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                 val user = authResult.user ?: throw Exception("User creation failed")
 
                 val imageUrl = withContext(Dispatchers.IO) {
-                    stateVal.imageUri?.let { uri ->
-                        uri.toBitmap(appContext)
+                    stateVal.imageUri.let { uri ->
+                        uri?.toBitmap(appContext)
                             ?.let { bitmap ->
                                 FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
                             }
