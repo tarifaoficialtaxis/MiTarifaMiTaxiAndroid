@@ -64,6 +64,9 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
     var showPasswordPopUp by mutableStateOf(false)
 
+    var hasCameraPermission by mutableStateOf(false)
+        private set
+
     private val _hideKeyboardEvent = MutableLiveData<Boolean>()
     val hideKeyboardEvent: LiveData<Boolean> get() = _hideKeyboardEvent
 
@@ -84,8 +87,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         GoogleSignIn.getClient(appContext, gso)
     }
 
-    var hasCameraPermission by mutableStateOf(false)
-        private set
+
 
     init {
         checkCameraPermission()

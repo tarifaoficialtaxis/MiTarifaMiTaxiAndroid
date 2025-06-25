@@ -1,6 +1,5 @@
 package com.mitarifamitaxi.taximetrousuario.components.ui
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -28,15 +27,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -52,6 +50,7 @@ fun CustomTextField(
     isSecure: Boolean = false,
     isEnabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
     leadingIcon: ImageVector,
     trailingIcon: ImageVector? = null,
     onClickTrailingIcon: () -> Unit = {},
@@ -83,7 +82,8 @@ fun CustomTextField(
             },
             isError = isError,
             keyboardOptions = KeyboardOptions(
-                keyboardType = if (isSecure) KeyboardType.Password else keyboardType
+                keyboardType = if (isSecure) KeyboardType.Password else keyboardType,
+                capitalization = capitalization
             ),
             singleLine = true,
             visualTransformation = if (isPasswordVisible.value) PasswordVisualTransformation() else VisualTransformation.None,
@@ -131,9 +131,6 @@ fun CustomTextField(
                 focusedIndicatorColor = focusedIndicatorColor,
                 unfocusedIndicatorColor = unfocusedIndicatorColor,
 
-                //focusedIndicatorColor = colorResource(id = R.color.transparent),
-                //unfocusedIndicatorColor = colorResource(id = R.color.transparent),
-
                 errorLabelColor = colorResource(id = R.color.red),
                 errorCursorColor = colorResource(id = R.color.main),
                 errorIndicatorColor = colorResource(id = R.color.red),
@@ -156,22 +153,6 @@ fun CustomTextField(
                 .onFocusChanged { focusState ->
                     onFocusChanged(focusState.isFocused)
                 }
-
-            /*.drawWithContent {
-                // Primero dibujamos el contenido normal
-                drawContent()
-                // Luego, si está enfocado, dibujamos nuestra propia línea
-                val strokePx = 1.dp.toPx() * density
-                // La coordenada y de la línea, centrada en el borde inferior
-                val y = size.height - strokePx / 2
-                drawLine(
-                    color = if (isFocused) focusedIndicatorColor else unfocusedIndicatorColor,
-                    start = Offset(6.dp.toPx(), y),
-                    end = Offset(size.width - 6.dp.toPx(), y),
-                    strokeWidth = strokePx
-                )
-
-            },*/
         )
 
         if (isError && !errorMessage.isNullOrEmpty()) {
