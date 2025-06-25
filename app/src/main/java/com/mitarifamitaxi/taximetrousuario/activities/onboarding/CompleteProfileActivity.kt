@@ -39,6 +39,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -189,6 +190,7 @@ class CompleteProfileActivity : BaseActivity() {
                                 value = uiState.firstName,
                                 onValueChange = { viewModel.onFistNameChange(it) },
                                 placeholder = stringResource(id = R.string.firstName),
+                                capitalization = KeyboardCapitalization.Words,
                                 leadingIcon = Icons.Rounded.Person,
                                 isError = uiState.firstNameIsError,
                                 errorMessage = uiState.firstNameErrorMessage
@@ -198,6 +200,7 @@ class CompleteProfileActivity : BaseActivity() {
                                 value = uiState.lastName,
                                 onValueChange = { viewModel.onLastNameChange(it) },
                                 placeholder = stringResource(id = R.string.lastName),
+                                capitalization = KeyboardCapitalization.Words,
                                 leadingIcon = Icons.Rounded.Person,
                                 isError = uiState.lastNameIsError,
                                 errorMessage = uiState.lastNameErrorMessage
@@ -205,7 +208,11 @@ class CompleteProfileActivity : BaseActivity() {
 
                             CustomTextField(
                                 value = uiState.mobilePhone,
-                                onValueChange = { viewModel.onMobilePhoneChange(it) },
+                                onValueChange = { newText ->
+                                    if (newText.all { it.isDigit() }) {
+                                        viewModel.onMobilePhoneChange(newText)
+                                    }
+                                },
                                 placeholder = stringResource(id = R.string.mobilePhone),
                                 leadingIcon = Icons.Rounded.PhoneIphone,
                                 keyboardType = KeyboardType.Companion.Phone,

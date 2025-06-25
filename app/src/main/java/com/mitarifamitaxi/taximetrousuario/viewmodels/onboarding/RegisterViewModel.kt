@@ -44,7 +44,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     init {
         checkCameraPermission()
 
-        if (K.IS_DEV) {
+        /*if (K.IS_DEV) {
             _uiState.update {
                 it.copy(
                     firstName = "Mateo",
@@ -55,7 +55,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                     confirmPassword = "12345678#"
                 )
             }
-        }
+        }*/
     }
 
     fun onFistNameChange(value: String) = _uiState.update {
@@ -162,7 +162,6 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
         _uiState.update { state ->
             var newState = state
 
-            // Email validation
             if (state.email.isNotBlank()) {
                 newState = if (!state.email.isValidEmail()) {
                     state.copy(
@@ -176,31 +175,18 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
             if (state.password.isNotBlank() && state.confirmPassword.isNotBlank()) {
                 newState = when {
-                    state.password != state.confirmPassword -> {
-                        appViewModel.showMessage(
-                            type = DialogType.ERROR,
-                            title = appContext.getString(R.string.attention),
-                            message = appContext.getString(R.string.passwords_do_not_match)
-                        )
+
+                    !state.password.isValidPassword() -> {
                         state.copy(
                             passwordIsError = true,
-                            passwordErrorMessage = appContext.getString(R.string.passwords_do_not_match),
-                            confirmPasswordIsError = true,
-                            confirmPasswordErrorMessage = appContext.getString(R.string.passwords_do_not_match)
+                            passwordErrorMessage = appContext.getString(R.string.error_invalid_password)
                         )
                     }
 
-                    !state.confirmPassword.isValidPassword() -> {
-                        appViewModel.showMessage(
-                            type = DialogType.ERROR,
-                            title = appContext.getString(R.string.attention),
-                            message = appContext.getString(R.string.error_invalid_password)
-                        )
+                    state.password != state.confirmPassword -> {
                         state.copy(
-                            passwordIsError = true,
-                            passwordErrorMessage = appContext.getString(R.string.error_invalid_password),
                             confirmPasswordIsError = true,
-                            confirmPasswordErrorMessage = appContext.getString(R.string.error_invalid_password)
+                            confirmPasswordErrorMessage = appContext.getString(R.string.passwords_do_not_match)
                         )
                     }
 

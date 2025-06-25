@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -169,6 +170,7 @@ class RegisterActivity : BaseActivity() {
                                 onValueChange = { viewModel.onFistNameChange(it) },
                                 placeholder = stringResource(id = R.string.firstName),
                                 leadingIcon = Icons.Rounded.Person,
+                                capitalization = KeyboardCapitalization.Words,
                                 isError = uiState.firstNameIsError,
                                 errorMessage = uiState.firstNameErrorMessage
                             )
@@ -178,13 +180,18 @@ class RegisterActivity : BaseActivity() {
                                 onValueChange = { viewModel.onLastNameChange(it) },
                                 placeholder = stringResource(id = R.string.lastName),
                                 leadingIcon = Icons.Rounded.Person,
+                                capitalization = KeyboardCapitalization.Words,
                                 isError = uiState.lastNameIsError,
                                 errorMessage = uiState.lastNameErrorMessage
                             )
 
                             CustomTextField(
                                 value = uiState.mobilePhone,
-                                onValueChange = { viewModel.onMobilePhoneChange(it) },
+                                onValueChange = { newText ->
+                                    if (newText.all { it.isDigit() }) {
+                                        viewModel.onMobilePhoneChange(newText)
+                                    }
+                                },
                                 placeholder = stringResource(id = R.string.mobilePhone),
                                 leadingIcon = Icons.Rounded.PhoneIphone,
                                 keyboardType = KeyboardType.Companion.Phone,
