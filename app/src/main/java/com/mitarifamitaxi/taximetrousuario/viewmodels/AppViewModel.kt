@@ -24,7 +24,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
-import android.provider.Settings.Global.putString
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationCallback
@@ -48,6 +47,7 @@ import java.util.concurrent.Executor
 import com.google.firebase.database.ValueEventListener
 import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
 import androidx.core.content.edit
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 
 
@@ -273,7 +273,6 @@ class AppViewModel(context: Context) : ViewModel() {
                                 userLocation,
                                 onResult = { cityName ->
                                     updateUserData(
-                                        location = userLocation,
                                         city = cityName ?: "",
                                         countryCode = countryCode ?: "",
                                         countryCodeWhatsapp = countryCodeWhatsapp ?: "",
