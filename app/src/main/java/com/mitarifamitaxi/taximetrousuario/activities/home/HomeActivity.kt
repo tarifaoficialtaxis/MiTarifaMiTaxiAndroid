@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +65,8 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import com.mitarifamitaxi.taximetrousuario.states.AppState
+import com.mitarifamitaxi.taximetrousuario.states.HomeState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModelFactory
 
@@ -93,7 +95,13 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+
+        val uiState by viewModel.uiState.collectAsState()
+        val appState by appViewModel.uiState.collectAsState()
+
+        HomeScreen(
+            uiState = uiState,
+            appState = appState,
             onRequestServiceClick = {
 
             },
@@ -122,7 +130,9 @@ class HomeActivity : BaseActivity() {
     }
 
     @Composable
-    private fun MainView(
+    private fun HomeScreen(
+        uiState: HomeState,
+        appState: AppState,
         onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
@@ -181,7 +191,7 @@ class HomeActivity : BaseActivity() {
                     ) {
 
                         ProfilePictureBox(
-                            imageUri = appViewModel.userData?.profilePicture?.toUri(),
+                            imageUri = appState.userData?.profilePicture?.toUri(),
                             editable = false,
                             boxSize = 45,
                             iconSize = 30
@@ -200,7 +210,7 @@ class HomeActivity : BaseActivity() {
                     )
 
                     Text(
-                        text = appViewModel.userData?.firstName ?: "",
+                        text = appState.userData?.firstName ?: "",
                         color = colorResource(id = R.color.main),
                         fontSize = 20.sp,
                         fontFamily = MontserratFamily,
@@ -211,7 +221,7 @@ class HomeActivity : BaseActivity() {
                     Spacer(modifier = Modifier.Companion.height(5.dp))
 
                     Text(
-                        text = appViewModel.userData?.city ?: "",
+                        text = appState.userData?.city ?: "",
                         color = colorResource(id = R.color.white),
                         fontSize = 14.sp,
                         fontFamily = MontserratFamily,
@@ -232,7 +242,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
 
-            if (appViewModel.isGettingLocation) {
+            if (appState.isGettingLocation) {
                 Column(
                     horizontalAlignment = Alignment.Companion.CenterHorizontally,
                 ) {
@@ -254,8 +264,9 @@ class HomeActivity : BaseActivity() {
                 }
             } else {
 
-                if (appViewModel.userData?.role == UserRole.USER) {
+                if (appState.userData?.role == UserRole.USER) {
                     UserView(
+                        uiState = uiState,
                         onRequestServiceClick = onRequestServiceClick,
                         onTaximeterClick = onTaximeterClick,
                         onSosClick = onSosClick,
@@ -265,6 +276,7 @@ class HomeActivity : BaseActivity() {
                     )
                 } else {
                     DriverView(
+                        appState = appState,
                         onTaximeterClick = onTaximeterClick,
                         onSosClick = onSosClick
                     )
@@ -276,6 +288,7 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     private fun UserView(
+        uiState: HomeState,
         onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
@@ -283,7 +296,6 @@ class HomeActivity : BaseActivity() {
         onMyTripsClick: () -> Unit,
         onTripClicked: (Trip) -> Unit
     ) {
-        val trips by viewModel.trips
 
         Column(
             Modifier.Companion
@@ -381,7 +393,7 @@ class HomeActivity : BaseActivity() {
 
                     Spacer(modifier = Modifier.Companion.weight(1.0f))
 
-                    if (trips.isNotEmpty()) {
+                    if (uiState.trips.isNotEmpty()) {
                         TextButton(onClick = onMyTripsClick) {
                             Text(
                                 text = stringResource(id = R.string.see_all),
@@ -396,7 +408,7 @@ class HomeActivity : BaseActivity() {
                 }
 
 
-                if (trips.isEmpty()) {
+                if (uiState.trips.isEmpty()) {
                     NoTripsView()
                 } else {
                     Column(
@@ -407,7 +419,7 @@ class HomeActivity : BaseActivity() {
                             .padding(top = 10.dp)
                             .padding(bottom = 40.dp)
                     ) {
-                        trips.forEach { trip ->
+                        uiState.trips.forEach { trip ->
                             TripItem(
                                 trip, onTripClicked = {
                                     onTripClicked(trip)
@@ -424,6 +436,7 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     private fun DriverView(
+        appState: AppState,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit
     ) {
@@ -468,7 +481,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
 
-            if (appViewModel.userData?.driverStatus == DriverStatus.PENDING) {
+            if (appState.userData?.driverStatus == DriverStatus.PENDING) {
                 DriverPendingReviewView()
             }
         }

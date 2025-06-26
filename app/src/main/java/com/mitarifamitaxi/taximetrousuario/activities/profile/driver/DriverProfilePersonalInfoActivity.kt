@@ -196,213 +196,215 @@ class DriverProfilePersonalInfoActivity : BaseActivity() {
         onClickBack: () -> Unit,
         onUpdateClicked: () -> Unit,
     ) {
-
-        Column(
-            modifier = Modifier.Companion
-                .fillMaxSize()
-                .background(colorResource(id = R.color.white)),
-        ) {
-            Box(
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-                    .height(230.dp)
-                    .background(
-                        colorResource(id = R.color.main),
-                        shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
-                    )
-                    .padding(top = 20.dp)
-
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.city_background),
-                    contentDescription = null,
-                    contentScale = ContentScale.Companion.FillBounds,
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .height(112.dp)
-                        .align(Alignment.Companion.BottomCenter)
-                        .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-                )
-
+        /*
                 Column(
-                    horizontalAlignment = Alignment.Companion.CenterHorizontally,
                     modifier = Modifier.Companion
                         .fillMaxSize()
+                        .background(colorResource(id = R.color.white)),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.Companion.CenterVertically,
+                    Box(
                         modifier = Modifier.Companion
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
+                            .height(230.dp)
+                            .background(
+                                colorResource(id = R.color.main),
+                                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
+                            )
+                            .padding(top = 20.dp)
+
                     ) {
-
-                        Button(
-                            onClick = { onClickBack() },
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Companion.Transparent
-                            ),
-                            shape = RectangleShape,
+                        Image(
+                            painter = painterResource(id = R.drawable.city_background),
+                            contentDescription = null,
+                            contentScale = ContentScale.Companion.FillBounds,
                             modifier = Modifier.Companion
-                                .width(40.dp)
-                        ) {
+                                .fillMaxWidth()
+                                .height(112.dp)
+                                .align(Alignment.Companion.BottomCenter)
+                                .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+                        )
 
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = "content description",
+                        Column(
+                            horizontalAlignment = Alignment.Companion.CenterHorizontally,
+                            modifier = Modifier.Companion
+                                .fillMaxSize()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.Companion.CenterVertically,
                                 modifier = Modifier.Companion
-                                    .size(40.dp)
-                                    .padding(0.dp),
-                                tint = colorResource(id = R.color.white),
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp)
+                            ) {
+
+                                Button(
+                                    onClick = { onClickBack() },
+                                    contentPadding = PaddingValues(0.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Companion.Transparent
+                                    ),
+                                    shape = RectangleShape,
+                                    modifier = Modifier.Companion
+                                        .width(40.dp)
+                                ) {
+
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronLeft,
+                                        contentDescription = "content description",
+                                        modifier = Modifier.Companion
+                                            .size(40.dp)
+                                            .padding(0.dp),
+                                        tint = colorResource(id = R.color.white),
+                                    )
+
+                                }
+
+                                Text(
+                                    text = stringResource(id = R.string.profile).uppercase(),
+                                    color = colorResource(id = R.color.white),
+                                    fontSize = 20.sp,
+                                    fontFamily = MontserratFamily,
+                                    fontWeight = FontWeight.Companion.Bold,
+                                    textAlign = TextAlign.Companion.Center,
+                                    modifier = Modifier.Companion
+                                        .weight(1f)
+                                )
+
+                                Spacer(modifier = Modifier.Companion.width(40.dp))
+
+                            }
+
+                            ProfilePictureBox(
+                                imageUri = viewModel.imageUri,
+                                onClickEdit = { viewModel.showDialog = true }
+                            )
+
+                            Text(
+                                text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
+                                color = colorResource(id = R.color.white),
+                                fontSize = 18.sp,
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Bold,
+                                textAlign = TextAlign.Companion.Center,
+                                modifier = Modifier.Companion
+                                    .padding(top = 5.dp)
+                                    .fillMaxWidth()
+                            )
+
+                            Text(
+                                text = stringResource(
+                                    id = R.string.city_param,
+                                    appViewModel.userData?.city ?: ""
+                                ),
+                                color = colorResource(id = R.color.white),
+                                fontSize = 14.sp,
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Normal,
+                                textAlign = TextAlign.Companion.Center,
+                                modifier = Modifier.Companion
+                                    .fillMaxWidth()
                             )
 
                         }
 
-                        Text(
-                            text = stringResource(id = R.string.profile).uppercase(),
-                            color = colorResource(id = R.color.white),
-                            fontSize = 20.sp,
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Companion.Bold,
-                            textAlign = TextAlign.Companion.Center,
-                            modifier = Modifier.Companion
-                                .weight(1f)
-                        )
-
-                        Spacer(modifier = Modifier.Companion.width(40.dp))
-
                     }
-
-                    ProfilePictureBox(
-                        imageUri = viewModel.imageUri,
-                        onClickEdit = { viewModel.showDialog = true }
-                    )
-
-                    Text(
-                        text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
-                        color = colorResource(id = R.color.white),
-                        fontSize = 18.sp,
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Bold,
-                        textAlign = TextAlign.Companion.Center,
-                        modifier = Modifier.Companion
-                            .padding(top = 5.dp)
-                            .fillMaxWidth()
-                    )
-
-                    Text(
-                        text = stringResource(
-                            id = R.string.city_param,
-                            appViewModel.userData?.city ?: ""
-                        ),
-                        color = colorResource(id = R.color.white),
-                        fontSize = 14.sp,
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Normal,
-                        textAlign = TextAlign.Companion.Center,
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                    )
-
-                }
-
-            }
-
-            Column(
-                modifier = Modifier.Companion
-                    .padding(top = 20.dp)
-                    .padding(horizontal = 29.dp)
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.Companion
-                        .verticalScroll(rememberScrollState())
-                ) {
-
-                    CustomTextField(
-                        value = viewModel.documentNumber ?: "",
-                        onValueChange = { viewModel.documentNumber = it },
-                        placeholder = stringResource(id = R.string.documentNumber).replace("*", ""),
-                        leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
-                        isEnabled = false,
-                        keyboardType = KeyboardType.Companion.Number
-                    )
-
-                    CustomTextField(
-                        value = viewModel.firstName ?: "",
-                        onValueChange = { viewModel.firstName = it },
-                        placeholder = stringResource(id = R.string.firstName),
-                        leadingIcon = Icons.Rounded.Person,
-                    )
-
-                    CustomTextField(
-                        value = viewModel.lastName ?: "",
-                        onValueChange = { viewModel.lastName = it },
-                        placeholder = stringResource(id = R.string.lastName),
-                        leadingIcon = Icons.Rounded.Person,
-                    )
-
-                    CustomTextField(
-                        value = viewModel.mobilePhone ?: "",
-                        onValueChange = { viewModel.mobilePhone = it },
-                        placeholder = stringResource(id = R.string.mobilePhone),
-                        leadingIcon = Icons.Rounded.PhoneIphone,
-                        keyboardType = KeyboardType.Companion.Phone
-                    )
-
-                    CustomTextField(
-                        value = viewModel.email ?: "",
-                        onValueChange = { viewModel.email = it },
-                        placeholder = stringResource(id = R.string.email),
-                        leadingIcon = Icons.Rounded.Mail,
-                        keyboardType = KeyboardType.Companion.Email,
-                        isEnabled = appViewModel.userData?.authProvider == AuthProvider.email,
-                    )
-
-                    CustomTextField(
-                        value = viewModel.familyNumber ?: "",
-                        onValueChange = { viewModel.familyNumber = it },
-                        placeholder = stringResource(id = R.string.family_number),
-                        leadingIcon = Icons.Rounded.FamilyRestroom,
-                        keyboardType = KeyboardType.Companion.Phone
-                    )
-
-                    CustomTextField(
-                        value = viewModel.supportNumber ?: "",
-                        onValueChange = { viewModel.supportNumber = it },
-                        placeholder = stringResource(id = R.string.support_number),
-                        leadingIcon = Icons.Rounded.Groups,
-                        keyboardType = KeyboardType.Companion.Phone
-                    )
-
-
-                }
-
-                Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                Column(
-                    modifier = Modifier.Companion
-                        .padding(top = 10.dp, bottom = 20.dp)
-                        .fillMaxWidth()
-                ) {
 
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.Companion
-                            .padding(top = 20.dp, bottom = 30.dp)
-                            .fillMaxWidth()
+                            .padding(top = 20.dp)
+                            .padding(horizontal = 29.dp)
                     ) {
-                        CustomButton(
-                            text = stringResource(id = R.string.update).uppercase(),
-                            onClick = { onUpdateClicked() },
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.Companion
+                                .verticalScroll(rememberScrollState())
+                        ) {
+
+                            CustomTextField(
+                                value = viewModel.documentNumber ?: "",
+                                onValueChange = { viewModel.documentNumber = it },
+                                placeholder = stringResource(id = R.string.documentNumber).replace("*", ""),
+                                leadingIcon = ImageVector.Companion.vectorResource(id = R.drawable.id_card),
+                                isEnabled = false,
+                                keyboardType = KeyboardType.Companion.Number
+                            )
+
+                            CustomTextField(
+                                value = viewModel.firstName ?: "",
+                                onValueChange = { viewModel.firstName = it },
+                                placeholder = stringResource(id = R.string.firstName),
+                                leadingIcon = Icons.Rounded.Person,
+                            )
+
+                            CustomTextField(
+                                value = viewModel.lastName ?: "",
+                                onValueChange = { viewModel.lastName = it },
+                                placeholder = stringResource(id = R.string.lastName),
+                                leadingIcon = Icons.Rounded.Person,
+                            )
+
+                            CustomTextField(
+                                value = viewModel.mobilePhone ?: "",
+                                onValueChange = { viewModel.mobilePhone = it },
+                                placeholder = stringResource(id = R.string.mobilePhone),
+                                leadingIcon = Icons.Rounded.PhoneIphone,
+                                keyboardType = KeyboardType.Companion.Phone
+                            )
+
+                            CustomTextField(
+                                value = viewModel.email ?: "",
+                                onValueChange = { viewModel.email = it },
+                                placeholder = stringResource(id = R.string.email),
+                                leadingIcon = Icons.Rounded.Mail,
+                                keyboardType = KeyboardType.Companion.Email,
+                                isEnabled = appViewModel.userData?.authProvider == AuthProvider.email,
+                            )
+
+                            CustomTextField(
+                                value = viewModel.familyNumber ?: "",
+                                onValueChange = { viewModel.familyNumber = it },
+                                placeholder = stringResource(id = R.string.family_number),
+                                leadingIcon = Icons.Rounded.FamilyRestroom,
+                                keyboardType = KeyboardType.Companion.Phone
+                            )
+
+                            CustomTextField(
+                                value = viewModel.supportNumber ?: "",
+                                onValueChange = { viewModel.supportNumber = it },
+                                placeholder = stringResource(id = R.string.support_number),
+                                leadingIcon = Icons.Rounded.Groups,
+                                keyboardType = KeyboardType.Companion.Phone
+                            )
+
+
+                        }
+
+                        Spacer(modifier = Modifier.Companion.weight(1.0f))
+
+                        Column(
+                            modifier = Modifier.Companion
+                                .padding(top = 10.dp, bottom = 20.dp)
+                                .fillMaxWidth()
+                        ) {
+
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.Companion
+                                    .padding(top = 20.dp, bottom = 30.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                CustomButton(
+                                    text = stringResource(id = R.string.update).uppercase(),
+                                    onClick = { onUpdateClicked() },
+                                )
+                            }
+
+
+                        }
                     }
 
 
                 }
-            }
 
-
-        }
+         */
     }
 }

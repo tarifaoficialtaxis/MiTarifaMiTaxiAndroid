@@ -40,7 +40,7 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
     private val emailTemplateObj = mutableStateOf(EmailTemplate())
 
     init {
-        getContactEmail(appViewModel.userData?.city)
+        getContactEmail(appViewModel.uiState.value.userData?.city)
         getEmailTemplate()
     }
 
@@ -191,9 +191,9 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
             if (isOther) append("- $otherValue\n")
         }
 
-        val fullName = "${appViewModel.userData?.firstName} ${appViewModel.userData?.lastName}"
+        val fullName = "${appViewModel.uiState.value.userData?.firstName} ${appViewModel.uiState.value.userData?.lastName}"
         val bodyEmail = (emailTemplateObj.value.body ?: "")
-            .replace("{city}", appViewModel.userData?.city ?: "")
+            .replace("{city}", appViewModel.uiState.value.userData?.city ?: "")
             .replace("{user_name}", fullName)
             .replace("{plate}", plate)
             .replace("{newline}", "\n")

@@ -203,7 +203,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 // Create user with email and password in Firebase Auth
                 val authResult =
@@ -237,7 +237,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                 FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
                     .await()
 
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 val localUser = LocalUser(
                     id = user.uid,
@@ -256,7 +256,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
             } catch (e: Exception) {
                 Log.e("RegisterViewModel", "Error registering user: ${e.message}")
 
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 val errorMessage = when (e) {
                     is FirebaseAuthUserCollisionException -> getFirebaseAuthErrorMessage(
                         appContext,

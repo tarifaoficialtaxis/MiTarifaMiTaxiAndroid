@@ -62,7 +62,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 tripData.routeImage?.let { imageUrl ->
                     FirebaseStorageUtils.deleteImage(imageUrl)
@@ -70,7 +70,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
                 FirebaseFirestore.getInstance().collection("trips").document(tripId).delete()
                     .await()
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 appViewModel.showMessage(
                     type = DialogType.SUCCESS,
@@ -87,7 +87,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
             } catch (error: Exception) {
                 Log.e("TripSummaryViewModel", "Error deleting trip: ${error.message}")
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -123,7 +123,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             append(
                 "*Tarifa base:* ${
                     tripData.baseRate?.toInt()?.formatNumberWithDots()
-                } ${appViewModel.userData?.countryCurrency}\n"
+                } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
             )
 
             append("*Unidades recargo:* ${tripData.rechargeUnits}\n")
@@ -132,7 +132,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 append(
                     "*Recargo aeropuerto:* ${
                         tripData.airportSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
@@ -140,7 +140,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 append(
                     "*Recargo nocturno dominical o festivo:* ${
                         tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
@@ -148,7 +148,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 append(
                     "*Recargo puerta a puerta:* ${
                         tripData.doorToDoorSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
@@ -156,7 +156,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 append(
                     "*Recargo dominical o festivo:* ${
                         tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
@@ -164,7 +164,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 append(
                     "*Recargo nocturno:* ${
                         tripData.nightSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
@@ -173,13 +173,13 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             append(
                 "*${appContext.getString(R.string.total)}* ${
                     tripData.total?.toInt()?.formatNumberWithDots()
-                } ${appViewModel.userData?.countryCurrency}"
+                } ${appViewModel.uiState.value.userData?.countryCurrency}"
             )
         }
 
         val messageToSend = URLEncoder.encode(message, "UTF-8").replace("%0A", "%0D%0A")
         val whatsappURL =
-            "whatsapp://send?text=$messageToSend&phone=${appViewModel.userData?.countryCodeWhatsapp}${shareNumber.value}"
+            "whatsapp://send?text=$messageToSend&phone=${appViewModel.uiState.value.userData?.countryCodeWhatsapp}${shareNumber.value}"
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(whatsappURL)

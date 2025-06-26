@@ -42,8 +42,8 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
     private val appContext = context.applicationContext
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    private val originalProfilePictureUrl: String? = appViewModel.userData?.profilePicture
-    var imageUri by mutableStateOf<Uri?>(appViewModel.userData?.profilePicture?.toUri())
+    private val originalProfilePictureUrl: String? = appViewModel.uiState.value.userData?.profilePicture
+    var imageUri by mutableStateOf<Uri?>(appViewModel.uiState.value.userData?.profilePicture?.toUri())
     var tempImageUri by mutableStateOf<Uri?>(null)
 
     var showDialog by mutableStateOf(false)
@@ -51,16 +51,16 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
     var hasCameraPermission by mutableStateOf(false)
         private set
 
-    var firstName by mutableStateOf(appViewModel.userData?.firstName)
-    var lastName by mutableStateOf(appViewModel.userData?.lastName)
-    var documentNumber by mutableStateOf(appViewModel.userData?.documentNumber)
-    var mobilePhone by mutableStateOf(appViewModel.userData?.mobilePhone)
+    var firstName by mutableStateOf(appViewModel.uiState.value.userData?.firstName)
+    var lastName by mutableStateOf(appViewModel.uiState.value.userData?.lastName)
+    var documentNumber by mutableStateOf(appViewModel.uiState.value.userData?.documentNumber)
+    var mobilePhone by mutableStateOf(appViewModel.uiState.value.userData?.mobilePhone)
 
-    private val originalEmail: String? = appViewModel.userData?.email
-    var email by mutableStateOf(appViewModel.userData?.email)
+    private val originalEmail: String? = appViewModel.uiState.value.userData?.email
+    var email by mutableStateOf(appViewModel.uiState.value.userData?.email)
 
-    var familyNumber by mutableStateOf(appViewModel.userData?.familyNumber)
-    var supportNumber by mutableStateOf(appViewModel.userData?.supportNumber)
+    var familyNumber by mutableStateOf(appViewModel.uiState.value.userData?.familyNumber)
+    var supportNumber by mutableStateOf(appViewModel.uiState.value.userData?.supportNumber)
 
     private val _hideKeyboardEvent = MutableLiveData<Boolean>()
     val hideKeyboardEvent: LiveData<Boolean> get() = _hideKeyboardEvent
@@ -141,7 +141,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
         }
 
         viewModelScope.launch {
-            appViewModel.isLoading = true
+            appViewModel.setLoading(true)
 
             val finalImageUrl: String? = if (imageUri.toString() != originalProfilePictureUrl) {
                 val uploadedUrl = withContext(Dispatchers.IO) {
@@ -173,7 +173,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
             }
 
 
-            val updatedUser = appViewModel.userData?.copy(
+            val updatedUser = appViewModel.uiState.value.userData?.copy(
                 firstName = firstName,
                 lastName = lastName,
                 mobilePhone = mobilePhone,
@@ -187,7 +187,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
                 updatedUser?.let { user ->
                     FirebaseFirestore.getInstance()
                         .collection("users")
-                        .document(appViewModel.userData?.id ?: "")
+                        .document(appViewModel.uiState.value.userData?.id ?: "")
                         .update(
                             mapOf(
                                 "firstName" to user.firstName,
@@ -200,7 +200,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
                             )
                         ).await()
 
-                    appViewModel.userData = user
+                    appViewModel.updateLocalUser(user)
                     LocalUserManager(appContext).saveUserState(user)
                     appViewModel.showMessage(
                         type = DialogType.SUCCESS,
@@ -239,19 +239,19 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
                 }
 
             } finally {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
             }
         }
     }
 
     fun authenticateUserByEmailAndPassword(password: String) {
 
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
 
         viewModelScope.launch {
             try {
                 if (email == null || email!!.isEmpty()) {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
@@ -267,7 +267,7 @@ class DriverProfilePersonalInfoViewModel(context: Context, private val appViewMo
 
                 }
             } catch (e: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 Log.e("ProfileViewModel", "Error logging in: ${e.message}")
 

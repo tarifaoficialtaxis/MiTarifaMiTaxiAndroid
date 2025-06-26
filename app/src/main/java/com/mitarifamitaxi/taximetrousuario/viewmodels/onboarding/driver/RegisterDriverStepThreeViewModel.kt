@@ -53,7 +53,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
         viewModelScope.launch {
             try {
 
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 val firestore = FirebaseFirestore.getInstance()
                 val brandsQuerySnapshot = withContext(Dispatchers.IO) {
@@ -66,13 +66,13 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                     try {
                         vehicleBrandsObj.value =
                             brandsQuerySnapshot.documents.mapNotNull { it.toObject(VehicleBrand::class.java) }
-                        appViewModel.isLoading = false
+                        appViewModel.setLoading(false)
                     } catch (e: Exception) {
                         Log.e(
                             "RegisterDriverStepThreeViewModel",
                             "Error converting brands: ${e.message}"
                         )
-                        appViewModel.isLoading = false
+                        appViewModel.setLoading(false)
                         appViewModel.showMessage(
                             type = DialogType.ERROR,
                             title = appContext.getString(R.string.something_went_wrong),
@@ -81,7 +81,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
 
                     }
                 } else {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
@@ -90,7 +90,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
                 }
             } catch (e: Exception) {
                 Log.e("RegisterDriverStepThreeViewModel", "Error fetching brands: ${e.message}")
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -152,7 +152,7 @@ class RegisterDriverStepThreeViewModel(context: Context, private val appViewMode
         plate: String
     ) {
 
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
 
         val userData = LocalUserManager(appContext).getUserState()
 

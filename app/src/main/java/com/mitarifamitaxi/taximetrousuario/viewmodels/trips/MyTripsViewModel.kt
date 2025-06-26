@@ -25,15 +25,15 @@ class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel)
     }
 
     private fun getTripsByUserId() {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         val db = FirebaseFirestore.getInstance()
         val tripsRef = db.collection("trips")
-            .whereEqualTo("userId", appViewModel.userData?.id)
+            .whereEqualTo("userId", appViewModel.uiState.value.userData?.id)
             .orderBy("endHour", Query.Direction.DESCENDING)
 
         tripsRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -43,7 +43,7 @@ class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel)
                 return@addSnapshotListener
             }
             try {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 if (snapshot != null && !snapshot.isEmpty) {
                     val trips = snapshot.documents.mapNotNull { doc ->
                         doc.toObject(Trip::class.java)?.copy(id = doc.id)
@@ -53,7 +53,7 @@ class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel)
                     _trips.value = emptyList()
                 }
             } catch (e: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 Log.e("MyTripsViewModel", "Unexpected error: ${e.message}")
             }
 

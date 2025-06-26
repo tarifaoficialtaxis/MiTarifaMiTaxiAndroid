@@ -94,14 +94,14 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
             return
         }
 
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
 
         viewModelScope.launch {
             try {
                 val cred = auth.signInWithEmailAndPassword(st.userName.trim(), st.password).await()
                 val user = cred.user ?: throw Exception("No user")
                 getUserInfo(user.uid, AuthProvider.email) { exists ->
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     if (exists) onSuccess()
                     else appViewModel.showMessage(
                         DialogType.ERROR,
@@ -110,7 +110,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                     )
                 }
             } catch (e: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 handleAuthError(e)
             }
         }
@@ -153,7 +153,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
         idToken: String,
         onResult: (Pair<Boolean, LocalUser?>) -> Unit
     ) {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
@@ -163,7 +163,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
                     viewModelScope.launch {
 
                         getUserInfo(user?.uid ?: "", AuthProvider.google) { exists ->
-                            appViewModel.isLoading = false
+                            appViewModel.setLoading(false)
                             if (exists) {
                                 onResult(Pair(false, null))
                             } else {
@@ -183,7 +183,7 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
                     }
                 } else {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     Log.e(TAG, "Firebase Sign-In failed: ${task.exception}")
                     appViewModel.showMessage(
                         type = DialogType.ERROR,

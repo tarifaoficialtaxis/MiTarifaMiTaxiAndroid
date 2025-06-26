@@ -148,7 +148,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
 
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 val documentExists = FirebaseFirestore.getInstance()
                     .collection("users")
@@ -158,7 +158,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                     .isEmpty.not()
 
                 if (documentExists) {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.attention),
@@ -197,7 +197,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                 FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
                     .await()
 
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 // Save user in SharedPreferences
                 val localUser = LocalUser(
@@ -217,7 +217,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
 
             } catch (e: Exception) {
                 Log.e("RegisterDriverStepOneViewModel", "Error registering user: ${e.message}")
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -254,7 +254,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
 
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 val documentExists = FirebaseFirestore.getInstance()
                     .collection("users")
@@ -264,7 +264,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                     .isEmpty.not()
 
                 if (documentExists) {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.attention),
@@ -316,7 +316,7 @@ class RegisterDriverStepOneViewModel(context: Context, private val appViewModel:
                 onSuccess()
 
             } catch (e: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 Log.e("RegisterDriverStepOneViewModel", "Error registering user: ${e.message}")
 
                 val errorMessage = when (e) {

@@ -39,6 +39,8 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -83,6 +85,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
 import com.mitarifamitaxi.taximetrousuario.helpers.getShortAddress
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.taximeter.TaximeterViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.taximeter.TaximeterViewModelFactory
 import kotlinx.coroutines.delay
@@ -217,7 +220,12 @@ class TaximeterActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView()
+
+        val appState by appViewModel.uiState.collectAsState()
+
+        TaximeterScreen(
+            appState = appState
+        )
         BackHandler(enabled = true) {
             if (viewModel.isTaximeterStarted) {
                 viewModel.showFinishConfirmation()
@@ -232,7 +240,9 @@ class TaximeterActivity : BaseActivity() {
         MapsComposeExperimentalApi::class
     )
     @Composable
-    fun MainView() {
+    fun TaximeterScreen(
+        appState: AppState
+    ) {
 
         val sheetState = rememberStandardBottomSheetState(
             initialValue = if (viewModel.isSheetExpanded) SheetValue.Expanded else SheetValue.PartiallyExpanded,
@@ -258,8 +268,8 @@ class TaximeterActivity : BaseActivity() {
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
                 LatLng(
-                    appViewModel.userLocation?.latitude ?: 4.60971,
-                    appViewModel.userLocation?.longitude ?: -74.08175
+                    appViewModel.uiState.value.userLocation?.latitude ?: 4.60971,
+                    appViewModel.uiState.value.userLocation?.longitude ?: -74.08175
                 ), 15f
             )
         }
@@ -329,9 +339,13 @@ class TaximeterActivity : BaseActivity() {
                             .padding(horizontal = 20.dp),
                     ) {
                         if (sheetState.currentValue == SheetValue.Expanded) {
-                            SheetExpandedView()
+                            SheetExpandedView(
+                                appState = appState
+                            )
                         } else {
-                            SheetFoldedView()
+                            SheetFoldedView(
+                                appState = appState
+                            )
                         }
 
                     }
@@ -461,7 +475,9 @@ class TaximeterActivity : BaseActivity() {
     }
 
     @Composable
-    fun SheetExpandedView() {
+    fun SheetExpandedView(
+        appState: AppState
+    ) {
 
 
         Column(
@@ -473,7 +489,7 @@ class TaximeterActivity : BaseActivity() {
             Text(
                 text = "$ ${
                     viewModel.total.toInt().formatNumberWithDots()
-                } ${appViewModel.userData?.countryCurrency}",
+                } ${appState.userData?.countryCurrency}",
                 color = colorResource(id = R.color.main),
                 fontSize = 36.sp,
                 fontFamily = MontserratFamily,
@@ -657,7 +673,9 @@ class TaximeterActivity : BaseActivity() {
     }
 
     @Composable
-    fun SheetFoldedView() {
+    fun SheetFoldedView(
+        appState: AppState
+    ) {
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(
@@ -713,7 +731,7 @@ class TaximeterActivity : BaseActivity() {
                 Text(
                     text = "$ ${
                         viewModel.total.toInt().formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}",
+                    } ${appState.userData?.countryCurrency}",
                     fontFamily = MontserratFamily,
                     fontWeight = FontWeight.Companion.Bold,
                     fontSize = 22.sp,

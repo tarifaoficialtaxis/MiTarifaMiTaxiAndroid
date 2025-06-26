@@ -30,6 +30,8 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.SideMenu
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.UserRole
+import com.mitarifamitaxi.taximetrousuario.states.AppState
+import com.mitarifamitaxi.taximetrousuario.states.DialogState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.launch
@@ -68,17 +70,20 @@ open class BaseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val appState by appViewModel.uiState.collectAsState()
+
             MyTheme {
                 BaseScreen(
+                    appState = appState,
                     onMenuSectionClicked = { sectionId ->
                         when (sectionId) {
                             "PROFILE" -> {
 
-                                if (appViewModel.userData?.role == UserRole.USER) {
+                                if (appState.userData?.role == UserRole.USER) {
                                     if (this !is ProfileActivity) {
                                         startActivity(Intent(this, ProfileActivity::class.java))
                                     }
-                                } else if (appViewModel.userData?.role == UserRole.DRIVER) {
+                                } else if (appState.userData?.role == UserRole.DRIVER) {
                                     if (this !is DriverProfileActivity) {
                                         startActivity(
                                             Intent(this, DriverProfileActivity::class.java)
@@ -141,7 +146,10 @@ open class BaseActivity : ComponentActivity() {
     }
 
     @Composable
-    fun BaseScreen(onMenuSectionClicked: (String) -> Unit) {
+    fun BaseScreen(
+        appState: AppState,
+        onMenuSectionClicked: (String) -> Unit
+    ) {
         if (isDrawerEnabled()) {
             // Remember the drawer state and provide a lambda to open the drawer.
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -162,7 +170,7 @@ open class BaseActivity : ComponentActivity() {
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     drawerContent = {
-                        appViewModel.userData?.let { userData ->
+                        appState.userData?.let { userData ->
                             SideMenu(
                                 userData = userData,
                                 onProfileClicked = { handleMenuClick("PROFILE") },
@@ -171,68 +179,69 @@ open class BaseActivity : ComponentActivity() {
                         }
                     }
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .windowInsetsPadding(WindowInsets.systemBars)
-                    ) {
-                        Content()
-                        LoadingOverlayCompose()
-                        CustomPopUpDialogCompose()
-                    }
+                    BaseMainBox(appState = appState)
                 }
             }
         } else {
             // When the drawer is disabled, provide a no-op openDrawer lambda.
             CompositionLocalProvider(LocalOpenDrawer provides {}) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.systemBars)
-                ) {
-                    Content()
-                    LoadingOverlayCompose()
-                    CustomPopUpDialogCompose()
-                }
+                BaseMainBox(appState = appState)
             }
         }
     }
 
     @Composable
-    fun LoadingOverlayCompose() {
-        if (appViewModel.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    color = colorResource(id = R.color.main)
+    fun BaseMainBox(appState: AppState) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
+        ) {
+            Content()
+            if (appState.isLoading) {
+                LoadingOverlayCompose()
+            }
+            if (appState.dialogState.show) {
+                CustomPopUpDialogCompose(
+                    dialogState = appState.dialogState
                 )
             }
         }
     }
 
+
     @Composable
-    fun CustomPopUpDialogCompose() {
-        if (appViewModel.showDialog) {
-            CustomPopupDialog(
-                dialogType = appViewModel.dialogType,
-                title = appViewModel.dialogTitle,
-                message = appViewModel.dialogMessage,
-                primaryActionButton = appViewModel.dialogButtonText,
-                showCloseButton = appViewModel.dialogShowCloseButton,
-                onDismiss = {
-                    appViewModel.showDialog = false
-                    appViewModel.dialogOnDismiss?.invoke()
-                },
-                onPrimaryActionClicked = {
-                    appViewModel.showDialog = false
-                    appViewModel.dialogOnPrimaryActionClicked?.invoke()
-                }
+    fun LoadingOverlayCompose() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = colorResource(id = R.color.main)
             )
         }
+    }
+
+    @Composable
+    fun CustomPopUpDialogCompose(dialogState: DialogState) {
+        CustomPopupDialog(
+            dialogType = dialogState.type,
+            title = dialogState.title,
+            message = dialogState.message,
+            primaryActionButton = dialogState.buttonText,
+            showCloseButton = dialogState.showCloseButton,
+            onDismiss = {
+                appViewModel.hideMessage()
+                dialogState.onDismiss?.invoke()
+            },
+            onPrimaryActionClicked = {
+                appViewModel.hideMessage()
+                dialogState.onPrimaryActionClicked?.invoke()
+            }
+        )
+
     }
 
     /**
