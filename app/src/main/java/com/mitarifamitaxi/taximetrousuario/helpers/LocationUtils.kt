@@ -3,7 +3,6 @@ package com.mitarifamitaxi.taximetrousuario.helpers
 import android.content.Context
 import android.location.Geocoder
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.models.Feature
 import com.mitarifamitaxi.taximetrousuario.models.PlacePrediction
 import com.mitarifamitaxi.taximetrousuario.models.Properties
@@ -25,7 +24,7 @@ suspend fun getCityFromCoordinates(
     context: Context,
     latitude: Double,
     longitude: Double,
-    callbackSuccess: (city: String?, countryCode: String?, countryCodeWhatsapp: String?, countryCurrency: String?) -> Unit,
+    callbackSuccess: (country: String?, countryCode: String?, countryCodeWhatsapp: String?, countryCurrency: String?) -> Unit,
     callbackError: (Exception) -> Unit
 ) {
     return withContext(Dispatchers.IO) {
@@ -37,18 +36,12 @@ suspend fun getCityFromCoordinates(
 
                 val country = countries.find { it.code == address.countryCode }
 
-                getCityFromAlias(input = address.locality ?: address.subAdminArea) { cityAlias ->
-                    if (cityAlias != null) {
-                        callbackSuccess(
-                            cityAlias,
-                            address.countryCode,
-                            country?.dial?.replace("+", ""),
-                            country?.currency
-                        )
-                    } else {
-                        callbackError(IOException("No results found"))
-                    }
-                }
+                callbackSuccess(
+                    address.countryName,
+                    address.countryCode,
+                    country?.dial?.replace("+", ""),
+                    country?.currency
+                )
 
             } else {
                 callbackError(IOException("Unexpected response"))
@@ -58,23 +51,6 @@ suspend fun getCityFromCoordinates(
             callbackError(IOException("No results found"))
         }
     }
-}
-
-fun getCityFromAlias(input: String, onResult: (String?) -> Unit) {
-    val db = FirebaseFirestore.getInstance()
-    db.collection("citiesAlias")
-        .whereArrayContains("aliases", input)
-        .limit(1)
-        .get()
-        .addOnSuccessListener { snaps ->
-            val canonical = if (snaps.isEmpty) input
-            else snaps.documents[0].getString("canonicalName")
-            onResult(canonical)
-        }
-        .addOnFailureListener { e ->
-            e.printStackTrace()
-            onResult(null)
-        }
 }
 
 fun getAddressFromCoordinates(

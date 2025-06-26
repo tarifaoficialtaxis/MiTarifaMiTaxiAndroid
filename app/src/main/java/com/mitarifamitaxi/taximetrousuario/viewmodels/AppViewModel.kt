@@ -24,6 +24,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
+import android.provider.Settings.Global.putString
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationCallback
@@ -31,14 +32,23 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getCityFromCoordinates
+import com.mitarifamitaxi.taximetrousuario.models.CountryArea
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
 import java.util.Date
 import java.util.concurrent.Executor
+import com.google.firebase.database.ValueEventListener
+import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
+import androidx.core.content.edit
+import com.google.gson.Gson
+
 
 sealed class UserDataUpdateEvent {
     object FirebaseUserUpdated : UserDataUpdateEvent()
@@ -243,17 +253,26 @@ class AppViewModel(context: Context) : ViewModel() {
                         context = appContext,
                         latitude = location.latitude,
                         longitude = location.longitude,
-                        callbackSuccess = { city, countryCode, countryCodeWhatsapp, countryCurrency ->
+                        callbackSuccess = { country, countryCode, countryCodeWhatsapp, countryCurrency ->
                             isGettingLocation = false
-                            updateUserData(
-                                location = UserLocation(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                ),
-                                city = city ?: "",
-                                countryCode = countryCode ?: "",
-                                countryCodeWhatsapp = countryCodeWhatsapp ?: "",
-                                countryCurrency = countryCurrency ?: ""
+
+                            val userLocation = UserLocation(
+                                latitude = location.latitude,
+                                longitude = location.longitude
+                            )
+
+                            getCityRegionFromCountry(
+                                country ?: "",
+                                userLocation,
+                                onResult = { cityName ->
+                                    updateUserData(
+                                        location = userLocation,
+                                        city = cityName ?: "",
+                                        countryCode = countryCode ?: "",
+                                        countryCodeWhatsapp = countryCodeWhatsapp ?: "",
+                                        countryCurrency = countryCurrency ?: ""
+                                    )
+                                }
                             )
                         },
                         callbackError = { error ->
@@ -338,6 +357,50 @@ class AppViewModel(context: Context) : ViewModel() {
         }
     }
 
+    private fun getCityRegionFromCountry(
+        country: String,
+        location: UserLocation,
+        onResult: ((String?) -> Unit)? = null
+    ) {
+
+        val database = FirebaseDatabase.getInstance()
+        val countryRef = database.getReference("countriesRegions").child(country.lowercase())
+
+        countryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    try {
+                        val countryData =
+                            snapshot.getValue(CountryArea::class.java)
+                        Log.d("getCityRegionFromCountry", "City Area: $countryData")
+                        if (countryData != null && countryData.features != null && location.longitude != null && location.latitude != null) {
+                            val region = findRegionForCoordinates(
+                                location.latitude,
+                                location.longitude,
+                                countryData.features
+                            )
+                            Log.d("getCityRegionFromCountry", "Region data: $region")
+                            onResult?.invoke(region?.name)
+                        }
+
+
+                    } catch (e: Exception) {
+                        Log.e("getCityRegionFromCountry", "Error parsing city data: ${e.message}")
+                        onResult?.invoke(null)
+                    }
+
+                } else {
+                    Log.d("getCityRegionFromCountry", "No city found with the given name")
+                    onResult?.invoke(null)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("getCityRegionFromCountry", "Query cancelled or failed: ${error.message}")
+                onResult?.invoke(null)
+            }
+        })
+    }
 
 }
 

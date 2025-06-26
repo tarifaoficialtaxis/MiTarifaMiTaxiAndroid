@@ -1,7 +1,7 @@
 package com.mitarifamitaxi.taximetrousuario.models
 
-data class CityArea (
-    val city: String? = null,
+data class CountryArea (
+    val country: String? = null,
     val features: List<Feature>? = null,
     val type: String? = null
 )
@@ -24,15 +24,8 @@ enum class GeometryType {
 
 data class Properties (
     val id: String? = null,
-    val type: PropertiesType? = null,
     val name: String? = null,
-    val fare: Long? = null
 )
-
-enum class PropertiesType {
-    innerArea,
-    subdistrict
-}
 
 enum class FeatureType {
     Feature
