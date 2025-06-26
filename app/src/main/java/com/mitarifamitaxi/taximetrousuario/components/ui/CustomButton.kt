@@ -36,6 +36,7 @@ fun CustomButton(
     onClick: () -> Unit,
     color: Color = colorResource(id = R.color.main),
     leadingIcon: ImageVector? = null,
+    modifier: Modifier? = Modifier.fillMaxWidth(),
 ) {
 
     var isClicked by remember { mutableStateOf(false) }
@@ -54,11 +55,10 @@ fun CustomButton(
         colors = ButtonDefaults.buttonColors(containerColor = color),
         shape = RoundedCornerShape(50),
         enabled = !isClicked,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier ?: Modifier.fillMaxWidth()
     ) {
 
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier

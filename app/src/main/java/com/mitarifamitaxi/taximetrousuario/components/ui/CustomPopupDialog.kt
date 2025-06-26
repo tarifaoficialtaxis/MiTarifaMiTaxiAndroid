@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 
@@ -77,7 +78,7 @@ fun CustomPopupDialog(
                     Color.White,
                     shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                 )
-                .padding(20.dp)
+                .padding(K.GENERAL_PADDING)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,68 +102,58 @@ fun CustomPopupDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                Text(
-                    text = title,
-                    textAlign = TextAlign.Center,
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = primaryColor
+                MainTitleText(
+                    title = title,
+                    titleSize = 20.sp,
+                    titleColor = primaryColor,
+                    text = message
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = message,
-                    textAlign = TextAlign.Center,
-                    color = Color.Gray,
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(K.GENERAL_PADDING))
 
 
-                primaryActionButton?.let {
-                    CustomButton(
-                        text = it.uppercase(),
-                        onClick = onPrimaryActionClicked,
-                        color = primaryColor,
-                    )
-                }
-
-                if (showCloseButton) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(42.dp),
-                        shape = CircleShape,
-                        border = BorderStroke(0.dp, Color.Transparent),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = colorResource(id = R.color.gray7),
-                            contentColor = colorResource(id = R.color.white)
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "content description"
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    primaryActionButton?.let {
+                        CustomButton(
+                            text = it.uppercase(),
+                            onClick = onPrimaryActionClicked,
+                            color = primaryColor,
                         )
                     }
 
+                    if (showCloseButton) {
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.size(43.dp),
+                            shape = CircleShape,
+                            border = BorderStroke(0.dp, Color.Transparent),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = colorResource(id = R.color.gray7),
+                                contentColor = colorResource(id = R.color.white)
+                            ),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "content description",
+                                modifier = Modifier.size(25.dp)
+
+                            )
+                        }
+
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
 
             }
         }
     }
 }
+
+
 

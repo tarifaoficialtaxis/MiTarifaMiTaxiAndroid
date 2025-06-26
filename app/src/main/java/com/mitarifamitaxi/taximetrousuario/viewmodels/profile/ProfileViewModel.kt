@@ -1,12 +1,17 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.profile
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,6 +32,7 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
@@ -40,6 +46,12 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
     private val appContext = context.applicationContext
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    private val originalProfilePictureUrl: String? = appViewModel.userData?.profilePicture
+    var imageUri by mutableStateOf<Uri?>(appViewModel.userData?.profilePicture?.toUri())
+    var tempImageUri by mutableStateOf<Uri?>(null)
+
+    var showDialog by mutableStateOf(false)
+
     var firstName by mutableStateOf(appViewModel.userData?.firstName)
     var lastName by mutableStateOf(appViewModel.userData?.lastName)
     var mobilePhone by mutableStateOf(appViewModel.userData?.mobilePhone)
@@ -51,6 +63,9 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
     var distanceCount by mutableIntStateOf(0)
 
     var showPasswordPopUp by mutableStateOf(false)
+
+    var hasCameraPermission by mutableStateOf(false)
+        private set
 
     private val _hideKeyboardEvent = MutableLiveData<Boolean>()
     val hideKeyboardEvent: LiveData<Boolean> get() = _hideKeyboardEvent
@@ -72,11 +87,36 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         GoogleSignIn.getClient(appContext, gso)
     }
 
+
+
     init {
+        checkCameraPermission()
         viewModelScope.launch {
             getTripsByUserId(appViewModel.userData?.id ?: "")
         }
     }
+
+    private fun checkCameraPermission() {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun onPermissionResult(isGranted: Boolean) {
+        hasCameraPermission = isGranted
+    }
+
+    fun onImageSelected(uri: Uri?) {
+        imageUri = uri
+    }
+
+    fun onImageCaptured(success: Boolean) {
+        if (success) {
+            imageUri = tempImageUri
+        }
+    }
+
 
     fun resetHideKeyboardEvent() {
         _hideKeyboardEvent.value = false
@@ -115,9 +155,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         if ((firstName ?: "").isEmpty() ||
             (lastName ?: "").isEmpty() ||
             (mobilePhone ?: "").isEmpty() ||
-            (email ?: "").isEmpty() ||
-            (familyNumber ?: "").isEmpty() ||
-            (supportNumber ?: "").isEmpty()
+            (email ?: "").isEmpty()
         ) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
@@ -277,9 +315,17 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                 Log.e("ProfileViewModel", "Error logging in: ${e.message}")
 
                 val errorMessage = when (e) {
-                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(e.errorCode)
-                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(e.errorCode)
+                    is FirebaseAuthInvalidCredentialsException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthInvalidUserException -> getFirebaseAuthErrorMessage(
+                        appContext,
+                        e.errorCode
+                    )
+
+                    is FirebaseAuthException -> getFirebaseAuthErrorMessage(appContext, e.errorCode)
                     else -> appContext.getString(R.string.something_went_wrong)
                 }
 
@@ -416,18 +462,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                     )
                 }
             }
-    }
-
-    private fun getFirebaseAuthErrorMessage(errorCode: String): String {
-        return when (errorCode) {
-            "ERROR_INVALID_EMAIL" -> appContext.getString(R.string.error_invalid_email)
-            "ERROR_INVALID_CREDENTIAL" -> appContext.getString(R.string.error_wrong_credentials)
-            "ERROR_USER_NOT_FOUND" -> appContext.getString(R.string.error_user_not_found)
-            "ERROR_USER_DISABLED" -> appContext.getString(R.string.error_user_disabled)
-            "ERROR_TOO_MANY_REQUESTS" -> appContext.getString(R.string.error_too_many_requests)
-            "ERROR_OPERATION_NOT_ALLOWED" -> appContext.getString(R.string.error_operation_not_allowed)
-            else -> appContext.getString(R.string.error_authentication_failed)
-        }
     }
 
     fun logOut() {

@@ -2,9 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.activities
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.compose.setContent
 import androidx.annotation.OptIn
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,38 +24,70 @@ import androidx.core.net.toUri
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        setContent {
-            SplashScreen {
-                if (!Constants.IS_DEV) {
-                    validateNextScreen()
-                }
-            }
-        }
-
-        if (Constants.IS_DEV) {
+        if (K.IS_DEV) {
             validateNextScreen()
+            //startActivity(Intent(this, RegisterActivity::class.java))
         }
 
     }
 
-    private fun validateNextScreen() {
-        if (LocalUserManager(this).getUserState() != null) {
+    @Composable
+    override fun Content() {
+        SplashScreen {
+            if (!K.IS_DEV) {
+                validateNextScreen()
+            }
+        }
+    }
 
-            startActivity(
-                Intent(this, HomeActivity::class.java)
-            )
-            finish()
+    private fun validateNextScreen() {
+
+        val userState = LocalUserManager(this).getUserState()
+
+        if (userState != null) {
+
+            if (userState.role == UserRole.DRIVER) {
+
+                if (!userState.frontDrivingLicense.isNullOrEmpty() &&
+                    !userState.backDrivingLicense.isNullOrEmpty() &&
+                    !userState.vehicleBrand.isNullOrEmpty() &&
+                    !userState.vehicleModel.isNullOrEmpty() &&
+                    !userState.vehicleYear.isNullOrEmpty() &&
+                    !userState.vehiclePlate.isNullOrEmpty() &&
+                    !userState.vehicleFrontPicture.isNullOrEmpty() &&
+                    !userState.vehicleBackPicture.isNullOrEmpty() &&
+                    !userState.vehicleSidePicture.isNullOrEmpty()
+                ) {
+                    startActivity(
+                        Intent(this, HomeActivity::class.java)
+                    )
+                    finish()
+                } else {
+                    startActivity(
+                        Intent(this, LoginActivity::class.java)
+                    )
+                    finish()
+                }
+
+            } else {
+                startActivity(
+                    Intent(this, HomeActivity::class.java)
+                )
+                finish()
+            }
+
 
         } else {
             if (hasUserAcceptedTerms()) {
@@ -125,8 +155,7 @@ class MainActivity : AppCompatActivity() {
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                     this.player = player
                 }
-            }
-        )
+            })
     }
 
 
