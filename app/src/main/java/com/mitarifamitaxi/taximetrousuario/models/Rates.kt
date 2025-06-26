@@ -11,6 +11,7 @@ data class Rates(
     val startRateUnits: Double? = null,
     val unitPrice: Double? = null,
     val waitTime: Int? = null,
+    val waitTimeRateUnit: Double? = null,
     val nightHourSurcharge: Int? = null,
     val nighMinuteSurcharge: Int? = null,
     val morningHourSurcharge: Int? = null,

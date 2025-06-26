@@ -387,7 +387,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     //Log.d("TaximeterViewModel", "waitTime: $waitTime")
                     //Log.d("TaximeterViewModel", "dragTimeElapsed: $dragTimeElapsed")
                     if (dragTimeElapsed >= waitTime) {
-                        units += 1
+                        units += ratesObj.value.waitTimeRateUnit ?: 1.0
                         dragTimeElapsed = 0
                     }
                 }
