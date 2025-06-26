@@ -154,7 +154,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     init {
-        getCityRates(appViewModel.userData?.city)
+        getCityRates(appViewModel.uiState.value.userData?.city)
     }
 
     override fun onCleared() {
@@ -187,7 +187,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     @SuppressLint("MissingPermission")
     fun getCurrentLocation() {
 
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
 
         val cancellationTokenSource = CancellationTokenSource()
 
@@ -197,7 +197,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
 
         task.addOnSuccessListener(executor) { location ->
-            appViewModel.isLoading = false
+            appViewModel.setLoading(false)
             if (location != null) {
                 currentPosition = UserLocation(
                     latitude = location.latitude,
@@ -214,7 +214,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 )
             }
         }.addOnFailureListener {
-            appViewModel.isLoading = false
+            appViewModel.setLoading(false)
             FirebaseCrashlytics.getInstance().recordException(it)
             appViewModel.showMessage(
                 type = DialogType.ERROR,
@@ -360,12 +360,12 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         viewModelScope.launch {
             _navigationEvents.emit(NavigationEvent.StopLocationUpdateNotification)
         }
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         getAddressFromCoordinates(
             latitude = currentPosition.latitude ?: 0.0,
             longitude = currentPosition.longitude ?: 0.0,
             callbackSuccess = { address ->
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 endAddress = address
                 isTaximeterStarted = false
                 stopWatchLocation()
@@ -375,7 +375,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             callbackError = {
                 FirebaseCrashlytics.getInstance()
                     .recordException(Exception("TaximeterViewModel error on stop, ${it.message}"))
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -538,7 +538,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             doorToDoorSurchargeEnabled = isDoorToDoorSurcharge,
             doorToDoorSurcharge = if (isDoorToDoorSurcharge) (ratesObj.value.doorToDoorRateUnits
                 ?: 0.0) * (ratesObj.value.unitPrice ?: 0.0) else null,
-            currency = appViewModel.userData?.countryCurrency,
+            currency = appViewModel.uiState.value.userData?.countryCurrency,
             routeImageLocal = compressedBitmap
         )
 
@@ -598,14 +598,14 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         viewModelScope.launch {
             try {
 
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 val imageUrl = tripData.routeImageLocal?.let {
                     FirebaseStorageUtils.uploadImage("trips", it)
                 }
 
                 val tripDataReq = mutableMapOf<String, Any?>().apply {
-                    putIfNotNull("userId", appViewModel.userData?.id)
+                    putIfNotNull("userId", appViewModel.uiState.value.userData?.id)
                     putIfNotNull("startCoords", tripData.startCoords)
                     putIfNotNull("endCoords", tripData.endCoords)
                     putIfNotNull("startHour", tripData.startHour)
@@ -629,19 +629,19 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                         tripData.holidayOrNightSurchargeEnabled
                     )
                     putIfNotNull("holidayOrNightSurcharge", tripData.holidayOrNightSurcharge)
-                    putIfNotNull("currency", appViewModel.userData?.countryCurrency)
+                    putIfNotNull("currency", appViewModel.uiState.value.userData?.countryCurrency)
                     putIfNotNull("startAddress", tripData.startAddress)
                     putIfNotNull("endAddress", tripData.endAddress)
                     putIfNotNull("routeImage", imageUrl)
                 }
 
                 FirebaseFirestore.getInstance().collection("trips").add(tripDataReq).await()
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 onSuccess()
 
             } catch (error: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 Log.e("TripSummaryViewModel", "Error saving trip data: ${error.message}")
                 appViewModel.showMessage(
                     type = DialogType.ERROR,

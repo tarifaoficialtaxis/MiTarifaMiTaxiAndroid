@@ -49,6 +49,11 @@ import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
 import androidx.core.content.edit
 import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
+import com.mitarifamitaxi.taximetrousuario.states.AppState
+import com.mitarifamitaxi.taximetrousuario.states.DialogState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 
 sealed class UserDataUpdateEvent {
@@ -59,7 +64,7 @@ class AppViewModel(context: Context) : ViewModel() {
 
     private val appContext = context.applicationContext
 
-    var isLoading by mutableStateOf(false)
+    /*var isLoading by mutableStateOf(false)
 
     var userData: LocalUser? by mutableStateOf(null)
     var userLocation: UserLocation? by mutableStateOf(null)
@@ -75,10 +80,15 @@ class AppViewModel(context: Context) : ViewModel() {
     var dialogOnPrimaryActionClicked: (() -> Unit)? = null
 
     // Location variables
+
+    var isGettingLocation by mutableStateOf(false)*/
+
     private lateinit var locationCallback: LocationCallback
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private val executor: Executor = ContextCompat.getMainExecutor(context)
-    var isGettingLocation by mutableStateOf(false)
+
+    private val _uiState = MutableStateFlow(AppState())
+    val uiState = _uiState.asStateFlow()
 
     private val _userDataUpdateEvents = MutableSharedFlow<UserDataUpdateEvent>()
     val userDataUpdateEvents = _userDataUpdateEvents.asSharedFlow()
@@ -88,12 +98,22 @@ class AppViewModel(context: Context) : ViewModel() {
         validateAppVersion()
     }
 
+    fun setLoading(isLoading: Boolean) {
+        _uiState.update { it.copy(isLoading = isLoading) }
+    }
+
+    fun updateLocalUser(user: LocalUser) {
+        _uiState.update { it.copy(userData = user) }
+        LocalUserManager(appContext).saveUserState(user)
+    }
+
     fun reloadUserData() {
         loadUserData()
     }
 
     private fun loadUserData() {
-        userData = LocalUserManager(appContext).getUserState()
+        val loadedUserData = LocalUserManager(appContext).getUserState()
+        _uiState.update { it.copy(userData = loadedUserData) }
     }
 
     fun validateAppVersion() {
@@ -183,14 +203,21 @@ class AppViewModel(context: Context) : ViewModel() {
         onDismiss: (() -> Unit)? = null,
         onButtonClicked: (() -> Unit)? = null
     ) {
-        dialogType = type
-        dialogTitle = title
-        dialogMessage = message
-        showDialog = true
-        dialogButtonText = buttonText
-        dialogShowCloseButton = showCloseButton
-        dialogOnDismiss = onDismiss
-        dialogOnPrimaryActionClicked = onButtonClicked
+        val newDialogState = DialogState(
+            show = true,
+            type = type,
+            title = title,
+            message = message,
+            buttonText = buttonText,
+            showCloseButton = showCloseButton,
+            onDismiss = onDismiss,
+            onPrimaryActionClicked = onButtonClicked
+        )
+        _uiState.update { it.copy(dialogState = newDialogState) }
+    }
+
+    fun hideMessage() {
+        _uiState.update { it.copy(dialogState = DialogState()) }
     }
 
 
@@ -226,7 +253,7 @@ class AppViewModel(context: Context) : ViewModel() {
     @SuppressLint("MissingPermission")
     fun getCurrentLocation() {
 
-        isGettingLocation = true
+        _uiState.update { it.copy(isGettingLocation = true) }
         val cancellationTokenSource = CancellationTokenSource()
 
         val task: Task<Location> = fusedLocationClient.getCurrentLocation(
@@ -237,23 +264,26 @@ class AppViewModel(context: Context) : ViewModel() {
         task.addOnSuccessListener(executor) { location ->
             if (location != null) {
 
-                val previousUserLocation = userLocation
+                val previousUserLocation = _uiState.value.userLocation
                 val locationChanged = previousUserLocation == null ||
                         previousUserLocation.latitude != location.latitude ||
                         previousUserLocation.longitude != location.longitude
 
                 if (!locationChanged) {
-                    isGettingLocation = false
+                    _uiState.update { it.copy(isGettingLocation = false) }
+
                     viewModelScope.launch {
                         _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
                     }
                     return@addOnSuccessListener
-                } else {
+                }
+
+                /*else {
                     userLocation = UserLocation(
                         latitude = location.latitude,
                         longitude = location.longitude
                     )
-                }
+                }*/
 
                 viewModelScope.launch {
                     getCityFromCoordinates(
@@ -261,7 +291,7 @@ class AppViewModel(context: Context) : ViewModel() {
                         latitude = location.latitude,
                         longitude = location.longitude,
                         callbackSuccess = { country, countryCode, countryCodeWhatsapp, countryCurrency ->
-                            isGettingLocation = false
+                            _uiState.update { it.copy(isGettingLocation = false) }
 
                             val userLocation = UserLocation(
                                 latitude = location.latitude,
@@ -283,7 +313,7 @@ class AppViewModel(context: Context) : ViewModel() {
                         },
                         callbackError = { error ->
                             Log.e("HomeViewModel", "Error getting city: $error")
-                            isGettingLocation = false
+                            _uiState.update { it.copy(isGettingLocation = false) }
                             showMessage(
                                 type = DialogType.ERROR,
                                 title = appContext.getString(R.string.something_went_wrong),
@@ -294,7 +324,7 @@ class AppViewModel(context: Context) : ViewModel() {
                 }
 
             } else {
-                isGettingLocation = false
+                _uiState.update { it.copy(isGettingLocation = false) }
                 showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -302,7 +332,7 @@ class AppViewModel(context: Context) : ViewModel() {
                 )
             }
         }.addOnFailureListener {
-            isGettingLocation = false
+            _uiState.update { it.copy(isGettingLocation = false) }
             showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.something_went_wrong),
@@ -323,7 +353,9 @@ class AppViewModel(context: Context) : ViewModel() {
         countryCodeWhatsapp: String,
         countryCurrency: String
     ) {
-        userData = userData?.copy(
+        val currentUser = _uiState.value.userData ?: return
+
+        val updatedUser = currentUser.copy(
             city = city,
             countryCode = countryCode,
             countryCodeWhatsapp = countryCodeWhatsapp,
@@ -331,11 +363,12 @@ class AppViewModel(context: Context) : ViewModel() {
             lastActive = Date()
         )
 
-        userData?.let {
-            LocalUserManager(appContext).saveUserState(it)
-            updateUserDataOnFirebase(it)
+        _uiState.update {
+            it.copy(userData = updatedUser)
         }
 
+        LocalUserManager(appContext).saveUserState(updatedUser)
+        updateUserDataOnFirebase(updatedUser)
     }
 
     fun updateUserDataOnFirebase(

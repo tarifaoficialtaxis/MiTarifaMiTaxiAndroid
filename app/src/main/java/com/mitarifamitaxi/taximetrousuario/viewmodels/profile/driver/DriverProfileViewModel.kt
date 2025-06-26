@@ -83,7 +83,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
 
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 // Delete Firebase Auth User
                 deleteFirebaseAuthUser()
@@ -91,7 +91,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
             } catch (error: Exception) {
                 // Catch errors from Firestore deletion
                 Log.e("ProfileViewModel", "Error deleting account data: ${error.message}", error)
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -123,19 +123,22 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
 
     fun authenticateUserByEmailAndPassword(password: String) {
 
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
 
         viewModelScope.launch {
             try {
                 val userCredential =
-                    auth.signInWithEmailAndPassword(appViewModel.userData?.email!!.trim(), password)
+                    auth.signInWithEmailAndPassword(
+                        appViewModel.uiState.value.userData?.email!!.trim(),
+                        password
+                    )
                         .await()
                 val user = userCredential.user
                 if (user != null) {
                     deleteFirebaseAuthUser()
                 }
             } catch (e: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 Log.e("ProfileViewModel", "Error logging in: ${e.message}")
 
@@ -167,7 +170,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
     fun deleteFirebaseAuthUser() {
 
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val userId = appViewModel.userData?.id ?: ""
+        val userId = appViewModel.uiState.value.userData?.id ?: ""
 
         if (currentUser == null || userId.isEmpty()) {
             appViewModel.showMessage(
@@ -206,7 +209,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
                 userDocRef.delete().await()
                 Log.d("ProfileViewModel", "Deleted Firestore user document $userId")
 
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.SUCCESS,
                     title = appContext.getString(R.string.warning),
@@ -219,7 +222,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
                 )
 
             } catch (authError: FirebaseAuthRecentLoginRequiredException) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 Log.w(
                     "ProfileViewModel",
                     "Auth deletion failed: Re-authentication required.",
@@ -234,7 +237,7 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
                     "Error deleting Firebase Auth user: ${authError.message}",
                     authError
                 )
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -271,14 +274,14 @@ class DriverProfileViewModel(context: Context, private val appViewModel: AppView
     private fun firebaseAuthWithGoogle(
         idToken: String
     ) {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     deleteFirebaseAuthUser()
                 } else {
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     Log.e("ProfileViewModel", "Firebase Sign-In failed: ${task.exception}")
                     appViewModel.showMessage(
                         type = DialogType.ERROR,

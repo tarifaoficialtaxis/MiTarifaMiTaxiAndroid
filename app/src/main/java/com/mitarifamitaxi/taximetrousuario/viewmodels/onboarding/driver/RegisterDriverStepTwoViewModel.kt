@@ -87,7 +87,7 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
 
         viewModelScope.launch {
 
-            appViewModel.isLoading = true
+            appViewModel.setLoading(true)
 
             val deferreds = listOf(frontImageUri!!, backImageUri!!).map { uri ->
                 async(Dispatchers.IO) {
@@ -104,7 +104,7 @@ class RegisterDriverStepTwoViewModel(context: Context, private val appViewModel:
             val (frontUrl, backUrl) = deferreds.awaitAll()
 
             if (frontUrl == null || backUrl == null) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),

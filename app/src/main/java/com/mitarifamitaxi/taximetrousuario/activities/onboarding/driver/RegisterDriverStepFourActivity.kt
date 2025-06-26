@@ -55,7 +55,6 @@ class RegisterDriverStepFourActivity : BaseActivity() {
         RegisterDriverStepFourViewModelFactory(this, appViewModel)
     }
 
-
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

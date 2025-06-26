@@ -44,7 +44,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     init {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         observeAppViewModelEvents()
     }
 
@@ -55,9 +55,9 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                     is UserDataUpdateEvent.FirebaseUserUpdated -> {
                         Log.d(
                             "SosViewModel",
-                            "Received FirebaseUserUpdated event. Current appViewModel city: ${appViewModel.userData?.city}"
+                            "Received FirebaseUserUpdated event. Current appViewModel city: ${appViewModel.uiState.value.userData?.city}"
                         )
-                        getCityContacts(appViewModel.userData?.city)
+                        getCityContacts(appViewModel.uiState.value.userData?.city)
                     }
                 }
             }
@@ -80,13 +80,13 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                     if (!ratesQuerySnapshot.isEmpty) {
                         val contactsDoc = ratesQuerySnapshot.documents[0]
                         try {
-                            appViewModel.isLoading = false
+                            appViewModel.setLoading(false)
                             contactObj.value =
                                 contactsDoc.toObject(Contact::class.java) ?: Contact()
                             validateShowModal()
                         } catch (e: Exception) {
                             Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
-                            appViewModel.isLoading = false
+                            appViewModel.setLoading(false)
                             appViewModel.showMessage(
                                 DialogType.ERROR,
                                 appContext.getString(R.string.something_went_wrong),
@@ -94,7 +94,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                             )
                         }
                     } else {
-                        appViewModel.isLoading = false
+                        appViewModel.setLoading(false)
                         appViewModel.showMessage(
                             DialogType.ERROR,
                             appContext.getString(R.string.something_went_wrong),
@@ -106,7 +106,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                     }
                 } catch (e: Exception) {
                     Log.e("SosViewModel", "Error fetching contacts: ${e.message}")
-                    appViewModel.isLoading = false
+                    appViewModel.setLoading(false)
                     appViewModel.showMessage(
                         DialogType.ERROR,
                         appContext.getString(R.string.something_went_wrong),
@@ -117,7 +117,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                     )
                 }
             } else {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     DialogType.ERROR,
                     appContext.getString(R.string.something_went_wrong),
@@ -174,8 +174,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
             "SUPPORT" -> {
 
-                if (appViewModel.userData?.supportNumber != null) {
-                    contactNumber = appViewModel.userData?.supportNumber ?: ""
+                if (appViewModel.uiState.value.userData?.supportNumber != null) {
+                    contactNumber = appViewModel.uiState.value.userData?.supportNumber ?: ""
                     sosType = appContext.getString(R.string.support)
                 } else {
                     appViewModel.showMessage(
@@ -191,8 +191,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
             }
 
             "FAMILY" -> {
-                if (appViewModel.userData?.familyNumber != null) {
-                    contactNumber = appViewModel.userData?.familyNumber ?: ""
+                if (appViewModel.uiState.value.userData?.familyNumber != null) {
+                    contactNumber = appViewModel.uiState.value.userData?.familyNumber ?: ""
                     sosType = appContext.getString(R.string.family)
                 } else {
                     appViewModel.showMessage(
@@ -233,7 +233,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         onIntentReady: (Intent) -> Unit
     ) {
 
-        val userLocation = appViewModel.userLocation
+        val userLocation = appViewModel.uiState.value.userLocation
         val message = buildString {
             append("*SOS ${sosType.uppercase()}*\n")
             if (event != null) {
@@ -246,7 +246,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
         val messageToSend = URLEncoder.encode(message, "UTF-8").replace("%0A", "%0D%0A")
         val whatsappURL =
-            "whatsapp://send?text=$messageToSend&phone=${appViewModel.userData?.countryCodeWhatsapp}${phoneNumber}"
+            "whatsapp://send?text=$messageToSend&phone=${appViewModel.uiState.value.userData?.countryCodeWhatsapp}${phoneNumber}"
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(whatsappURL)

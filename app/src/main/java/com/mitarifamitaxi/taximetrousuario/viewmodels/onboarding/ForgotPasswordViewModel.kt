@@ -69,11 +69,11 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     }
 
     fun sendPasswordReset() {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         auth.setLanguageCode("es")
         auth.sendPasswordResetEmail(_uiState.value.email.trim())
             .addOnCompleteListener { task ->
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 if (task.isSuccessful) {
                     appViewModel.showMessage(
                         type = DialogType.WARNING,

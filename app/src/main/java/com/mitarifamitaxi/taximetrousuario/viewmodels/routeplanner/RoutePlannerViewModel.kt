@@ -59,7 +59,7 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     init {
         setDefaultHeights()
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         observeAppViewModelEvents()
     }
 
@@ -68,7 +68,7 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
             appViewModel.userDataUpdateEvents.collectLatest { event ->
                 when (event) {
                     is UserDataUpdateEvent.FirebaseUserUpdated -> {
-                        appViewModel.isLoading = false
+                        appViewModel.setLoading(false)
                         setStartAddress()
                     }
                 }
@@ -78,15 +78,15 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     fun setStartAddress() {
         getAddressFromCoordinates(
-            latitude = appViewModel.userLocation?.latitude ?: 0.0,
-            longitude = appViewModel.userLocation?.longitude ?: 0.0,
+            latitude = appViewModel.uiState.value.userLocation?.latitude ?: 0.0,
+            longitude = appViewModel.uiState.value.userLocation?.longitude ?: 0.0,
             callbackSuccess = { address ->
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 startAddress = address
                 isSelectingStart = false
                 startLocation = UserLocation(
-                    latitude = appViewModel.userLocation?.latitude ?: 0.0,
-                    longitude = appViewModel.userLocation?.longitude ?: 0.0
+                    latitude = appViewModel.uiState.value.userLocation?.latitude ?: 0.0,
+                    longitude = appViewModel.uiState.value.userLocation?.longitude ?: 0.0
                 )
             },
             callbackError = {
@@ -189,9 +189,9 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
         getPlacePredictions(
             input = input,
-            latitude = appViewModel.userLocation?.latitude ?: 0.0,
-            longitude = appViewModel.userLocation?.longitude ?: 0.0,
-            country = appViewModel.userData?.countryCode ?: "CO",
+            latitude = appViewModel.uiState.value.userLocation?.latitude ?: 0.0,
+            longitude = appViewModel.uiState.value.userLocation?.longitude ?: 0.0,
+            country = appViewModel.uiState.value.userData?.countryCode ?: "CO",
             callbackSuccess = { predictions ->
                 _places.value = predictions
             },

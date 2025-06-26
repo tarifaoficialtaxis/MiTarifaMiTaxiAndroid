@@ -60,7 +60,7 @@ class RegisterDriverStepTwoActivity : BaseActivity() {
                 appViewModel.userDataUpdateEvents.collect { event ->
                     when (event) {
                         is UserDataUpdateEvent.FirebaseUserUpdated -> {
-                            appViewModel.isLoading = false
+                            appViewModel.setLoading(false)
                             startActivity(
                                 Intent(
                                     this@RegisterDriverStepTwoActivity,

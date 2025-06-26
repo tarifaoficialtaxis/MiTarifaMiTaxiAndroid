@@ -135,7 +135,7 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
         viewModelScope.launch {
             try {
                 // Show loading indicator
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
                 val imageUrl = withContext(Dispatchers.IO) {
                     stateVal.imageUri.let { uri ->
@@ -162,7 +162,7 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
                     .await()
 
                 // Hide loading indicator
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 // Save user in SharedPreferences
                 val localUser = LocalUser(
@@ -182,7 +182,7 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
 
             } catch (e: Exception) {
                 // Hide loading indicator
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 // Show error message
                 onResult(Pair(false, e.message))
             }

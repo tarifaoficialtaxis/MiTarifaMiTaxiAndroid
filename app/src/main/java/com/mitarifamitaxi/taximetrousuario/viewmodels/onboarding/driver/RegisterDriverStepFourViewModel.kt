@@ -64,7 +64,7 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
             appViewModel.userDataUpdateEvents.collectLatest { event ->
                 when (event) {
                     is UserDataUpdateEvent.FirebaseUserUpdated -> {
-                        appViewModel.isLoading = false
+                        appViewModel.setLoading(false)
                         showSuccessMessage()
                     }
                 }
@@ -124,7 +124,7 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
 
         viewModelScope.launch {
 
-            appViewModel.isLoading = true
+            appViewModel.setLoading(true)
 
             val deferreds = listOf(frontImageUri!!, backImageUri!!, sideImageUri!!).map { uri ->
                 async(Dispatchers.IO) {
@@ -141,7 +141,7 @@ class RegisterDriverStepFourViewModel(context: Context, private val appViewModel
             val (frontUrl, backUrl, sideUrl) = deferreds.awaitAll()
 
             if (frontUrl == null || backUrl == null || sideUrl == null) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),

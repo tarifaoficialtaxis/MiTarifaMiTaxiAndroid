@@ -3,6 +3,7 @@ package com.mitarifamitaxi.taximetrousuario.states
 import android.net.Uri
 
 data class ProfileState(
+    val originalProfilePictureUrl: String = "",
     val imageUri: Uri? = null,
     val tempImageUri: Uri? = null,
     val firstName: String = "",
@@ -14,15 +15,18 @@ data class ProfileState(
     val mobilePhone: String = "",
     val mobilePhoneIsError: Boolean = false,
     val mobilePhoneErrorMessage: String = "",
+    val familyNumber: String? = null,
+    val familyNumberIsError: Boolean = false,
+    val familyNumberErrorMessage: String = "",
+    val supportNumber: String? = null,
+    val supportNumberIsError: Boolean = false,
+    val supportNumberErrorMessage: String = "",
     val email: String = "",
     val emailIsError: Boolean = false,
     val emailErrorMessage: String = "",
-    val password: String = "",
-    val passwordIsError: Boolean = false,
-    val passwordErrorMessage: String = "",
-    val confirmPassword: String = "",
-    val confirmPasswordIsError: Boolean = false,
-    val confirmPasswordErrorMessage: String = "",
     val showDialogSelectPhoto: Boolean = false,
-    val hasCameraPermission: Boolean = false
+    val hasCameraPermission: Boolean = false,
+    val showPasswordPopUp: Boolean = false,
+    val tripsCount: Int = 0,
+    val distanceCount: Int = 0
 )
