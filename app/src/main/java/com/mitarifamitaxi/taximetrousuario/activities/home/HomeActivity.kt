@@ -316,7 +316,7 @@ class HomeActivity : BaseActivity() {
                 Image(
                     painter = painterResource(id = R.drawable.home_request_service),
                     contentDescription = null,
-                    contentScale = ContentScale.Companion.Fit,
+                    contentScale = ContentScale.Companion.FillWidth,
                     modifier = Modifier.Companion
                         .fillMaxSize()
                 )
@@ -333,7 +333,7 @@ class HomeActivity : BaseActivity() {
                 Image(
                     painter = painterResource(id = R.drawable.home_taximetro_button),
                     contentDescription = null,
-                    contentScale = ContentScale.Companion.Fit,
+                    contentScale = ContentScale.Companion.FillWidth,
                     modifier = Modifier.Companion
                         .fillMaxSize()
                 )
@@ -355,7 +355,7 @@ class HomeActivity : BaseActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.home_sos_button),
                         contentDescription = null,
-                        contentScale = ContentScale.Companion.Fit,
+                        contentScale = ContentScale.Companion.FillWidth,
                         modifier = Modifier.Companion
                             .fillMaxSize()
                     )
@@ -372,7 +372,7 @@ class HomeActivity : BaseActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.home_pqrs_button),
                         contentDescription = null,
-                        contentScale = ContentScale.Companion.Fit,
+                        contentScale = ContentScale.Companion.FillWidth,
                         modifier = Modifier.Companion
                             .fillMaxSize()
                     )

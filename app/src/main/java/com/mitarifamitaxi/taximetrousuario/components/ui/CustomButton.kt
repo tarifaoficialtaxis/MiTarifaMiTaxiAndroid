@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 fun CustomButton(
     text: String,
     onClick: () -> Unit,
+    textColor: Color = colorResource(id = R.color.white),
     color: Color = colorResource(id = R.color.main),
     leadingIcon: ImageVector? = null,
     modifier: Modifier? = Modifier.fillMaxWidth(),
@@ -82,6 +83,7 @@ fun CustomButton(
                 fontSize = 20.sp,
                 modifier = Modifier
                     .padding(vertical = 3.dp),
+                color = textColor,
                 textAlign = TextAlign.Center,
             )
         }
