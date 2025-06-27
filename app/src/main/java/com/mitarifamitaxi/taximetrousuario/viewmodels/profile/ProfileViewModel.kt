@@ -85,6 +85,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         onFamilyNumberChange(currentUser?.familyNumber ?: "")
         onSupportNumberChange(currentUser?.supportNumber ?: "")
         onImageSelected(currentUser?.profilePicture?.toUri())
+        onOriginalProfilePictureUrlChange(currentUser?.profilePicture ?: "")
 
         viewModelScope.launch {
             getTripsByUserId(currentUser?.id ?: "")
@@ -120,6 +121,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
     }
 
     fun onShowDialogSelectPhotoChange(value: Boolean) = _uiState.update {
+        hideKeyboardEvent
         it.copy(showDialogSelectPhoto = value)
     }
 
@@ -151,6 +153,14 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         _uiState.update {
             it.copy(
                 imageUri = uri,
+            )
+        }
+    }
+
+    fun onOriginalProfilePictureUrlChange(picture: String) {
+        _uiState.update {
+            it.copy(
+                originalProfilePictureUrl = picture,
             )
         }
     }

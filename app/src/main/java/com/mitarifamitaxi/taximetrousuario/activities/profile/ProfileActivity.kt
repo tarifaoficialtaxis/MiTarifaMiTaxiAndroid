@@ -197,11 +197,9 @@ class ProfileActivity : BaseActivity() {
         ) { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (isGranted) {
-
                 val tempUri = createTempImageUri(this)
                 viewModel.onTempImageUriChange(tempUri)
                 takePictureLauncher.launch(tempUri)
-
             }
         }
 
@@ -283,7 +281,10 @@ class ProfileActivity : BaseActivity() {
 
                     ProfilePictureBox(
                         imageUri = uiState.imageUri,
-                        onClickEdit = { viewModel.onShowDialogSelectPhotoChange(true) }
+                        onClickEdit = {
+                            hideKeyboard()
+                            viewModel.onShowDialogSelectPhotoChange(true)
+                        }
                     )
 
                     Text(
@@ -473,33 +474,20 @@ class ProfileActivity : BaseActivity() {
                         .fillMaxWidth()
                 ) {
 
-                    Button(
-                        onClick = { onDeleteAccountClicked() },
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.red2)
-                        ),
-                        shape = RoundedCornerShape(50),
-                        modifier =
-                            Modifier.Companion
-                                .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.delete_account).uppercase(),
-                            color = colorResource(id = R.color.red1),
-                            fontSize = 16.sp,
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Companion.Bold,
-                            textAlign = TextAlign.Companion.Center,
-                        )
-                    }
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.Companion
                             .padding(top = 20.dp, bottom = 30.dp)
                             .fillMaxWidth()
                     ) {
+
+                        CustomButton(
+                            text = stringResource(id = R.string.delete_account).uppercase(),
+                            color = colorResource(id = R.color.red2),
+                            textColor = colorResource(id = R.color.red1),
+                            onClick = { onDeleteAccountClicked() },
+                        )
+
                         CustomButton(
                             text = stringResource(id = R.string.update).uppercase(),
                             onClick = { onUpdateClicked() },
