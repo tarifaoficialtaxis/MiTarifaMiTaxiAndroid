@@ -11,6 +11,5 @@ data class LoginState(
     val passwordErrorMessage: String = "",
     val rememberMe: Boolean = false,
     val mustCompleteProfile: Boolean = false,
-    val tempUserData: LocalUser? = null,
-    val showDialogSelectRole: Boolean = false
+    val tempUserData: LocalUser? = null
 )

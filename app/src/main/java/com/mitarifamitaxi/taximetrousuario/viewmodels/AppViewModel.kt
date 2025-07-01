@@ -64,25 +64,6 @@ class AppViewModel(context: Context) : ViewModel() {
 
     private val appContext = context.applicationContext
 
-    /*var isLoading by mutableStateOf(false)
-
-    var userData: LocalUser? by mutableStateOf(null)
-    var userLocation: UserLocation? by mutableStateOf(null)
-
-    var dialogType by mutableStateOf(DialogType.SUCCESS)
-    var showDialog by mutableStateOf(false)
-    var dialogTitle by mutableStateOf("")
-    var dialogMessage by mutableStateOf("")
-    var dialogButtonText: String? = null
-
-    var dialogShowCloseButton: Boolean = true
-    var dialogOnDismiss: (() -> Unit)? = null
-    var dialogOnPrimaryActionClicked: (() -> Unit)? = null
-
-    // Location variables
-
-    var isGettingLocation by mutableStateOf(false)*/
-
     private lateinit var locationCallback: LocationCallback
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private val executor: Executor = ContextCompat.getMainExecutor(context)

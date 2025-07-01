@@ -24,11 +24,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,9 +59,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
-import com.mitarifamitaxi.taximetrousuario.models.DriverStatus
 import com.mitarifamitaxi.taximetrousuario.models.Trip
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.HomeState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModel
@@ -264,23 +259,15 @@ class HomeActivity : BaseActivity() {
                 }
             } else {
 
-                if (appState.userData?.role == UserRole.USER) {
-                    UserView(
-                        uiState = uiState,
-                        onRequestServiceClick = onRequestServiceClick,
-                        onTaximeterClick = onTaximeterClick,
-                        onSosClick = onSosClick,
-                        onPqrsClick = onPqrsClick,
-                        onMyTripsClick = onMyTripsClick,
-                        onTripClicked = onTripClicked
-                    )
-                } else {
-                    DriverView(
-                        appState = appState,
-                        onTaximeterClick = onTaximeterClick,
-                        onSosClick = onSosClick
-                    )
-                }
+                UserView(
+                    uiState = uiState,
+                    onTaximeterClick = onTaximeterClick,
+                    onSosClick = onSosClick,
+                    onPqrsClick = onPqrsClick,
+                    onMyTripsClick = onMyTripsClick,
+                    onTripClicked = onTripClicked
+                )
+
 
             }
         }
@@ -289,7 +276,6 @@ class HomeActivity : BaseActivity() {
     @Composable
     private fun UserView(
         uiState: HomeState,
-        onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
         onPqrsClick: () -> Unit,
@@ -304,23 +290,6 @@ class HomeActivity : BaseActivity() {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(11.dp)
         ) {
-
-            OutlinedButton(
-                onClick = onRequestServiceClick,
-                modifier = Modifier.Companion
-                    .fillMaxWidth(),
-                border = null,
-                contentPadding = PaddingValues(0.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.home_request_service),
-                    contentDescription = null,
-                    contentScale = ContentScale.Companion.FillWidth,
-                    modifier = Modifier.Companion
-                        .fillMaxSize()
-                )
-            }
 
             OutlinedButton(
                 onClick = onTaximeterClick,
@@ -433,107 +402,5 @@ class HomeActivity : BaseActivity() {
 
         }
     }
-
-    @Composable
-    private fun DriverView(
-        appState: AppState,
-        onTaximeterClick: () -> Unit,
-        onSosClick: () -> Unit
-    ) {
-        Column(
-            Modifier.Companion
-                .padding(horizontal = 29.dp)
-                .padding(top = 30.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(11.dp)
-        ) {
-            OutlinedButton(
-                onClick = onTaximeterClick,
-                modifier = Modifier.Companion
-                    .fillMaxWidth(),
-                border = null,
-                contentPadding = PaddingValues(0.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.home_taximetro_button),
-                    contentDescription = null,
-                    contentScale = ContentScale.Companion.Fit,
-                    modifier = Modifier.Companion
-                        .fillMaxSize()
-                )
-            }
-
-            OutlinedButton(
-                onClick = onSosClick,
-                modifier = Modifier.Companion
-                    .fillMaxWidth(),
-                border = null,
-                contentPadding = PaddingValues(0.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.home_sos_driver_button),
-                    contentDescription = null,
-                    contentScale = ContentScale.Companion.Fit,
-                    modifier = Modifier.Companion
-                        .fillMaxSize()
-                )
-            }
-
-            if (appState.userData?.driverStatus == DriverStatus.PENDING) {
-                DriverPendingReviewView()
-            }
-        }
-    }
-
-    @Composable
-    private fun DriverPendingReviewView() {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .size(90.dp)
-                    .border(8.dp, colorResource(id = R.color.yellow2), CircleShape)
-                    .background(colorResource(id = R.color.main), shape = CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PriorityHigh,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            Text(
-                text = stringResource(id = R.string.account_pending_review),
-                color = colorResource(id = R.color.main),
-                fontFamily = MontserratFamily,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                modifier = Modifier
-                    .padding(top = 10.dp, bottom = 5.dp),
-            )
-
-            Text(
-                text = stringResource(id = R.string.let_you_know),
-                color = colorResource(id = R.color.gray1),
-                fontFamily = MontserratFamily,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp
-            )
-
-
-        }
-    }
-
 
 }

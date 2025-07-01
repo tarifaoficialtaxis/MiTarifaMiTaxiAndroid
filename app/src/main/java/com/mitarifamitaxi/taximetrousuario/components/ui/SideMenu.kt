@@ -49,7 +49,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.core.net.toUri
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 @Composable
 fun SideMenu(
@@ -246,12 +245,12 @@ fun sideMenuItems(userData: LocalUser): List<ItemSideMenu> {
             iconColor = colorResource(id = R.color.red1),
             name = stringResource(id = R.string.sos)
         ),
-        if (userData.role == UserRole.USER) ItemSideMenu(
+        ItemSideMenu(
             id = "PQRS",
             icon = Icons.AutoMirrored.Outlined.Chat,
             iconColor = colorResource(id = R.color.blue2),
             name = stringResource(id = R.string.pqrs)
-        ) else null,
+        ),
         ItemSideMenu(
             id = "MY_TRIPS",
             icon = Icons.Default.Speed,

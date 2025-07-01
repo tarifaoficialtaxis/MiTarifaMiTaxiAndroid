@@ -23,7 +23,6 @@ import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.states.RegisterState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,18 +43,18 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
     init {
         checkCameraPermission()
 
-        /*if (K.IS_DEV) {
+        if (K.IS_DEV) {
             _uiState.update {
                 it.copy(
                     firstName = "Mateo",
                     lastName = "Ortiz",
                     mobilePhone = "3167502612",
-                    email = "mateotest4@yopmail.com",
+                    email = "mateotest1@yopmail.com",
                     password = "12345678#",
                     confirmPassword = "12345678#"
                 )
             }
-        }*/
+        }
     }
 
     fun onFistNameChange(value: String) = _uiState.update {
@@ -132,13 +131,13 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
 
         val stateVal = _uiState.value
 
-        if (stateVal.imageUri == null) {
+        /*if (stateVal.imageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.profile_photo_required),
                 message = appContext.getString(R.string.must_select_profile_photo),
             )
-        }
+        }*/
 
         _uiState.update { state ->
             state.copy(
@@ -197,7 +196,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
             newState
         }
 
-        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.emailIsError || _uiState.value.passwordIsError || _uiState.value.confirmPasswordIsError || _uiState.value.imageUri == null) {
+        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.emailIsError || _uiState.value.passwordIsError || _uiState.value.confirmPasswordIsError) {
             return
         }
 
@@ -232,7 +231,6 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                     "email" to stateVal.email.trim(),
                     "profilePicture" to imageUrl,
                     "authProvider" to AuthProvider.email,
-                    "role" to UserRole.USER,
                 )
                 FirebaseFirestore.getInstance().collection("users").document(user.uid).set(userMap)
                     .await()
@@ -246,8 +244,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                     mobilePhone = stateVal.mobilePhone.trim(),
                     email = stateVal.email.trim(),
                     profilePicture = imageUrl,
-                    authProvider = AuthProvider.email,
-                    role = UserRole.USER
+                    authProvider = AuthProvider.email
                 )
                 LocalUserManager(appContext).saveUserState(localUser)
 

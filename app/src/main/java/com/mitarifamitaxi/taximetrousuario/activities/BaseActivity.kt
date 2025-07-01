@@ -19,7 +19,6 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
-import com.mitarifamitaxi.taximetrousuario.activities.profile.driver.DriverProfileActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
 import com.mitarifamitaxi.taximetrousuario.activities.routeplanner.RoutePlannerActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
@@ -29,7 +28,6 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.SideMenu
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
@@ -79,17 +77,10 @@ open class BaseActivity : ComponentActivity() {
                         when (sectionId) {
                             "PROFILE" -> {
 
-                                if (appState.userData?.role == UserRole.USER) {
-                                    if (this !is ProfileActivity) {
-                                        startActivity(Intent(this, ProfileActivity::class.java))
-                                    }
-                                } else if (appState.userData?.role == UserRole.DRIVER) {
-                                    if (this !is DriverProfileActivity) {
-                                        startActivity(
-                                            Intent(this, DriverProfileActivity::class.java)
-                                        )
-                                    }
+                                if (this !is ProfileActivity) {
+                                    startActivity(Intent(this, ProfileActivity::class.java))
                                 }
+
 
                             }
 

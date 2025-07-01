@@ -26,7 +26,6 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 
 
 class MainActivity : BaseActivity() {
@@ -57,38 +56,10 @@ class MainActivity : BaseActivity() {
         val userState = LocalUserManager(this).getUserState()
 
         if (userState != null) {
-
-            if (userState.role == UserRole.DRIVER) {
-
-                if (!userState.frontDrivingLicense.isNullOrEmpty() &&
-                    !userState.backDrivingLicense.isNullOrEmpty() &&
-                    !userState.vehicleBrand.isNullOrEmpty() &&
-                    !userState.vehicleModel.isNullOrEmpty() &&
-                    !userState.vehicleYear.isNullOrEmpty() &&
-                    !userState.vehiclePlate.isNullOrEmpty() &&
-                    !userState.vehicleFrontPicture.isNullOrEmpty() &&
-                    !userState.vehicleBackPicture.isNullOrEmpty() &&
-                    !userState.vehicleSidePicture.isNullOrEmpty()
-                ) {
-                    startActivity(
-                        Intent(this, HomeActivity::class.java)
-                    )
-                    finish()
-                } else {
-                    startActivity(
-                        Intent(this, LoginActivity::class.java)
-                    )
-                    finish()
-                }
-
-            } else {
-                startActivity(
-                    Intent(this, HomeActivity::class.java)
-                )
-                finish()
-            }
-
-
+            startActivity(
+                Intent(this, HomeActivity::class.java)
+            )
+            finish()
         } else {
             if (hasUserAcceptedTerms()) {
                 startActivity(

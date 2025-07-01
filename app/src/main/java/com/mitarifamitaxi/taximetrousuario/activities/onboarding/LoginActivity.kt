@@ -20,8 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalTaxi
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Button
@@ -48,20 +46,14 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepFourActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepOneActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepThreeActivity
-import com.mitarifamitaxi.taximetrousuario.activities.onboarding.driver.RegisterDriverStepTwoActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.components.ui.OnboardingBottomLink
-import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.states.LoginState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.LoginViewModelFactory
@@ -78,79 +70,29 @@ class LoginActivity : BaseActivity() {
         if (result.resultCode == RESULT_OK) {
             viewModel.handleSignInResult(result.data) { signInResult ->
                 viewModel.setTempData(signInResult.first, signInResult.second)
-                if (viewModel.uiState.value.mustCompleteProfile) {
-                    viewModel.showSelectRoleDialog()
-                } else {
-                    validateNextScreen()
-                }
+                validateNextScreen()
             }
         }
     }
 
-    private fun validateNextScreen(tempUserRole: UserRole? = null) {
+    private fun validateNextScreen() {
         val userState = LocalUserManager(this).getUserState()
         if (userState != null) {
-
-            if (userState.role == UserRole.DRIVER) {
-
-                if (userState.frontDrivingLicense.isNullOrEmpty() ||
-                    userState.backDrivingLicense.isNullOrEmpty()
-                ) {
-                    startActivity(
-                        Intent(this, RegisterDriverStepTwoActivity::class.java)
-                    )
-                } else if (userState.vehicleBrand.isNullOrEmpty() ||
-                    userState.vehicleModel.isNullOrEmpty() ||
-                    userState.vehicleYear.isNullOrEmpty() ||
-                    userState.vehiclePlate.isNullOrEmpty()
-                ) {
-                    startActivity(
-                        Intent(this, RegisterDriverStepThreeActivity::class.java)
-                    )
-                } else if (userState.vehicleFrontPicture.isNullOrEmpty() ||
-                    userState.vehicleBackPicture.isNullOrEmpty() ||
-                    userState.vehicleSidePicture.isNullOrEmpty()
-                ) {
-                    startActivity(
-                        Intent(this, RegisterDriverStepFourActivity::class.java)
-                    )
-                } else {
-                    startActivity(
-                        Intent(this, HomeActivity::class.java)
-                    )
-                    finish()
-                }
-            } else if (userState.role == UserRole.USER) {
-                startActivity(
-                    Intent(this, HomeActivity::class.java)
-                )
-                finish()
-            }
+            startActivity(
+                Intent(this, HomeActivity::class.java)
+            )
+            finish()
         } else {
             if (viewModel.uiState.value.mustCompleteProfile) {
-                if (tempUserRole == UserRole.DRIVER) {
-                    startActivity(
-                        Intent(this, RegisterDriverStepOneActivity::class.java)
-                            .putExtra(
-                                "user_data",
-                                Gson().toJson(viewModel.uiState.value.tempUserData)
-                            )
-                    )
-                } else {
-                    startActivity(
-                        Intent(this, CompleteProfileActivity::class.java)
-                            .putExtra(
-                                "user_data",
-                                Gson().toJson(viewModel.uiState.value.tempUserData)
-                            )
-                    )
-                }
+                startActivity(
+                    Intent(this, CompleteProfileActivity::class.java)
+                        .putExtra(
+                            "user_data",
+                            Gson().toJson(viewModel.uiState.value.tempUserData)
+                        )
+                )
             } else {
-                if (tempUserRole == UserRole.DRIVER) {
-                    startActivity(Intent(this, RegisterDriverStepOneActivity::class.java))
-                } else {
-                    startActivity(Intent(this, RegisterActivity::class.java))
-                }
+                startActivity(Intent(this, RegisterActivity::class.java))
             }
         }
 
@@ -172,7 +114,7 @@ class LoginActivity : BaseActivity() {
             onRegisterClicked = {
                 LocalUserManager(this).deleteUserState()
                 viewModel.setTempData(false, null)
-                viewModel.showSelectRoleDialog()
+                startActivity(Intent(this, RegisterActivity::class.java))
             },
             onGoogleSignIn = {
                 viewModel.googleSignInClient.revokeAccess().addOnCompleteListener {
@@ -181,7 +123,6 @@ class LoginActivity : BaseActivity() {
             }
         )
     }
-
 
     @Composable
     private fun LoginScreen(
@@ -396,25 +337,6 @@ class LoginActivity : BaseActivity() {
 
             }
         }
-
-        if (uiState.showDialogSelectRole) {
-            TwoOptionSelectorDialog(
-                title = stringResource(R.string.select_one_option),
-                primaryTitle = stringResource(R.string.user),
-                secondaryTitle = stringResource(R.string.driver),
-                primaryIcon = Icons.Default.Person,
-                secondaryIcon = Icons.Default.LocalTaxi,
-                onDismiss = { viewModel.hideSelectRoleDialog() },
-                onPrimaryActionClicked = {
-                    viewModel.hideSelectRoleDialog()
-                    validateNextScreen(tempUserRole = UserRole.USER)
-                },
-                onSecondaryActionClicked = {
-                    viewModel.hideSelectRoleDialog()
-                    validateNextScreen(tempUserRole = UserRole.DRIVER)
-                }
-            )
-        }
     }
 
     private val sampleUiState = LoginState(
@@ -425,8 +347,7 @@ class LoginActivity : BaseActivity() {
         passwordIsError = false,
         userNameErrorMessage = "",
         passwordErrorMessage = "",
-        mustCompleteProfile = false,
-        showDialogSelectRole = false
+        mustCompleteProfile = false
     )
 
     @Preview

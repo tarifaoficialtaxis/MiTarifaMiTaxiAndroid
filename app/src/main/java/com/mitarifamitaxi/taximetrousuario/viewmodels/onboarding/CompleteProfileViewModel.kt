@@ -16,7 +16,6 @@ import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
 import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
-import com.mitarifamitaxi.taximetrousuario.models.UserRole
 import com.mitarifamitaxi.taximetrousuario.states.CompleteProfileState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +154,6 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
                     "email" to stateVal.email,
                     "profilePicture" to imageUrl,
                     "authProvider" to AuthProvider.google,
-                    "role" to UserRole.USER,
                 )
                 FirebaseFirestore.getInstance().collection("users").document(stateVal.userId)
                     .set(userMap)
@@ -172,8 +170,7 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
                     mobilePhone = stateVal.mobilePhone,
                     email = stateVal.email,
                     profilePicture = imageUrl,
-                    authProvider = AuthProvider.google,
-                    role = UserRole.USER,
+                    authProvider = AuthProvider.google
                 )
 
                 LocalUserManager(appContext).saveUserState(localUser)

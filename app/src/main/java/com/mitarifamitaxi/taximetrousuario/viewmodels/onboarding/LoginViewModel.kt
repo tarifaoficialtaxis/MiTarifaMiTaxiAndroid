@@ -19,6 +19,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
@@ -47,6 +48,13 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
         private const val TAG = "LoginViewModel"
     }
 
+    init {
+        if (K.IS_DEV) {
+            onUserNameChange("mateotest1@yopmail.com")
+            onPasswordChange("12345678#")
+        }
+    }
+
     fun onUserNameChange(value: String) = _uiState.update {
         it.copy(userName = value)
     }
@@ -57,14 +65,6 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
 
     fun onRememberMeChange(value: Boolean) = _uiState.update {
         it.copy(rememberMe = value)
-    }
-
-    fun showSelectRoleDialog() {
-        _uiState.update { it.copy(showDialogSelectRole = true) }
-    }
-
-    fun hideSelectRoleDialog() {
-        _uiState.update { it.copy(showDialogSelectRole = false) }
     }
 
     fun setTempData(mustCompleteProfile: Boolean, tempUserData: LocalUser?) = _uiState.update {

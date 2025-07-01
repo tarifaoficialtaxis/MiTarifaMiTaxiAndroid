@@ -216,13 +216,13 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
         val stateVal = _uiState.value
 
-        if (stateVal.imageUri == null) {
+        /*if (stateVal.imageUri == null) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.profile_photo_required),
                 message = appContext.getString(R.string.must_select_profile_photo),
             )
-        }
+        }*/
 
         _uiState.update { state ->
             state.copy(
@@ -254,7 +254,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
             newState
         }
 
-        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.emailIsError || _uiState.value.imageUri == null) {
+        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.emailIsError) {
             return
         }
 
