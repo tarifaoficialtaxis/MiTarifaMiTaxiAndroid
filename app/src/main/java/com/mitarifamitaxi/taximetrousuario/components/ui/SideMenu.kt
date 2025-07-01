@@ -304,7 +304,7 @@ fun SideMenuItemRow(item: ItemSideMenu, showDivider: Boolean = true) {
 
 @Preview
 @Composable
-fun ScreenPreview() {
+fun SideMenuPreview() {
 
     Box(
         modifier = Modifier

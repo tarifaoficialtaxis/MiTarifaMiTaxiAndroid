@@ -19,9 +19,14 @@ import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
+import com.mitarifamitaxi.taximetrousuario.states.LoginState
+import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -31,10 +36,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
     private val appContext = context.applicationContext
 
-    var showContactDialog by mutableStateOf(false)
-
-    private val contactObj = mutableStateOf(Contact())
-    var itemSelected: ItemImageButton? = null
+    private val _uiState = MutableStateFlow(SosState())
+    val uiState: StateFlow<SosState> = _uiState
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
@@ -45,16 +48,30 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     init {
-        contactObj.value = ContactsCatalogManager(appContext).getContactsState() ?: Contact()
+        _uiState.update {
+            it.copy(contact = ContactsCatalogManager(appContext).getContactsState() ?: Contact())
+        }
         validateShowModal()
     }
 
+    fun showContactDialog(itemSelected: ItemImageButton? = null) {
+        _uiState.update { currentState ->
+            currentState.copy(showContactDialog = true, itemSelected = itemSelected)
+        }
+    }
+
+    fun hideContactDialog() {
+        _uiState.update { currentState ->
+            currentState.copy(showContactDialog = false)
+        }
+    }
+
     fun validateShowModal() {
-        if (contactObj.value.showSosWarning) {
+        if (_uiState.value.contact.showSosWarning) {
             appViewModel.showMessage(
                 DialogType.WARNING,
                 appContext.getString(R.string.warning),
-                contactObj.value.warningMessage ?: "",
+                _uiState.value.contact.warningMessage ?: "",
                 appContext.getString(R.string.confirm),
                 showCloseButton = false
             )
@@ -67,8 +84,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         var sosType = ""
         var event: String? = null
 
-        when (itemSelected?.id) {
-            /*"POLICE" -> {
+        /*when (itemSelected?.id) {
+            "POLICE" -> {
                 contactNumber = contactObj.value.policeNumber ?: ""
                 sosType = appContext.getString(R.string.police)
             }
@@ -87,7 +104,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                 contactNumber = contactObj.value.animalCareNumber ?: ""
                 sosType = appContext.getString(R.string.animal_care)
                 event = appContext.getString(R.string.sos_animal_care)
-            }*/
+            }
 
             "SUPPORT" -> {
 
@@ -124,7 +141,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                 }
             }
 
-        }
+        }*/
 
         if (isCall) {
             buildIntentCall(contactNumber) { intent ->

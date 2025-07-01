@@ -13,10 +13,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,10 +27,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
-import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButtonActionDialog
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomContactActionDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomImageButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
+import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
 import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
+import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
@@ -76,27 +81,10 @@ class SosActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView()
-
-        if (viewModel.showContactDialog) {
-            CustomButtonActionDialog(
-                title = stringResource(id = R.string.select_one_action),
-                onDismiss = { viewModel.showContactDialog = false },
-                onPrimaryActionClicked = {
-                    viewModel.showContactDialog = false
-                    viewModel.validateSosAction(isCall = false, onIntentReady = {
-                        startActivity(it)
-                    })
-                },
-                onSecondaryActionClicked = {
-                    viewModel.showContactDialog = false
-                    viewModel.validateSosAction(isCall = true, onIntentReady = {
-                        startActivity(it)
-                    })
-                }
-            )
-        }
-
+        val uiState by viewModel.uiState.collectAsState()
+        SosScreen(
+            uiState = uiState
+        )
     }
 
 
@@ -132,8 +120,8 @@ class SosActivity : BaseActivity() {
 
 
     @Composable
-    private fun MainView(
-
+    private fun SosScreen(
+        uiState: SosState
     ) {
 
         Column(
@@ -166,8 +154,7 @@ class SosActivity : BaseActivity() {
                             image = item.image,
                             height = item.height,
                             onClick = {
-                                viewModel.showContactDialog = true
-                                viewModel.itemSelected = item
+                                viewModel.showContactDialog(item)
                             }
                         )
                     }
@@ -177,5 +164,34 @@ class SosActivity : BaseActivity() {
 
 
         }
+
+        if (uiState.showContactDialog) {
+            CustomContactActionDialog(
+                title = stringResource(id = R.string.select_one_action),
+                contactCatalog = ContactCatalog(),
+                onDismiss = { viewModel.hideContactDialog() },
+                onCallAction = {
+                    viewModel.hideContactDialog()
+                    viewModel.validateSosAction(isCall = true, onIntentReady = {
+                        startActivity(it)
+                    })
+                },
+                onMessageAction = {
+                    viewModel.hideContactDialog()
+                    viewModel.validateSosAction(isCall = false, onIntentReady = {
+                        startActivity(it)
+                    })
+
+                },
+            )
+        }
+    }
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        SosScreen(
+            uiState = SosState()
+        )
     }
 }
