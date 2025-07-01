@@ -8,12 +8,14 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -58,7 +60,6 @@ import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-
 
 class TaximeterViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -135,10 +136,32 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     private var startTime by mutableStateOf("")
     private var endTime by mutableStateOf("")
 
-    var currentSpeed by mutableIntStateOf(0)
+    //var currentSpeed by mutableIntStateOf(0)
+
+    private val _currentSpeed = mutableIntStateOf(0)
+    var currentSpeed: Int
+        get() = _currentSpeed.intValue
+        set(value) {
+            _currentSpeed.intValue = value
+            validateSpeedExceeded()
+        }
+
+    private val mediaPlayer: MediaPlayer by lazy {
+        MediaPlayer.create(appContext, R.raw.soft_alert).apply {
+            isLooping = true
+        }
+    }
 
     init {
         getCityRates(appViewModel.userData?.city)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.stop()
+        }
+        mediaPlayer.release()
     }
 
     fun validateLocationPermission() {
@@ -332,6 +355,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun stopTaximeter() {
+        currentSpeed = 0
         viewModelScope.launch {
             _navigationEvents.emit(NavigationEvent.StopLocationUpdateNotification)
         }
@@ -651,6 +675,29 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             }
         }
     }
+
+    fun validateSpeedExceeded() {
+        val speedLimit = ratesObj.value.speedLimit ?: 0
+        if (speedLimit <= 0) {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.pause()
+            }
+            return
+        }
+
+        val speedExceeded = currentSpeed > speedLimit
+
+        if (speedExceeded) {
+            if (!mediaPlayer.isPlaying) {
+                mediaPlayer.start()
+            }
+        } else {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.pause()
+            }
+        }
+    }
+
 
 }
 

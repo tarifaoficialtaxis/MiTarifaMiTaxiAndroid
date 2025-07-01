@@ -202,8 +202,8 @@ class TaximeterActivity : BaseActivity() {
     fun showMessageBackgroundLocationPermissionRequired() {
         appViewModel.showMessage(
             type = DialogType.WARNING,
-            title = getString(R.string.permission_required),
-            message = getString(R.string.background_location_permission_required),
+            title = getString(R.string.we_need_access_to_your_location),
+            message = getString(R.string.access_location_message),
             buttonText = getString(R.string.grant_permission),
             onButtonClicked = {
                 viewModel.requestBackgroundLocationPermission(this)

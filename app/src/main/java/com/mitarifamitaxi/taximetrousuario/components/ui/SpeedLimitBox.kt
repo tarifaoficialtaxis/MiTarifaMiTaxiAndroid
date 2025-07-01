@@ -33,38 +33,10 @@ fun SpeedLimitBox(
     modifier: Modifier = Modifier
 ) {
 
-    //val speedExceeded = speed > speedLimit + 10
-    val speedExceeded = speed > speedLimit
-
     val speedColor = when {
         speed > speedLimit + 5 -> colorResource(id = R.color.red1)
         speed > speedLimit -> colorResource(id = R.color.mainYellow)
         else -> colorResource(id = R.color.black)
-    }
-
-    val context = LocalContext.current
-    val mediaPlayer = remember {
-        MediaPlayer.create(context, R.raw.soft_alert).apply {
-            isLooping = true
-        }
-    }
-
-    LaunchedEffect(speedExceeded) {
-        if (speedExceeded) {
-            if (!mediaPlayer.isPlaying) {
-                mediaPlayer.start()
-            }
-        } else {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer.release()
-        }
     }
 
     Row(
