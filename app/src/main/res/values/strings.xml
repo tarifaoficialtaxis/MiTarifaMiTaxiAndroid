@@ -325,12 +325,9 @@
     <string name="account_pending_review">Tu cuenta está en revisión</string>
     <string name="let_you_know">Te avisaremos cuando puedas\nempezar a recibir servicios.</string>
 
-
-
+    <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
 
     <string name="we_need_access_to_your_location">Necesitamos acceder a tu ubicación.</string>
     <string name="access_location_message">Para calcular la tarifa de tu viaje de forma precisa, esta aplicación recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso. Esto nos permite seguir calculando la distancia y el costo del viaje si cambias a otra aplicación o apagas la pantalla.\n\nTus datos de ubicación se utilizan únicamente para el cálculo de la tarifa y el historial de tus viajes. No se comparten con terceros para fines publicitarios. \n\n Por favor selecciona permitir todo el tiempo.</string>
-
-    <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
 
 </resources>
