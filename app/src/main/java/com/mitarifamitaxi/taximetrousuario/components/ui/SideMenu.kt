@@ -45,9 +45,12 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 
 @Composable
@@ -81,6 +84,7 @@ fun SideMenu(
         ) {
 
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
@@ -88,7 +92,6 @@ fun SideMenu(
                         colorResource(id = R.color.main),
                         shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
                     )
-                    .padding(top = 30.dp)
 
             ) {
                 Image(
@@ -294,6 +297,30 @@ fun SideMenuItemRow(item: ItemSideMenu, showDivider: Boolean = true) {
                     .background(colorResource(id = R.color.gray3))
             )
         }
+    }
+
+
+}
+
+@Preview
+@Composable
+fun ScreenPreview() {
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+    ) {
+        SideMenu(
+            userData = LocalUser(
+                firstName = "John",
+                lastName = "Doe",
+                city = "New York",
+                profilePicture = null
+            ),
+            onProfileClicked = {},
+            onSectionClicked = {}
+        )
     }
 
 

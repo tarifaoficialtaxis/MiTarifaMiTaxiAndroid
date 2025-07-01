@@ -12,16 +12,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.mitarifamitaxi.taximetrousuario.R
 import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
+import coil.request.ImageRequest
+import com.mitarifamitaxi.taximetrousuario.R
 
 @Composable
 fun ProfilePictureBox(
@@ -29,21 +33,32 @@ fun ProfilePictureBox(
     editable: Boolean = true,
     boxSize: Int = 90,
     iconSize: Int = 55,
-    onClickEdit: () -> Unit = { }
+    onClickEdit: () -> Unit = {}
 ) {
+    val showError = remember { mutableStateOf(false) }
+
+    val imageRequest = ImageRequest.Builder(LocalContext.current)
+        .data(imageUri)
+        .crossfade(true)
+        .listener(onError = { _, _ ->
+            showError.value = true
+        })
+        .build()
+
     Box(
         modifier = Modifier.size(90.dp)
     ) {
-        if (imageUri != null) {
+        if (imageUri != null && !showError.value) {
             AsyncImage(
-                model = imageUri,
+                model = imageRequest,
                 contentDescription = "Profile Picture",
                 modifier = Modifier
                     .align(Alignment.Center)
                     .clip(CircleShape)
                     .background(colorResource(id = R.color.blue1))
                     .size(boxSize.dp),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                onError = { showError.value = true }
             )
         } else {
             Box(

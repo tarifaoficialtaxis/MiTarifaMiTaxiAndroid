@@ -35,11 +35,11 @@ class LocalUserManager(private val context: Context) {
         sharedPref.edit { putString(USER_OBJECT_KEY, userJson) }
     }
 
-    fun updateUserState(modification: (LocalUser) -> LocalUser) {
+    /*fun updateUserState(modification: (LocalUser) -> LocalUser) {
         val currentUser = getUserState()
         if (currentUser != null) {
             val updatedUser = modification(currentUser)
             saveUserState(updatedUser)
         }
-    }
+    }*/
 }

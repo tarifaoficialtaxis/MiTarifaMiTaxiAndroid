@@ -197,15 +197,15 @@ class LoginViewModel(context: Context, private val appViewModel: AppViewModel) :
     private suspend fun getUserInfo(
         uid: String,
         provider: AuthProvider,
-        cb: (Boolean) -> Unit
+        exists: (Boolean) -> Unit
     ) {
         try {
             val doc = db.collection("users").document(uid).get().await()
             if (doc.exists()) {
                 val user = doc.toObject<LocalUser>()!!.apply { authProvider = provider }
                 LocalUserManager(appContext).saveUserState(user)
-                cb(true)
-            } else cb(false)
+                exists(true)
+            } else exists(false)
         } catch (e: Exception) {
             appViewModel.showMessage(
                 DialogType.ERROR,
