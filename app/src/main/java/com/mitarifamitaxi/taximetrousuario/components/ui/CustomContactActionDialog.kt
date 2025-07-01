@@ -25,15 +25,14 @@ import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
-import com.mitarifamitaxi.taximetrousuario.states.SosState
 
 @Composable
 fun CustomContactActionDialog(
     title: String,
     contactCatalog: ContactCatalog,
     onDismiss: () -> Unit,
-    onCallAction: () -> Unit,
-    onMessageAction: () -> Unit
+    onCallAction: (number: String) -> Unit,
+    onMessageAction: (number: String) -> Unit
 ) {
 
     Box(
@@ -80,7 +79,7 @@ fun CustomContactActionDialog(
                             icon = Icons.Default.Call,
                             text = stringResource(id = R.string.emergency_line),
                             number = contactCatalog.line1,
-                            onClick = onCallAction,
+                            onClick = { onCallAction(contactCatalog.line1) },
                         )
                     }
 
@@ -89,7 +88,7 @@ fun CustomContactActionDialog(
                             icon = Icons.Default.Call,
                             text = stringResource(id = R.string.phone),
                             number = contactCatalog.line2,
-                            onClick = onCallAction,
+                            onClick = { onCallAction(contactCatalog.line2) },
                         )
                     }
 
@@ -98,7 +97,7 @@ fun CustomContactActionDialog(
                             icon = Icons.Default.Whatsapp,
                             text = stringResource(id = R.string.whatsapp),
                             number = contactCatalog.whatsapp,
-                            onClick = onMessageAction,
+                            onClick = { onMessageAction(contactCatalog.whatsapp) },
                         )
                     }
 

@@ -162,25 +162,30 @@ class SosActivity : BaseActivity() {
                 }
             }
 
-
         }
 
         if (uiState.showContactDialog) {
             CustomContactActionDialog(
                 title = stringResource(id = R.string.select_one_action),
-                contactCatalog = ContactCatalog(),
+                contactCatalog = uiState.contactCatalogSelected ?: ContactCatalog(),
                 onDismiss = { viewModel.hideContactDialog() },
-                onCallAction = {
+                onCallAction = { number ->
                     viewModel.hideContactDialog()
-                    viewModel.validateSosAction(isCall = true, onIntentReady = {
-                        startActivity(it)
-                    })
+                    viewModel.validateSosAction(
+                        isCall = true,
+                        contactNumber = number,
+                        onIntentReady = {
+                            startActivity(it)
+                        })
                 },
-                onMessageAction = {
+                onMessageAction = { number ->
                     viewModel.hideContactDialog()
-                    viewModel.validateSosAction(isCall = false, onIntentReady = {
-                        startActivity(it)
-                    })
+                    viewModel.validateSosAction(
+                        isCall = false,
+                        contactNumber = number,
+                        onIntentReady = {
+                            startActivity(it)
+                        })
 
                 },
             )

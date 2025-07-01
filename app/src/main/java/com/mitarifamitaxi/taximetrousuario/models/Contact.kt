@@ -4,7 +4,7 @@ data class Contact(
     val ambulance: ContactCatalog? = null,
     val animalCare: ContactCatalog? = null,
     val city: String? = null,
-    val firefighter: ContactCatalog? = null,
+    val firefighters: ContactCatalog? = null,
     val police: ContactCatalog? = null,
     val pqrEmail: String? = null,
 

@@ -256,12 +256,14 @@ class AppViewModel(context: Context) : ViewModel() {
                     return@addOnSuccessListener
                 }
 
-                /*else {
-                    userLocation = UserLocation(
-                        latitude = location.latitude,
-                        longitude = location.longitude
+                _uiState.update {
+                    it.copy(
+                        userLocation = UserLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
                     )
-                }*/
+                }
 
                 viewModelScope.launch {
                     getCityFromCoordinates(
