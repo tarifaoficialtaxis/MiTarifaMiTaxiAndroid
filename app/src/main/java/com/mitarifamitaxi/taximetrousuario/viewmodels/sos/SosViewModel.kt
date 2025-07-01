@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
@@ -44,92 +45,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     init {
-        appViewModel.setLoading(true)
-        observeAppViewModelEvents()
-    }
-
-    private fun observeAppViewModelEvents() {
-        viewModelScope.launch {
-            appViewModel.userDataUpdateEvents.collectLatest { event ->
-                when (event) {
-                    is UserDataUpdateEvent.FirebaseUserUpdated -> {
-                        Log.d(
-                            "SosViewModel",
-                            "Received FirebaseUserUpdated event. Current appViewModel city: ${appViewModel.uiState.value.userData?.city}"
-                        )
-                        getCityContacts(appViewModel.uiState.value.userData?.city)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getCityContacts(userCity: String?) {
-
-        viewModelScope.launch {
-            if (userCity != null) {
-                try {
-                    val firestore = FirebaseFirestore.getInstance()
-                    val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("contacts")
-                            .whereEqualTo("city", userCity)
-                            .get()
-                            .await()
-                    }
-
-                    if (!ratesQuerySnapshot.isEmpty) {
-                        val contactsDoc = ratesQuerySnapshot.documents[0]
-                        try {
-                            appViewModel.setLoading(false)
-                            contactObj.value =
-                                contactsDoc.toObject(Contact::class.java) ?: Contact()
-                            validateShowModal()
-                        } catch (e: Exception) {
-                            Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
-                            appViewModel.setLoading(false)
-                            appViewModel.showMessage(
-                                DialogType.ERROR,
-                                appContext.getString(R.string.something_went_wrong),
-                                appContext.getString(R.string.general_error)
-                            )
-                        }
-                    } else {
-                        appViewModel.setLoading(false)
-                        appViewModel.showMessage(
-                            DialogType.ERROR,
-                            appContext.getString(R.string.something_went_wrong),
-                            appContext.getString(R.string.error_no_contacts_found),
-                            onDismiss = {
-                                goBack()
-                            }
-                        )
-                    }
-                } catch (e: Exception) {
-                    Log.e("SosViewModel", "Error fetching contacts: ${e.message}")
-                    appViewModel.setLoading(false)
-                    appViewModel.showMessage(
-                        DialogType.ERROR,
-                        appContext.getString(R.string.something_went_wrong),
-                        appContext.getString(R.string.general_error),
-                        onDismiss = {
-                            goBack()
-                        }
-                    )
-                }
-            } else {
-                appViewModel.setLoading(false)
-                appViewModel.showMessage(
-                    DialogType.ERROR,
-                    appContext.getString(R.string.something_went_wrong),
-                    appContext.getString(R.string.error_no_city_set),
-                    onDismiss = {
-                        goBack()
-                    }
-                )
-            }
-        }
-
-
+        contactObj.value = ContactsCatalogManager(appContext).getContactsState() ?: Contact()
+        validateShowModal()
     }
 
     fun validateShowModal() {
@@ -151,7 +68,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         var event: String? = null
 
         when (itemSelected?.id) {
-            "POLICE" -> {
+            /*"POLICE" -> {
                 contactNumber = contactObj.value.policeNumber ?: ""
                 sosType = appContext.getString(R.string.police)
             }
@@ -170,7 +87,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                 contactNumber = contactObj.value.animalCareNumber ?: ""
                 sosType = appContext.getString(R.string.animal_care)
                 event = appContext.getString(R.string.sos_animal_care)
-            }
+            }*/
 
             "SUPPORT" -> {
 

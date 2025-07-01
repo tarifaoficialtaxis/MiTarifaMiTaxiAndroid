@@ -38,7 +38,6 @@ class SosActivity : BaseActivity() {
         SosViewModelFactory(this, appViewModel)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appViewModel.requestLocationPermission(this)

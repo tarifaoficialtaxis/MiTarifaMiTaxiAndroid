@@ -27,6 +27,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
@@ -563,6 +564,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
     fun logOut() {
         LocalUserManager(appContext).deleteUserState()
+        ContactsCatalogManager(appContext).deleteContactsState()
         viewModelScope.launch {
             _navigationEvents.emit(NavigationEvent.LogOutComplete)
         }

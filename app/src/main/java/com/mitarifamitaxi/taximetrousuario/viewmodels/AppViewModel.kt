@@ -5,9 +5,6 @@ import android.annotation.SuppressLint
 import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -46,9 +43,9 @@ import java.util.Date
 import java.util.concurrent.Executor
 import com.google.firebase.database.ValueEventListener
 import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
-import androidx.core.content.edit
 import com.google.firebase.firestore.SetOptions
-import com.google.gson.Gson
+import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
+import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -283,6 +280,9 @@ class AppViewModel(context: Context) : ViewModel() {
                                 country ?: "",
                                 userLocation,
                                 onResult = { cityName ->
+
+                                    loadContactsCatalog(cityName ?: "")
+
                                     updateUserData(
                                         city = cityName ?: "",
                                         countryCode = countryCode ?: "",
@@ -425,6 +425,43 @@ class AppViewModel(context: Context) : ViewModel() {
         })
     }
 
+
+    private fun loadContactsCatalog(city: String) {
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                    firestore.collection("contactsCatalog")
+                        .whereEqualTo("city", city)
+                        .get()
+                        .await()
+                }
+
+                if (!ratesQuerySnapshot.isEmpty) {
+                    val contactsDoc = ratesQuerySnapshot.documents[0]
+                    try {
+                        val contactVal =
+                            contactsDoc.toObject(Contact::class.java) ?: Contact()
+                        ContactsCatalogManager(appContext).saveContactsState(contactVal)
+                    } catch (e: Exception) {
+                        Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
+                    }
+                } else {
+                    Log.e(
+                        "AppViewModel",
+                        "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
+                    )
+
+                }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error fetching contacts: ${e.message}")
+
+            }
+
+        }
+
+
+    }
 }
 
 class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
