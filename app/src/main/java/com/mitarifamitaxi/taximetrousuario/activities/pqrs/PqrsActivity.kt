@@ -15,11 +15,14 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
@@ -30,6 +33,8 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomMultilineTextFiel
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.states.PqrsState
+import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.pqrs.PqrsViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.pqrs.PqrsViewModelFactory
 
@@ -41,7 +46,11 @@ class PqrsActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+
+        val uiState by viewModel.uiState.collectAsState()
+
+        PqrsScreen(
+            uiState = uiState,
             onClickSendPqr = {
                 viewModel.validateSendPqr {
                     startActivity(it)
@@ -51,7 +60,8 @@ class PqrsActivity : BaseActivity() {
     }
 
     @Composable
-    private fun MainView(
+    private fun PqrsScreen(
+        uiState: PqrsState,
         onClickSendPqr: () -> Unit,
     ) {
 
@@ -71,8 +81,7 @@ class PqrsActivity : BaseActivity() {
             Column(
                 modifier = Modifier.Companion
                     .fillMaxSize()
-                    .padding(horizontal = 29.dp)
-                    .padding(vertical = 29.dp)
+                    .padding(29.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
                 Column(
@@ -80,10 +89,12 @@ class PqrsActivity : BaseActivity() {
                 ) {
 
                     CustomTextField(
-                        value = viewModel.plate,
-                        onValueChange = { viewModel.plate = it },
+                        value = uiState.plate,
+                        onValueChange = { viewModel.onPlateChange(it) },
                         placeholder = stringResource(id = R.string.plate),
                         leadingIcon = Icons.Rounded.DirectionsCar,
+                        isError = uiState.plateIsError,
+                        errorMessage = uiState.plateErrorMessage
                     )
                 }
 
@@ -104,53 +115,55 @@ class PqrsActivity : BaseActivity() {
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.high_fare),
-                        checked = viewModel.isHighFare,
-                        onValueChange = { viewModel.isHighFare = it }
+                        checked = uiState.isHighFare,
+                        onValueChange = { viewModel.onHighFareChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.user_mistreated),
-                        checked = viewModel.isUserMistreated,
-                        onValueChange = { viewModel.isUserMistreated = it }
+                        checked = uiState.isUserMistreated,
+                        onValueChange = { viewModel.onUserMistreatedChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.service_abandonment),
-                        checked = viewModel.isServiceAbandonment,
-                        onValueChange = { viewModel.isServiceAbandonment = it }
+                        checked = uiState.isServiceAbandonment,
+                        onValueChange = { viewModel.onServiceAbandonmentChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.unauthorized_charges),
-                        checked = viewModel.isUnauthorizedCharges,
-                        onValueChange = { viewModel.isUnauthorizedCharges = it }
+                        checked = uiState.isUnauthorizedCharges,
+                        onValueChange = { viewModel.onUnauthorizedChargesChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.no_fare_notice),
-                        checked = viewModel.isNoFareNotice,
-                        onValueChange = { viewModel.isNoFareNotice = it }
+                        checked = uiState.isNoFareNotice,
+                        onValueChange = { viewModel.onNoFareNoticeChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.dangerous_driving),
-                        checked = viewModel.isDangerousDriving,
-                        onValueChange = { viewModel.isDangerousDriving = it }
+                        checked = uiState.isDangerousDriving,
+                        onValueChange = { viewModel.onDangerousDrivingChange(it) }
                     )
 
                     CustomCheckBox(
                         text = stringResource(id = R.string.other),
-                        checked = viewModel.isOther,
-                        onValueChange = { viewModel.isOther = it }
+                        checked = uiState.isOther,
+                        onValueChange = { viewModel.onOtherChange(it) }
                     )
 
 
-                    if (viewModel.isOther) {
+                    if (uiState.isOther) {
                         Spacer(modifier = Modifier.Companion.height(10.dp))
                         CustomMultilineTextField(
-                            value = viewModel.otherValue,
-                            onValueChange = { viewModel.otherValue = it },
+                            value = uiState.otherValue,
+                            onValueChange = { viewModel.onOtherValueChange(it) },
                             placeholder = stringResource(id = R.string.other_reason),
+                            isError = uiState.isOtherValueError,
+                            errorMessage = uiState.otherValueErrorMessage
                         )
                     }
 
@@ -168,6 +181,14 @@ class PqrsActivity : BaseActivity() {
 
         }
 
+    }
 
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        PqrsScreen(
+            uiState = PqrsState(),
+            onClickSendPqr = { }
+        )
     }
 }
