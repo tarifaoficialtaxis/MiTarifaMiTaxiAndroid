@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,6 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import android.graphics.BlurMaskFilter
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 
 @Composable
 fun TopHeaderView(
@@ -42,7 +46,26 @@ fun TopHeaderView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevation = 6.dp)
+            .drawBehind {
+                val shadowHeight = 10.dp.toPx()
+                val paint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    color = 0x55000000
+                    maskFilter = BlurMaskFilter(
+                        shadowHeight,
+                        BlurMaskFilter.Blur.NORMAL
+                    )
+                }
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawRect(
+                        0f,
+                        size.height - shadowHeight,
+                        size.width,
+                        size.height,
+                        paint
+                    )
+                }
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

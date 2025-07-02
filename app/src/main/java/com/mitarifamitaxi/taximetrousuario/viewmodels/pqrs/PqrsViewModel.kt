@@ -150,7 +150,7 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
         if (!st.isHighFare && !st.isUserMistreated && !st.isServiceAbandonment && !st.isUnauthorizedCharges && !st.isNoFareNotice && !st.isDangerousDriving && !st.isOther) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
-                title = appContext.getString(R.string.error),
+                title = appContext.getString(R.string.attention),
                 message = appContext.getString(R.string.select_complaint_reason)
             )
             return
@@ -159,7 +159,7 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
         _uiState.update { state ->
             state.copy(
                 isOtherValueError = state.isOther && state.otherValue.isBlank(),
-                plateErrorMessage = if (state.isOther && state.otherValue.isBlank()) appContext.getString(
+                otherValueErrorMessage = if (state.isOther && state.otherValue.isBlank()) appContext.getString(
                     R.string.other_reason_required
                 ) else "",
             )
