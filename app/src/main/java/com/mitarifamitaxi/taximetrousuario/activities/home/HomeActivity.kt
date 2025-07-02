@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
@@ -97,9 +98,6 @@ class HomeActivity : BaseActivity() {
         HomeScreen(
             uiState = uiState,
             appState = appState,
-            onRequestServiceClick = {
-
-            },
             onTaximeterClick = {
                 startActivity(Intent(this, RoutePlannerActivity::class.java))
                 //startActivity(Intent(this, TaximeterActivity::class.java))
@@ -128,7 +126,6 @@ class HomeActivity : BaseActivity() {
     private fun HomeScreen(
         uiState: HomeState,
         appState: AppState,
-        onRequestServiceClick: () -> Unit,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
         onPqrsClick: () -> Unit,
@@ -401,6 +398,20 @@ class HomeActivity : BaseActivity() {
             }
 
         }
+    }
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        HomeScreen(
+            uiState = HomeState(),
+            appState = AppState(),
+            onTaximeterClick = {},
+            onSosClick = {},
+            onPqrsClick = {},
+            onMyTripsClick = {},
+            onTripClicked = {}
+        )
     }
 
 }

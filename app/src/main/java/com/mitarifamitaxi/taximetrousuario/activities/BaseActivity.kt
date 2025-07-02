@@ -36,9 +36,8 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.launch
 
 // Provide a CompositionLocal for opening the drawer
-val LocalOpenDrawer = compositionLocalOf<() -> Unit> {
-    error("LocalOpenDrawer not provided")
-}
+
+val LocalOpenDrawer = compositionLocalOf<() -> Unit> { {} }
 
 open class BaseActivity : ComponentActivity() {
 
