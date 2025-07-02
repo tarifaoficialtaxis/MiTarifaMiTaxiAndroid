@@ -45,9 +45,39 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     fun showContactDialog(itemSelected: ItemImageButton? = null) {
+
+        if (itemSelected?.id == "SUPPORT" && appViewModel.uiState.value.userData?.supportNumber.isNullOrEmpty()) {
+            appViewModel.showMessage(
+                DialogType.WARNING,
+                appContext.getString(R.string.support_number_not_found),
+                appContext.getString(R.string.set_up_support_number),
+                appContext.getString(R.string.add_number),
+                onButtonClicked = {
+                    goToProfile()
+                }
+            )
+            return
+
+        }
+
+        if (itemSelected?.id == "FAMILY" && appViewModel.uiState.value.userData?.familyNumber.isNullOrEmpty()) {
+            appViewModel.showMessage(
+                DialogType.WARNING,
+                appContext.getString(R.string.family_number_not_found),
+                appContext.getString(R.string.set_up_family_number),
+                appContext.getString(R.string.add_number),
+                onButtonClicked = {
+                    goToProfile()
+                }
+            )
+            return
+        }
+
+
         _uiState.update { currentState ->
             currentState.copy(showContactDialog = true, itemSelected = itemSelected)
         }
+
         setContactCatalogSelected()
     }
 
@@ -68,6 +98,20 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
             "ANIMAL_CARE" -> {
                 contactCatalog = _uiState.value.contact.animalCare
+            }
+
+            "SUPPORT" -> {
+                contactCatalog = ContactCatalog(
+                    line2 = appViewModel.uiState.value.userData?.supportNumber ?: "",
+                    whatsapp = appViewModel.uiState.value.userData?.supportNumber ?: ""
+                )
+            }
+
+            "FAMILY" -> {
+                contactCatalog = ContactCatalog(
+                    line2 = appViewModel.uiState.value.userData?.familyNumber ?: "",
+                    whatsapp = appViewModel.uiState.value.userData?.familyNumber ?: ""
+                )
             }
         }
 
@@ -118,37 +162,11 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
             }
 
             "SUPPORT" -> {
-                if (appViewModel.uiState.value.userData?.supportNumber != null) {
-                    //contactNumber = appViewModel.uiState.value.userData?.supportNumber ?: ""
-                    sosType = appContext.getString(R.string.support)
-                } else {
-                    appViewModel.showMessage(
-                        DialogType.WARNING,
-                        appContext.getString(R.string.support_number_not_found),
-                        appContext.getString(R.string.set_up_support_number),
-                        appContext.getString(R.string.add_number),
-                        onButtonClicked = {
-                            goToProfile()
-                        }
-                    )
-                }
+                sosType = appContext.getString(R.string.support)
             }
 
             "FAMILY" -> {
-                if (appViewModel.uiState.value.userData?.familyNumber != null) {
-                    //contactNumber = appViewModel.uiState.value.userData?.familyNumber ?: ""
-                    sosType = appContext.getString(R.string.family)
-                } else {
-                    appViewModel.showMessage(
-                        DialogType.WARNING,
-                        appContext.getString(R.string.family_number_not_found),
-                        appContext.getString(R.string.set_up_family_number),
-                        appContext.getString(R.string.add_number),
-                        onButtonClicked = {
-                            goToProfile()
-                        }
-                    )
-                }
+                sosType = appContext.getString(R.string.family)
             }
 
         }
