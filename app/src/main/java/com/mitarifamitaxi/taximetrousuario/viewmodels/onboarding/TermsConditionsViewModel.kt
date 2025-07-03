@@ -21,9 +21,6 @@ class TermsConditionsViewModelFactory(private val context: Context) : ViewModelP
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TermsConditionsViewModel::class.java)) {
-            return TermsConditionsViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return TermsConditionsViewModel(context) as T
     }
 }

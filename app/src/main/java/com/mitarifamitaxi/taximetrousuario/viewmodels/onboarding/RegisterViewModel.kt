@@ -280,12 +280,8 @@ class RegisterViewModelFactory(
     private val context: Context,
     private val appViewModel: AppViewModel
 ) : ViewModelProvider.Factory {
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RegisterViewModel::class.java)) {
-            return RegisterViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return RegisterViewModel(context, appViewModel) as T
     }
 }

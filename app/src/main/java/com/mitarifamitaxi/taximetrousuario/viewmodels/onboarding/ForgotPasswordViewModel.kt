@@ -116,9 +116,6 @@ class ForgotPasswordViewModelFactory(
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ForgotPasswordViewModel::class.java)) {
-            return ForgotPasswordViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return ForgotPasswordViewModel(context, appViewModel) as T
     }
 }

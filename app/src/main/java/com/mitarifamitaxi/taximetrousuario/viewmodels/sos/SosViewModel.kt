@@ -16,6 +16,7 @@ import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
 import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
+import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.MyTripsViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -243,13 +244,9 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 class SosViewModelFactory(
     private val context: Context,
     private val appViewModel: AppViewModel
-) :
-    ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SosViewModel::class.java)) {
-            return SosViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    override fun <T : ViewModel> create(cls: Class<T>): T {
+        return SosViewModel(context, appViewModel) as T
     }
 }

@@ -194,12 +194,8 @@ class CompleteProfileViewModelFactory(
     private val context: Context,
     private val appViewModel: AppViewModel
 ) : ViewModelProvider.Factory {
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CompleteProfileViewModel::class.java)) {
-            return CompleteProfileViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return CompleteProfileViewModel(context, appViewModel) as T
     }
 }

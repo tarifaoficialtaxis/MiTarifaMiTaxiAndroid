@@ -213,9 +213,6 @@ class PqrsViewModelFactory(
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(PqrsViewModel::class.java)) {
-            return PqrsViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return PqrsViewModel(context, appViewModel) as T
     }
 }
