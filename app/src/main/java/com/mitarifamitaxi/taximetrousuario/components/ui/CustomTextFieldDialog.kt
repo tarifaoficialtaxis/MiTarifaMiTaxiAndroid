@@ -31,8 +31,9 @@ import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 fun CustomTextFieldDialog(
     title: String,
     message: String,
-    textFieldValue: MutableState<String>,
-    isTextFieldError: MutableState<Boolean>,
+    textFieldValue: String,
+    onValueChange: (String) -> Unit,
+    isTextFieldError: Boolean,
     textButton: String,
     onDismiss: () -> Unit,
     onButtonClicked: () -> Unit
@@ -115,12 +116,12 @@ fun CustomTextFieldDialog(
                         .padding(horizontal = 16.dp)
                 ) {
                     CustomTextField(
-                        value = textFieldValue.value,
-                        onValueChange = { textFieldValue.value = it },
+                        value = textFieldValue,
+                        onValueChange = onValueChange,
                         placeholder = stringResource(id = R.string.mobilePhone),
                         leadingIcon = Icons.Rounded.PhoneIphone,
                         keyboardType = KeyboardType.Phone,
-                        isError = isTextFieldError.value,
+                        isError = isTextFieldError,
                         errorMessage = stringResource(id = R.string.error_missing_phone_number)
                     )
                 }
