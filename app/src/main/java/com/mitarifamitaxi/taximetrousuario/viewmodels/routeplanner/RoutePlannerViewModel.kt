@@ -2,8 +2,6 @@ package com.mitarifamitaxi.taximetrousuario.viewmodels.routeplanner
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,13 +28,11 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
     ViewModel() {
 
     private val appContext = context.applicationContext
-    private val localConfiguration: Configuration = appContext.resources.configuration
 
     private val _uiState = MutableStateFlow(RoutePlannerState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        setDefaultHeights()
         appViewModel.setLoading(true)
         observeAppViewModelEvents()
     }
@@ -93,84 +89,6 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
     fun onEndAddressChange(address: String) {
         _uiState.update { it.copy(endAddress = address) }
         loadPlacePredictions(address)
-    }
-
-    fun onTempAddressChange(address: String) {
-        _uiState.update { it.copy(tempAddressOnMap = address) }
-    }
-
-    fun setPointOnMap() {
-        val screenHeight = localConfiguration.screenHeightDp
-        _uiState.update {
-            it.copy(
-                isSheetExpanded = false,
-                mainColumnHeight = (screenHeight * 0.65).dp,
-                sheetPeekHeight = (screenHeight * 0.35).dp
-            )
-        }
-    }
-
-    private fun setDefaultHeights() {
-        val screenHeight = localConfiguration.screenHeightDp
-        _uiState.update {
-            it.copy(
-                isSheetExpanded = true,
-                mainColumnHeight = (screenHeight * 0.4).dp,
-                sheetPeekHeight = (screenHeight * 0.65).dp
-            )
-        }
-    }
-
-    fun loadAddressBasedOnCoordinates(latitude: Double, longitude: Double) {
-        getAddressFromCoordinates(
-            latitude, longitude,
-            callbackSuccess = { address ->
-                _uiState.update {
-                    it.copy(
-                        tempAddressOnMap = address,
-                        tempLocationOnMap = UserLocation(latitude, longitude)
-                    )
-                }
-            },
-            callbackError = {
-                appViewModel.showMessage(
-                    DialogType.ERROR,
-                    appContext.getString(R.string.something_went_wrong),
-                    appContext.getString(R.string.error_getting_address)
-                )
-            }
-        )
-    }
-
-    fun setPointOnMapComplete() {
-        setDefaultHeights()
-        val currentState = _uiState.value
-        if (currentState.isSelectingStart) {
-            _uiState.update {
-                it.copy(
-                    startAddress = currentState.tempAddressOnMap,
-                    startLocation = currentState.tempLocationOnMap
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(
-                    endAddress = currentState.tempAddressOnMap,
-                    endLocation = currentState.tempLocationOnMap
-                )
-            }
-        }
-        getRoutePreview()
-    }
-
-    fun validateAddressStates() {
-        val currentState = _uiState.value
-        val newIsSelectingStart = if (currentState.startAddress.isEmpty()) {
-            true
-        } else {
-            currentState.endAddress.isEmpty()
-        }
-        _uiState.update { it.copy(isSelectingStart = newIsSelectingStart) }
     }
 
     fun getRoutePreview() {
