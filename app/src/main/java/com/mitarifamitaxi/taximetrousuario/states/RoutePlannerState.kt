@@ -1,0 +1,24 @@
+package com.mitarifamitaxi.taximetrousuario.states
+
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.mitarifamitaxi.taximetrousuario.models.PlacePrediction
+import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.google.android.gms.maps.model.LatLng
+
+data class RoutePlannerState(
+    val startAddress: String = "",
+    val startLocation: UserLocation = UserLocation(),
+    val endAddress: String = "",
+    val endLocation: UserLocation = UserLocation(),
+    val tempAddressOnMap: String = "",
+    val tempLocationOnMap: UserLocation = UserLocation(),
+    val isSelectingStart: Boolean = true,
+    val isSheetExpanded: Boolean = true,
+    val mainColumnHeight: Dp = 0.dp,
+    val sheetPeekHeight: Dp = 0.dp,
+    val isStartAddressFocused: Boolean = false,
+    val isEndAddressFocused: Boolean = false,
+    val places: List<PlacePrediction> = emptyList(),
+    val routePoints: List<LatLng> = emptyList()
+)
