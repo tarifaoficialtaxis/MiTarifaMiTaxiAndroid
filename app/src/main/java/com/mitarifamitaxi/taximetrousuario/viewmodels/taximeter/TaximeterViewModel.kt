@@ -394,6 +394,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun startWatchLocation() {
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
             .setMinUpdateIntervalMillis(2000L)
@@ -402,63 +403,75 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-                locationResult.lastLocation?.let { location ->
-                    val newPosition =
-                        UserLocation(latitude = location.latitude, longitude = location.longitude)
-                    var newRouteCoordinates = _uiState.value.routeCoordinates
-                    if (previousLocation == null || (previousLocation?.distanceTo(location)
-                            ?: 0f) >= 25f
-                    ) {
-                        newRouteCoordinates = newRouteCoordinates + LatLng(
-                            newPosition.latitude ?: 0.0,
-                            newPosition.longitude ?: 0.0
-                        )
-                    }
+                val location = locationResult.lastLocation ?: return
 
-                    val speedKmPerHour = location.speed * 3.6
-                    _uiState.update {
-                        it.copy(
-                            currentSpeed = speedKmPerHour.toInt(),
-                            currentPosition = newPosition,
-                            routeCoordinates = newRouteCoordinates
-                        )
-                    }
-                    validateSpeedExceeded()
-
-                    if (speedKmPerHour > (_uiState.value.rates.dragSpeed ?: 0.0)) {
-                        isMooving = true
-                        _uiState.update { it.copy(dragTimeElapsed = 0) }
-                        val distanceCovered: Float = previousLocation?.distanceTo(location) ?: 0f
-                        val newDistanceMade =
-                            _uiState.value.distanceMade + distanceCovered.toDouble()
-                        val additionalUnits = distanceCovered / (_uiState.value.rates.meters ?: 1)
-                        val newUnits = _uiState.value.units + additionalUnits
-                        _uiState.update { it.copy(distanceMade = newDistanceMade) }
-                        onUnitsChanged(newUnits)
-                    } else {
-                        isMooving = false
-                    }
+                if (previousLocation == null) {
                     previousLocation = location
+                    _uiState.update { it.copy(currentSpeed = 0) }
+                    return
                 }
+
+                val timeDeltaSec = (location.time - previousLocation!!.time) / 1000f
+                val distanceMeters = previousLocation!!.distanceTo(location)
+                val speedMps = if (timeDeltaSec > 0) distanceMeters / timeDeltaSec else 0f
+                val speedKph = (speedMps * 3.6f).toInt()
+
+                var newRoute = _uiState.value.routeCoordinates
+                if (distanceMeters >= 15f) {
+                    newRoute = newRoute + LatLng(location.latitude, location.longitude)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        currentSpeed = speedKph,
+                        currentPosition = UserLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        ),
+                        routeCoordinates = newRoute,
+                        distanceMade = it.distanceMade + distanceMeters.toDouble()
+                    )
+                }
+
+                //Log.d("TaximeterVM", "speedKph=$speedKph km/h over $distanceMeters m in $timeDeltaSec s")
+
+                val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
+                isMooving = speedKph > dragThreshold
+                if (isMooving) {
+                    _uiState.update { state ->
+                        state.copy(dragTimeElapsed = 0)
+                    }
+                    val addedUnits = distanceMeters / (_uiState.value.rates.meters ?: 1)
+                    val newUnits = _uiState.value.units + addedUnits
+                    onUnitsChanged(newUnits)
+                }
+
+                validateSpeedExceeded()
+
+                previousLocation = location
             }
         }
 
         if (ActivityCompat.checkSelfPermission(
                 appContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
                 appContext,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            // No tenemos permisos: simplemente salimos
             return
         }
+
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback!!,
             Looper.getMainLooper()
         )
     }
+
 
     fun mapScreenshotReady(bitmap: Bitmap, onIntentReady: (Intent) -> Unit) {
         val newWidth = bitmap.width / 1.3
@@ -538,10 +551,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
             onIntentReady(webIntent)
         }
-    }
-
-    fun updateSheetStateFromUI(isExpanded: Boolean) {
-        isSheetExpanded = isExpanded
     }
 
     fun saveTripData(tripData: Trip, onSuccess: () -> Unit) {
