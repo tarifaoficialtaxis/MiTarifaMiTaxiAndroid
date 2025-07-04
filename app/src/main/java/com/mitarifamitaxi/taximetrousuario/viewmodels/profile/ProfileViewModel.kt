@@ -286,7 +286,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                 lastName = stateVal.lastName,
                 profilePicture = finalImageUrl,
                 mobilePhone = stateVal.mobilePhone,
-                email = stateVal.email,
                 familyNumber = stateVal.familyNumber,
                 supportNumber = stateVal.supportNumber
             )
@@ -302,7 +301,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                                 "lastName" to user.lastName,
                                 "profilePicture" to user.profilePicture,
                                 "mobilePhone" to user.mobilePhone,
-                                "email" to user.email,
                                 "familyNumber" to user.familyNumber,
                                 "supportNumber" to user.supportNumber
                             )
@@ -581,9 +579,6 @@ class ProfileViewModelFactory(
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-            return ProfileViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return ProfileViewModel(context, appViewModel) as T
     }
 }

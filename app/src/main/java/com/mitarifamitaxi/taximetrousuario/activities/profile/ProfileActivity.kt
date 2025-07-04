@@ -439,7 +439,7 @@ class ProfileActivity : BaseActivity() {
                     placeholder = stringResource(id = R.string.email),
                     leadingIcon = Icons.Rounded.Mail,
                     keyboardType = KeyboardType.Companion.Email,
-                    isEnabled = appState.userData?.authProvider == AuthProvider.email,
+                    isEnabled = false,
                     isError = uiState.emailIsError,
                     errorMessage = uiState.emailErrorMessage
                 )
