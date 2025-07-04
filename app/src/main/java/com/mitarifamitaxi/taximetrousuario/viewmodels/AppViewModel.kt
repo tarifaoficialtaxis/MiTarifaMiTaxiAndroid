@@ -45,6 +45,7 @@ import com.google.firebase.database.ValueEventListener
 import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
 import com.google.firebase.firestore.SetOptions
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
+import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
@@ -85,6 +86,11 @@ class AppViewModel(context: Context) : ViewModel() {
         LocalUserManager(appContext).saveUserState(user)
     }
 
+    fun updateUserLocation(location: UserLocation) {
+        _uiState.update { it.copy(userLocation = location) }
+        UserLocationManager(appContext).saveUserLocationState(location)
+    }
+
     fun reloadUserData() {
         loadUserData()
     }
@@ -92,6 +98,9 @@ class AppViewModel(context: Context) : ViewModel() {
     private fun loadUserData() {
         val loadedUserData = LocalUserManager(appContext).getUserState()
         _uiState.update { it.copy(userData = loadedUserData) }
+
+        val loadedUserLocation = UserLocationManager(appContext).getUserLocationState()
+        _uiState.update { it.copy(userLocation = loadedUserLocation) }
     }
 
     fun validateAppVersion() {
@@ -256,14 +265,12 @@ class AppViewModel(context: Context) : ViewModel() {
                     return@addOnSuccessListener
                 }
 
-                _uiState.update {
-                    it.copy(
-                        userLocation = UserLocation(
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        )
+                updateUserLocation(
+                    UserLocation(
+                        latitude = location.latitude,
+                        longitude = location.longitude
                     )
-                }
+                )
 
                 viewModelScope.launch {
                     getCityFromCoordinates(
@@ -462,17 +469,12 @@ class AppViewModel(context: Context) : ViewModel() {
 
         }
 
-
     }
 }
 
 class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
-            return AppViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return AppViewModel(context) as T
     }
 }

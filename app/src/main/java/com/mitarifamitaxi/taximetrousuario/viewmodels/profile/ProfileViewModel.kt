@@ -30,6 +30,7 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
 import com.mitarifamitaxi.taximetrousuario.helpers.getFirebaseAuthErrorMessage
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.helpers.toBitmap
@@ -564,6 +565,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
     fun logOut() {
         LocalUserManager(appContext).deleteUserState()
+        UserLocationManager(appContext).deleteUserLocationState()
         ContactsCatalogManager(appContext).deleteContactsState()
         viewModelScope.launch {
             _navigationEvents.emit(NavigationEvent.LogOutComplete)

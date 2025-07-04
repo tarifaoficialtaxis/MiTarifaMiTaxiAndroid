@@ -28,6 +28,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.SideMenu
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
@@ -119,6 +120,7 @@ open class BaseActivity : ComponentActivity() {
 
                             "LOGOUT" -> {
                                 LocalUserManager(this).deleteUserState()
+                                UserLocationManager(this).deleteUserLocationState()
                                 ContactsCatalogManager(this).deleteContactsState()
                                 val intent = Intent(this, LoginActivity::class.java).apply {
                                     flags =

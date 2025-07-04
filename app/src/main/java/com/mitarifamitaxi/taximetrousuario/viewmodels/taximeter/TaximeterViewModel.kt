@@ -38,8 +38,6 @@ import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivit
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
-import com.mitarifamitaxi.taximetrousuario.helpers.isColombianHoliday
-import com.mitarifamitaxi.taximetrousuario.helpers.isNightTime
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Rates
@@ -228,9 +226,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                         try {
                             val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
                             _uiState.update { it.copy(rates = rates) }
-                            if (rates.validateHolidaySurcharge == true) {
-                                validateSurcharges()
-                            }
+
                         } catch (e: Exception) {
                             FirebaseCrashlytics.getInstance().recordException(e)
                             appViewModel.showMessage(
@@ -278,7 +274,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    private fun validateSurcharges() {
+    /*private fun validateSurcharges() {
         val rates = _uiState.value.rates
         var newRechargeUnits = _uiState.value.rechargeUnits
         var holidaySurcharge = false
@@ -296,7 +292,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
         _uiState.update { it.copy(isHolidaySurcharge = holidaySurcharge) }
         updateTotal(newRechargeUnits)
-    }
+    }*/
 
     fun startTaximeter() {
         _uiState.update {
@@ -655,6 +651,18 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             newRechargeUnits -= rates.airportRateUnits ?: 0.0
         }
         _uiState.update { it.copy(isAirportSurcharge = checked) }
+        updateTotal(newRechargeUnits)
+    }
+
+    fun setHolidaySurcharge(checked: Boolean) {
+        val rates = _uiState.value.rates
+        var newRechargeUnits = _uiState.value.rechargeUnits
+        if (checked) {
+            newRechargeUnits += rates.holidayRateUnits ?: 0.0
+        } else {
+            newRechargeUnits -= rates.holidayRateUnits ?: 0.0
+        }
+        _uiState.update { it.copy(isHolidaySurcharge = checked) }
         updateTotal(newRechargeUnits)
     }
 }

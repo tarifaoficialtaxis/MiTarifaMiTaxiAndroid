@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -225,6 +224,7 @@ class TaximeterActivity : BaseActivity() {
             onOpenGoogleMaps = { viewModel.openGoogleMapsApp { startActivity(it) } },
             onDoorToDoorChange = { viewModel.setDoorToDoorSurcharge(it) },
             onAirportChange = { viewModel.setAirportSurcharge(it) },
+            onHolidayChange = { viewModel.setHolidaySurcharge(it) },
             onSetTakeScreenshot = { viewModel.setTakeMapScreenshot(it) }
         )
         BackHandler(enabled = true) {
@@ -250,6 +250,7 @@ class TaximeterActivity : BaseActivity() {
         onOpenGoogleMaps: () -> Unit,
         onDoorToDoorChange: (Boolean) -> Unit,
         onAirportChange: (Boolean) -> Unit,
+        onHolidayChange: (Boolean) -> Unit,
         onSetTakeScreenshot: (Boolean) -> Unit
     ) {
 
@@ -498,8 +499,8 @@ class TaximeterActivity : BaseActivity() {
                                     ""
                                 ),
                                 checked = taximeterState.isHolidaySurcharge,
-                                isEnabled = false,
-                                onValueChange = {}
+                                isEnabled = taximeterState.isTaximeterStarted,
+                                onValueChange = onHolidayChange
                             )
                         }
                     }
@@ -590,6 +591,7 @@ class TaximeterActivity : BaseActivity() {
             onOpenGoogleMaps = {},
             onDoorToDoorChange = {},
             onAirportChange = {},
+            onHolidayChange = {},
             onSetTakeScreenshot = {}
         )
     }
