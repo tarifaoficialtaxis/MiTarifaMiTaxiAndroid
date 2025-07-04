@@ -50,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -244,26 +243,8 @@ class TaximeterActivity : BaseActivity() {
         appState: AppState
     ) {
 
-        val sheetState = rememberStandardBottomSheetState(
-            initialValue = if (viewModel.isSheetExpanded) SheetValue.Expanded else SheetValue.PartiallyExpanded,
-            confirmValueChange = { newSheetValue ->
-                viewModel.updateSheetStateFromUI(newSheetValue == SheetValue.Expanded)
-                true
-            },
-            skipHiddenState = true
-        )
-
         val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-        val peekHeight = screenHeight * 0.23f
-        val fullHeight = screenHeight * 0.6f
-
-        val mapPeekHeight = screenHeight * 0.36f
-        val mapFullHeight = screenHeight * 0.78f
-
-        val sheetTopOffset =
-            if (sheetState.currentValue == SheetValue.Expanded) mapPeekHeight else mapFullHeight
-        val sheetTopOffsetAdjust =
-            if (viewModel.isFabExpanded) 188.dp else 80.dp
+        val mapHeight = screenHeight * 0.36f
 
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
@@ -274,13 +255,6 @@ class TaximeterActivity : BaseActivity() {
             )
         }
 
-        LaunchedEffect(viewModel.isSheetExpanded) {
-            if (viewModel.isSheetExpanded) {
-                sheetState.expand()
-            } else {
-                sheetState.partialExpand()
-            }
-        }
 
         LaunchedEffect(viewModel.currentPosition, viewModel.routeCoordinates) {
             val targetLatLng = LatLng(
@@ -330,446 +304,322 @@ class TaximeterActivity : BaseActivity() {
 
         Box(modifier = Modifier.Companion.fillMaxSize()) {
 
-            BottomSheetScaffold(
-                scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState),
-                sheetContent = {
-                    Column(
-                        modifier = Modifier.Companion
-                            .height(if (sheetState.currentValue == SheetValue.Expanded) fullHeight else peekHeight)
-                            .padding(horizontal = 20.dp),
-                    ) {
-                        if (sheetState.currentValue == SheetValue.Expanded) {
-                            SheetExpandedView(
-                                appState = appState
-                            )
-                        } else {
-                            SheetFoldedView(
-                                appState = appState
-                            )
+            Column(
+                modifier = Modifier.Companion
+                    .fillMaxWidth()
+            ) {
+                TopHeaderView(
+                    title = stringResource(id = R.string.taximeter),
+                    leadingIcon = Icons.Filled.ChevronLeft,
+                    onClickLeading = {
+                        if (viewModel.isTaximeterStarted) {
+                            viewModel.showFinishConfirmation()
                         }
+                    }
+                )
+
+                GoogleMap(
+                    cameraPositionState = cameraPositionState,
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(mapHeight),
+                    onMapLoaded = { viewModel.isMapLoaded = true }
+                ) {
+
+                    if (viewModel.routeCoordinates.isNotEmpty()) {
+                        Polyline(
+                            points = viewModel.routeCoordinates,
+                            color = colorResource(id = R.color.main),
+                            width = 10f
+                        )
+                    }
+
+
+                    if (viewModel.startAddress.isNotEmpty()) {
+                        CustomSizedMarker(
+                            position = LatLng(
+                                viewModel.startLocation.latitude ?: 0.0,
+                                viewModel.startLocation.longitude ?: 0.0
+                            ),
+                            drawableRes = R.drawable.flag_start,
+                            width = 60,
+                            height = 60
+                        )
 
                     }
 
-                },
-                sheetContainerColor = colorResource(id = R.color.white),
-                sheetPeekHeight = peekHeight,
-            ) {
-                Column(
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .height(if (sheetState.currentValue == SheetValue.Expanded) mapPeekHeight else mapFullHeight)
-                ) {
-                    TopHeaderView(
-                        title = stringResource(id = R.string.taximeter),
-                        leadingIcon = Icons.Filled.ChevronLeft,
-                        onClickLeading = {
-                            if (viewModel.isTaximeterStarted) {
-                                viewModel.showFinishConfirmation()
-                            }
-                        }
+                    CustomSizedMarker(
+                        position = LatLng(
+                            viewModel.currentPosition.latitude ?: 0.0,
+                            viewModel.currentPosition.longitude ?: 0.0
+                        ),
+                        drawableRes = R.drawable.taxi_marker,
+                        width = 27,
+                        height = 57
                     )
 
-                    Box(modifier = Modifier.Companion.fillMaxSize()) {
-                        GoogleMap(
-                            cameraPositionState = cameraPositionState,
-                            uiSettings = MapUiSettings(
-                                zoomControlsEnabled = false
-                            ),
-                            modifier = Modifier.Companion.fillMaxSize(),
-                            onMapLoaded = { viewModel.isMapLoaded = true }
-                        ) {
-
-                            if (viewModel.routeCoordinates.isNotEmpty()) {
-                                Polyline(
-                                    points = viewModel.routeCoordinates,
-                                    color = colorResource(id = R.color.main),
-                                    width = 10f
-                                )
-                            }
-
-
-                            if (viewModel.startAddress.isNotEmpty()) {
-                                CustomSizedMarker(
-                                    position = LatLng(
-                                        viewModel.startLocation.latitude ?: 0.0,
-                                        viewModel.startLocation.longitude ?: 0.0
-                                    ),
-                                    drawableRes = R.drawable.flag_start,
-                                    width = 60,
-                                    height = 60
-                                )
-
-                            }
-
-                            CustomSizedMarker(
-                                position = LatLng(
-                                    viewModel.currentPosition.latitude ?: 0.0,
-                                    viewModel.currentPosition.longitude ?: 0.0
-                                ),
-                                drawableRes = R.drawable.taxi_marker,
-                                width = 27,
-                                height = 57
-                            )
-
-                            if (viewModel.isMapLoaded && viewModel.takeMapScreenshot) {
-                                MapEffect { map ->
-                                    map.snapshot { snapshot ->
-                                        if (snapshot != null) {
-                                            viewModel.mapScreenshotReady(snapshot) { intent ->
-                                                startActivity(intent)
-                                            }
-                                        }
+                    if (viewModel.isMapLoaded && viewModel.takeMapScreenshot) {
+                        MapEffect { map ->
+                            map.snapshot { snapshot ->
+                                if (snapshot != null) {
+                                    viewModel.mapScreenshotReady(snapshot) { intent ->
+                                        startActivity(intent)
                                     }
                                 }
                             }
-
                         }
                     }
+
                 }
-            }
 
-            WaitTimeBox(
-                time = "${viewModel.dragTimeElapsed}",
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.TopEnd)
-                    .offset(y = 75.dp)
-                    .padding(end = 12.dp)
-            )
-
-            SpeedLimitBox(
-                speed = viewModel.currentSpeed,
-                speedLimit = viewModel.ratesObj.value.speedLimit ?: 0,
-                units = viewModel.ratesObj.value.speedUnits ?: "km/h",
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.TopStart)
-                    .offset(y = sheetTopOffset - sheetTopOffsetAdjust)
-                    .padding(start = 16.dp)
-            )
-
-            FloatingActionButtonRoutes(
-                expanded = viewModel.isFabExpanded,
-                onMainFabClick = { viewModel.isFabExpanded = !viewModel.isFabExpanded },
-                onAction1Click = {
-                    viewModel.openWazeApp(
-                        viewModel.endLocation.latitude ?: 0.0,
-                        viewModel.endLocation.longitude ?: 0.0,
-                        onIntentReady = { startActivity(it) }
-                    )
-                },
-                onAction2Click = {
-                    viewModel.openGoogleMapsApp(
-                        viewModel.startLocation.latitude ?: 0.0,
-                        viewModel.startLocation.longitude ?: 0.0,
-                        viewModel.endLocation.latitude ?: 0.0,
-                        viewModel.endLocation.longitude ?: 0.0,
-                        onIntentReady = { startActivity(it) }
-                    )
-                },
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.TopEnd)
-                    .offset(y = sheetTopOffset - sheetTopOffsetAdjust)
-                    .padding(end = 16.dp)
-            )
-
-        }
-    }
-
-    @Composable
-    fun SheetExpandedView(
-        appState: AppState
-    ) {
-
-
-        Column(
-            modifier = Modifier.Companion
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-        ) {
-
-            Text(
-                text = "$ ${
-                    viewModel.total.toInt().formatNumberWithDots()
-                } ${appState.userData?.countryCurrency}",
-                color = colorResource(id = R.color.main),
-                fontSize = 36.sp,
-                fontFamily = MontserratFamily,
-                fontWeight = FontWeight.Companion.Bold,
-                textAlign = TextAlign.Companion.Center,
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-            )
-
-            Text(
-                text = stringResource(id = R.string.price_to_pay),
-                color = colorResource(id = R.color.gray1),
-                fontSize = 15.sp,
-                fontFamily = MontserratFamily,
-                fontWeight = FontWeight.Companion.Bold,
-                textAlign = TextAlign.Companion.Center,
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            TaximeterInfoRow(
-                title = stringResource(id = R.string.distance_made),
-                value = "${(viewModel.distanceMade / 1000).formatDigits(1)} KM",
-            )
-
-            TaximeterInfoRow(
-                title = stringResource(id = R.string.units_base),
-                value = viewModel.units.toInt().toString()
-            )
-
-            TaximeterInfoRow(
-                title = stringResource(id = R.string.units_recharge),
-                value = viewModel.rechargeUnits.toInt().toString()
-            )
-
-            TaximeterInfoRow(
-                title = stringResource(id = R.string.time_trip),
-                value = viewModel.formattedTime
-            )
-
-            Column {
-
-                Row(
+                Column(
                     modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
                 ) {
 
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = colorResource(id = R.color.main),
-                        modifier = Modifier.Companion.size(20.dp)
+                    Text(
+                        text = "$ ${
+                            viewModel.total.toInt().formatNumberWithDots()
+                        } ${appState.userData?.countryCurrency}",
+                        color = colorResource(id = R.color.main),
+                        fontSize = 36.sp,
+                        fontFamily = MontserratFamily,
+                        fontWeight = FontWeight.Companion.Bold,
+                        textAlign = TextAlign.Companion.Center,
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
                     )
 
                     Text(
-                        text = getShortAddress(viewModel.endAddress),
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Normal,
-                        fontSize = 12.sp,
+                        text = stringResource(id = R.string.price_to_pay),
                         color = colorResource(id = R.color.gray1),
+                        fontSize = 15.sp,
+                        fontFamily = MontserratFamily,
+                        fontWeight = FontWeight.Companion.Bold,
+                        textAlign = TextAlign.Companion.Center,
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp)
                     )
 
-                }
+                    TaximeterInfoRow(
+                        title = stringResource(id = R.string.distance_made),
+                        value = "${(viewModel.distanceMade / 1000).formatDigits(1)} KM",
+                    )
 
-                Box(
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .background(colorResource(id = R.color.gray2))
-                )
+                    TaximeterInfoRow(
+                        title = stringResource(id = R.string.units_base),
+                        value = viewModel.units.toInt().toString()
+                    )
 
-            }
+                    TaximeterInfoRow(
+                        title = stringResource(id = R.string.units_recharge),
+                        value = viewModel.rechargeUnits.toInt().toString()
+                    )
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.Companion
-                    .padding(top = 10.dp)
-            ) {
+                    TaximeterInfoRow(
+                        title = stringResource(id = R.string.time_trip),
+                        value = viewModel.formattedTime
+                    )
 
+                    Column {
 
-                if (viewModel.ratesObj.value.doorToDoorRateUnits != null && viewModel.ratesObj.value.doorToDoorRateUnits != 0.0) {
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.door_to_door_surcharge).replace(
-                            ":",
-                            ""
-                        ),
-                        checked = viewModel.isDoorToDoorSurcharge,
-                        isEnabled = viewModel.isTaximeterStarted,
-                        onValueChange = {
-                            viewModel.isDoorToDoorSurcharge = it
-                            if (it) {
-                                viewModel.rechargeUnits += viewModel.ratesObj.value.doorToDoorRateUnits
-                                    ?: 0.0
-                            } else {
-                                viewModel.rechargeUnits -= viewModel.ratesObj.value.doorToDoorRateUnits
-                                    ?: 0.0
-                            }
+                        Row(
+                            modifier = Modifier.Companion
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp)
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.main),
+                                modifier = Modifier.Companion.size(20.dp)
+                            )
+
+                            Text(
+                                text = getShortAddress(viewModel.endAddress),
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Normal,
+                                fontSize = 12.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+
                         }
-                    )
-                }
 
-                if (viewModel.ratesObj.value.airportRateUnits != null && viewModel.ratesObj.value.airportRateUnits != 0.0) {
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.airport_surcharge).replace(":", ""),
-                        checked = viewModel.isAirportSurcharge,
-                        isEnabled = viewModel.isTaximeterStarted,
-                        onValueChange = {
-                            viewModel.isAirportSurcharge = it
-                            if (it) {
-                                viewModel.rechargeUnits += viewModel.ratesObj.value.airportRateUnits
-                                    ?: 0.0
-                            } else {
-                                viewModel.rechargeUnits -= viewModel.ratesObj.value.airportRateUnits
-                                    ?: 0.0
-                            }
+                        Box(
+                            modifier = Modifier.Companion
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .background(colorResource(id = R.color.gray2))
+                        )
+
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.Companion
+                            .padding(top = 10.dp)
+                    ) {
+
+
+                        if (viewModel.ratesObj.value.doorToDoorRateUnits != null && viewModel.ratesObj.value.doorToDoorRateUnits != 0.0) {
+                            CustomCheckBox(
+                                text = stringResource(id = R.string.door_to_door_surcharge).replace(
+                                    ":",
+                                    ""
+                                ),
+                                checked = viewModel.isDoorToDoorSurcharge,
+                                isEnabled = viewModel.isTaximeterStarted,
+                                onValueChange = {
+                                    viewModel.isDoorToDoorSurcharge = it
+                                    if (it) {
+                                        viewModel.rechargeUnits += viewModel.ratesObj.value.doorToDoorRateUnits
+                                            ?: 0.0
+                                    } else {
+                                        viewModel.rechargeUnits -= viewModel.ratesObj.value.doorToDoorRateUnits
+                                            ?: 0.0
+                                    }
+                                }
+                            )
                         }
-                    )
-                }
 
-                if (viewModel.ratesObj.value.holidayRateUnits != null && viewModel.ratesObj.value.holidayRateUnits != 0.0) {
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.holiday_surcharge).replace(":", ""),
-                        checked = viewModel.isHolidaySurcharge,
-                        isEnabled = false,
-                        onValueChange = {}
-                    )
-                }
+                        if (viewModel.ratesObj.value.airportRateUnits != null && viewModel.ratesObj.value.airportRateUnits != 0.0) {
+                            CustomCheckBox(
+                                text = stringResource(id = R.string.airport_surcharge).replace(
+                                    ":",
+                                    ""
+                                ),
+                                checked = viewModel.isAirportSurcharge,
+                                isEnabled = viewModel.isTaximeterStarted,
+                                onValueChange = {
+                                    viewModel.isAirportSurcharge = it
+                                    if (it) {
+                                        viewModel.rechargeUnits += viewModel.ratesObj.value.airportRateUnits
+                                            ?: 0.0
+                                    } else {
+                                        viewModel.rechargeUnits -= viewModel.ratesObj.value.airportRateUnits
+                                            ?: 0.0
+                                    }
+                                }
+                            )
+                        }
 
-            }
+                        if (viewModel.ratesObj.value.holidayRateUnits != null && viewModel.ratesObj.value.holidayRateUnits != 0.0) {
+                            CustomCheckBox(
+                                text = stringResource(id = R.string.holiday_surcharge).replace(
+                                    ":",
+                                    ""
+                                ),
+                                checked = viewModel.isHolidaySurcharge,
+                                isEnabled = false,
+                                onValueChange = {}
+                            )
+                        }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-                    .padding(vertical = 15.dp)
-            ) {
-                Box(
-                    modifier = Modifier.Companion
-                        .weight(1f)
-                ) {
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .padding(vertical = 15.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.Companion
+                                .weight(1f)
+                        ) {
+                            CustomButton(
+                                text = stringResource(id = R.string.sos).uppercase(),
+                                onClick = {
+                                    startActivity(
+                                        Intent(
+                                            this@TaximeterActivity,
+                                            SosActivity::class.java
+                                        )
+                                    )
+                                },
+                                color = colorResource(id = R.color.red1),
+                                leadingIcon = Icons.Rounded.WarningAmber
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier.Companion
+                                .weight(1f)
+                        ) {
+                            CustomButton(
+                                text = stringResource(id = R.string.pqrs).uppercase(),
+                                onClick = {
+                                    startActivity(
+                                        Intent(
+                                            this@TaximeterActivity,
+                                            PqrsActivity::class.java
+                                        )
+                                    )
+                                },
+                                color = colorResource(id = R.color.blue2),
+                                leadingIcon = Icons.AutoMirrored.Outlined.Chat
+                            )
+                        }
+                    }
+
+
                     CustomButton(
-                        text = stringResource(id = R.string.sos).uppercase(),
-                        onClick = {
-                            startActivity(Intent(this@TaximeterActivity, SosActivity::class.java))
-                        },
-                        color = colorResource(id = R.color.red1),
-                        leadingIcon = Icons.Rounded.WarningAmber
+                        text = stringResource(id = if (viewModel.isTaximeterStarted) R.string.finish_trip else R.string.start_trip).uppercase(),
+                        onClick = { if (viewModel.isTaximeterStarted) viewModel.showFinishConfirmation() else viewModel.validateLocationPermission() },
+                        color = colorResource(id = if (viewModel.isTaximeterStarted) R.color.gray1 else R.color.main),
+                        leadingIcon = if (viewModel.isTaximeterStarted) Icons.Default.Close else Icons.Default.PlayArrow
                     )
+
                 }
 
-                Box(
-                    modifier = Modifier.Companion
-                        .weight(1f)
-                ) {
-                    CustomButton(
-                        text = stringResource(id = R.string.pqrs).uppercase(),
-                        onClick = {
-                            startActivity(Intent(this@TaximeterActivity, PqrsActivity::class.java))
-                        },
-                        color = colorResource(id = R.color.blue2),
-                        leadingIcon = Icons.AutoMirrored.Outlined.Chat
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-                    .padding(bottom = 15.dp)
-            ) {
-                CustomButton(
-                    text = stringResource(id = if (viewModel.isTaximeterStarted) R.string.finish_trip else R.string.start_trip).uppercase(),
-                    onClick = { if (viewModel.isTaximeterStarted) viewModel.showFinishConfirmation() else viewModel.validateLocationPermission() },
-                    color = colorResource(id = if (viewModel.isTaximeterStarted) R.color.gray1 else R.color.main),
-                    leadingIcon = if (viewModel.isTaximeterStarted) Icons.Default.Close else Icons.Default.PlayArrow
-                )
             }
         }
-    }
 
-    @Composable
-    fun SheetFoldedView(
-        appState: AppState
-    ) {
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(
-                10.dp,
-                Alignment.Companion.CenterHorizontally
-            ),
+        WaitTimeBox(
+            time = "${viewModel.dragTimeElapsed}",
             modifier = Modifier.Companion
-                .fillMaxWidth()
-                .padding(vertical = 15.dp)
-        ) {
+                .offset(y = 75.dp)
+                .padding(end = 12.dp)
+        )
 
-            Column(
-                modifier = Modifier.Companion
-                    .weight(1f)
-            ) {
-
-                Text(
-                    text = "${viewModel.units.toInt()}",
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Companion.Bold,
-                    fontSize = 22.sp,
-                    color = colorResource(id = R.color.main),
-                    modifier = Modifier.Companion
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Companion.Center
-                )
-
-                Text(
-                    text = stringResource(id = R.string.units).uppercase(),
-                    color = colorResource(id = R.color.gray1),
-                    fontSize = 12.sp,
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Companion.Bold,
-                    modifier = Modifier.Companion
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Companion.Center
-                )
-
-            }
-
-            Box(
-                modifier = Modifier.Companion
-                    .width(2.dp)
-                    .height(45.dp)
-                    .background(colorResource(id = R.color.gray2))
-            )
-
-            Column(
-                modifier = Modifier.Companion
-                    .weight(1f)
-            ) {
-
-                Text(
-                    text = "$ ${
-                        viewModel.total.toInt().formatNumberWithDots()
-                    } ${appState.userData?.countryCurrency}",
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Companion.Bold,
-                    fontSize = 22.sp,
-                    color = colorResource(id = R.color.main),
-                    modifier = Modifier.Companion
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Companion.Center
-
-                )
-
-                Text(
-                    text = stringResource(id = R.string.price_to_pay),
-                    color = colorResource(id = R.color.gray1),
-                    fontSize = 12.sp,
-                    fontFamily = MontserratFamily,
-                    fontWeight = FontWeight.Companion.Bold,
-                    modifier = Modifier.Companion
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Companion.Center
-                )
-            }
-
-
-        }
-
-        Box(
+        SpeedLimitBox(
+            speed = viewModel.currentSpeed,
+            speedLimit = viewModel.ratesObj.value.speedLimit ?: 0,
+            units = viewModel.ratesObj.value.speedUnits ?: "km/h",
             modifier = Modifier.Companion
-                .fillMaxWidth()
-                .padding(bottom = 15.dp)
-        ) {
-            CustomButton(
-                text = stringResource(id = if (viewModel.isTaximeterStarted) R.string.finish_trip else R.string.start_trip).uppercase(),
-                onClick = { if (viewModel.isTaximeterStarted) viewModel.showFinishConfirmation() else viewModel.validateLocationPermission() },
-                color = colorResource(id = if (viewModel.isTaximeterStarted) R.color.gray1 else R.color.main),
-                leadingIcon = if (viewModel.isTaximeterStarted) Icons.Default.Close else Icons.Default.PlayArrow
-            )
-        }
+                .padding(start = 16.dp)
+        )
+
+        FloatingActionButtonRoutes(
+            expanded = viewModel.isFabExpanded,
+            onMainFabClick = { viewModel.isFabExpanded = !viewModel.isFabExpanded },
+            onAction1Click = {
+                viewModel.openWazeApp(
+                    viewModel.endLocation.latitude ?: 0.0,
+                    viewModel.endLocation.longitude ?: 0.0,
+                    onIntentReady = { startActivity(it) }
+                )
+            },
+            onAction2Click = {
+                viewModel.openGoogleMapsApp(
+                    viewModel.startLocation.latitude ?: 0.0,
+                    viewModel.startLocation.longitude ?: 0.0,
+                    viewModel.endLocation.latitude ?: 0.0,
+                    viewModel.endLocation.longitude ?: 0.0,
+                    onIntentReady = { startActivity(it) }
+                )
+            },
+            modifier = Modifier.Companion
+                .padding(end = 16.dp)
+        )
 
     }
-
 }
+
+

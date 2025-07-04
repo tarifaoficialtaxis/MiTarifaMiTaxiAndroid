@@ -1,6 +1,5 @@
 package com.mitarifamitaxi.taximetrousuario.activities.routeplanner
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
