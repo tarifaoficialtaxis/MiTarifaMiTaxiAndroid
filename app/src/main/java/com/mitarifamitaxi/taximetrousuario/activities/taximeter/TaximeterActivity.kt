@@ -427,7 +427,7 @@ class TaximeterActivity : BaseActivity() {
                     )
                     TaximeterInfoRow(
                         title = stringResource(id = R.string.units_base),
-                        value = taximeterState.units.toInt().toString()
+                        value = taximeterState.units.formatNumberWithDots().toString()
                     )
                     TaximeterInfoRow(
                         title = stringResource(id = R.string.units_recharge),

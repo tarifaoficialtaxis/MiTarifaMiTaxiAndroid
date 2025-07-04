@@ -82,8 +82,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     private var locationCallback: LocationCallback? = null
     private val executor: Executor = ContextCompat.getMainExecutor(context)
 
-    var isSheetExpanded by mutableStateOf(true)
-
     private var previousLocation: Location? = null
     private var startTime by mutableStateOf("")
     private var endTime by mutableStateOf("")
@@ -274,31 +272,14 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    /*private fun validateSurcharges() {
-        val rates = _uiState.value.rates
-        var newRechargeUnits = _uiState.value.rechargeUnits
-        var holidaySurcharge = false
-
-        if (isNightTime(
-                rates.nightHourSurcharge ?: 21,
-                rates.nighMinuteSurcharge ?: 0,
-                rates.morningHourSurcharge ?: 5,
-                rates.morningMinuteSurcharge ?: 30
-            ) || isColombianHoliday()
-        ) {
-            newRechargeUnits += rates.holidayRateUnits ?: 0.0
-            holidaySurcharge = true
-        }
-
-        _uiState.update { it.copy(isHolidaySurcharge = holidaySurcharge) }
-        updateTotal(newRechargeUnits)
-    }*/
-
     fun startTaximeter() {
         _uiState.update {
             it.copy(
                 isTaximeterStarted = true,
-                units = it.rates.startRateUnits ?: 0.0
+                units = it.rates.startRateUnits ?: 0.0,
+                total = it.rates.startRateUnits?.let { units ->
+                    units * (it.rates.unitPrice ?: 0.0)
+                } ?: 0.0,
             )
         }
         startTime = Instant.now().toString()
@@ -311,7 +292,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun showFinishConfirmation() {
-        isSheetExpanded = true
         appViewModel.showMessage(
             type = DialogType.WARNING,
             title = appContext.getString(R.string.finish_your_trip),
@@ -421,17 +401,21 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     newRoute = newRoute + LatLng(location.latitude, location.longitude)
                 }
 
+                val userLocation = UserLocation(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+
                 _uiState.update {
                     it.copy(
                         currentSpeed = speedKph,
-                        currentPosition = UserLocation(
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        ),
+                        currentPosition = userLocation,
                         routeCoordinates = newRoute,
                         distanceMade = it.distanceMade + distanceMeters.toDouble()
                     )
                 }
+
+                appViewModel.updateUserLocation(userLocation)
 
                 //Log.d("TaximeterVM", "speedKph=$speedKph km/h over $distanceMeters m in $timeDeltaSec s")
 
