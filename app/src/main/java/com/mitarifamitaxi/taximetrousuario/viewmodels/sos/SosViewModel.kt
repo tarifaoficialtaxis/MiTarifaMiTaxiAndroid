@@ -13,7 +13,6 @@ import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
-import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
 import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.MyTripsViewModel
@@ -45,9 +44,9 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         validateShowModal()
     }
 
-    fun showContactDialog(itemSelected: ItemImageButton? = null) {
+    fun showContactDialog(itemSelected: ContactCatalog? = null) {
 
-        if (itemSelected?.id == "SUPPORT" && appViewModel.uiState.value.userData?.supportNumber.isNullOrEmpty()) {
+        if (itemSelected?.key == "SUPPORT" && appViewModel.uiState.value.userData?.supportNumber.isNullOrEmpty()) {
             appViewModel.showMessage(
                 DialogType.WARNING,
                 appContext.getString(R.string.support_number_not_found),
@@ -61,7 +60,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
         }
 
-        if (itemSelected?.id == "FAMILY" && appViewModel.uiState.value.userData?.familyNumber.isNullOrEmpty()) {
+        if (itemSelected?.key == "FAMILY" && appViewModel.uiState.value.userData?.familyNumber.isNullOrEmpty()) {
             appViewModel.showMessage(
                 DialogType.WARNING,
                 appContext.getString(R.string.family_number_not_found),
@@ -76,50 +75,11 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
 
         _uiState.update { currentState ->
-            currentState.copy(showContactDialog = true, itemSelected = itemSelected)
+            currentState.copy(showContactDialog = true, contactCatalogSelected = itemSelected)
         }
 
-        setContactCatalogSelected()
     }
 
-    fun setContactCatalogSelected() {
-        var contactCatalog: ContactCatalog? = null
-        when (_uiState.value.itemSelected?.id) {
-            "POLICE" -> {
-                contactCatalog = _uiState.value.contact.police
-            }
-
-            "FIRE_FIGHTERS" -> {
-                contactCatalog = _uiState.value.contact.firefighters
-            }
-
-            "AMBULANCE" -> {
-                contactCatalog = _uiState.value.contact.ambulance
-            }
-
-            "ANIMAL_CARE" -> {
-                contactCatalog = _uiState.value.contact.animalCare
-            }
-
-            "SUPPORT" -> {
-                contactCatalog = ContactCatalog(
-                    line2 = appViewModel.uiState.value.userData?.supportNumber ?: "",
-                    whatsapp = appViewModel.uiState.value.userData?.supportNumber ?: ""
-                )
-            }
-
-            "FAMILY" -> {
-                contactCatalog = ContactCatalog(
-                    line2 = appViewModel.uiState.value.userData?.familyNumber ?: "",
-                    whatsapp = appViewModel.uiState.value.userData?.familyNumber ?: ""
-                )
-            }
-        }
-
-        _uiState.update { currentState ->
-            currentState.copy(contactCatalogSelected = contactCatalog)
-        }
-    }
 
     fun hideContactDialog() {
         _uiState.update { currentState ->
@@ -144,7 +104,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         var sosType = ""
         var event: String? = null
 
-        when (_uiState.value.itemSelected?.id) {
+        when (_uiState.value.contactCatalogSelected?.key) {
             "POLICE" -> {
                 sosType = appContext.getString(R.string.police)
             }

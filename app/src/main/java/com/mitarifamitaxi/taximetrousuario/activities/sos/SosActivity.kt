@@ -27,11 +27,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomAsyncImageButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomContactActionDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomImageButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
-import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
 import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
@@ -87,38 +87,6 @@ class SosActivity : BaseActivity() {
         )
     }
 
-
-    @Composable
-    fun sosItems(): List<ItemImageButton> {
-        return listOf(
-            ItemImageButton(
-                id = "POLICE",
-                image = painterResource(id = R.drawable.sos_police_button),
-            ),
-            ItemImageButton(
-                id = "FIRE_FIGHTERS",
-                image = painterResource(id = R.drawable.sos_firefighters_button),
-            ),
-            ItemImageButton(
-                id = "AMBULANCE",
-                image = painterResource(id = R.drawable.sos_ambulance_button),
-            ),
-            ItemImageButton(
-                id = "FAMILY",
-                image = painterResource(id = R.drawable.sos_family_button),
-            ),
-            ItemImageButton(
-                id = "SUPPORT",
-                image = painterResource(id = R.drawable.sos_support_button),
-            ),
-            ItemImageButton(
-                id = "ANIMAL_CARE",
-                image = painterResource(id = R.drawable.sos_animal_care_button),
-            )
-        )
-    }
-
-
     @Composable
     private fun SosScreen(
         uiState: SosState
@@ -149,10 +117,10 @@ class SosActivity : BaseActivity() {
                         .padding(top = 20.dp)
                         .padding(bottom = 40.dp)
                 ) {
-                    sosItems().forEach { item ->
-                        CustomImageButton(
-                            image = item.image,
-                            height = item.height,
+
+                    uiState.contact.lines.forEach { item ->
+                        CustomAsyncImageButton(
+                            image = item.image ?: "",
                             onClick = {
                                 viewModel.showContactDialog(item)
                             }

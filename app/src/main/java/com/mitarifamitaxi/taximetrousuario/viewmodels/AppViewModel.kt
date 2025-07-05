@@ -290,7 +290,7 @@ class AppViewModel(context: Context) : ViewModel() {
                                 userLocation,
                                 onResult = { cityName ->
 
-                                    loadContactsCatalog(cityName ?: "")
+                                    loadContacts(cityName ?: "")
 
                                     updateUserData(
                                         city = cityName ?: "",
@@ -435,12 +435,12 @@ class AppViewModel(context: Context) : ViewModel() {
     }
 
 
-    private fun loadContactsCatalog(city: String) {
+    private fun loadContacts(city: String) {
         viewModelScope.launch {
             try {
                 val firestore = FirebaseFirestore.getInstance()
                 val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                    firestore.collection("contactsCatalog")
+                    firestore.collection("dynamicContacts")
                         .whereEqualTo("city", city)
                         .get()
                         .await()
