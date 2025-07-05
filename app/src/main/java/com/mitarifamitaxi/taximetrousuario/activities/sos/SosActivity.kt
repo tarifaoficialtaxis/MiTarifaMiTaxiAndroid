@@ -7,7 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,6 +39,7 @@ import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.grid.items
 
 class SosActivity : BaseActivity() {
 
@@ -110,15 +114,17 @@ class SosActivity : BaseActivity() {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                Column(
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.Companion
-                        .padding(horizontal = 29.dp)
-                        .padding(top = 20.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(bottom = 40.dp)
                 ) {
-
-                    uiState.contact.lines.forEach { item ->
+                    items(uiState.contact.lines) { item ->
                         CustomAsyncImageButton(
                             image = item.image ?: "",
                             onClick = {
@@ -126,8 +132,9 @@ class SosActivity : BaseActivity() {
                             }
                         )
                     }
-
                 }
+
+
             }
 
         }
