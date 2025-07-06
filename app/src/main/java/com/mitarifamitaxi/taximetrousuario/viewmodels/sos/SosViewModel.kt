@@ -3,11 +3,13 @@ package com.mitarifamitaxi.taximetrousuario.viewmodels.sos
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
@@ -16,10 +18,13 @@ import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.MyTripsViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 
 class SosViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
@@ -38,10 +43,24 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     init {
-        _uiState.update {
-            it.copy(contact = ContactsCatalogManager(appContext).getContactsState() ?: Contact())
+        loadContacts(appViewModel.uiState.value.userData?.city ?: "")
+    }
+
+    fun filterContactLines() {
+        val originalContact = ContactsCatalogManager(appContext).getContactsState() ?: Contact()
+
+        val filteredSortedLines = originalContact.lines
+            .filter { it.show }
+            .sortedBy { it.order }
+            .toMutableList()
+
+        _uiState.update { uiState ->
+            uiState.copy(
+                contact = originalContact.copy(
+                    lines = filteredSortedLines
+                )
+            )
         }
-        validateShowModal()
     }
 
     fun showContactDialog(itemSelected: ContactCatalog? = null) {
@@ -179,6 +198,45 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
             _navigationEvents.emit(NavigationEvent.GoToProfile)
         }
     }
+
+    private fun loadContacts(city: String) {
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                    firestore.collection("dynamicContacts")
+                        .whereEqualTo("city", city)
+                        .get()
+                        .await()
+                }
+
+                if (!ratesQuerySnapshot.isEmpty) {
+                    val contactsDoc = ratesQuerySnapshot.documents[0]
+                    try {
+                        val contactVal =
+                            contactsDoc.toObject(Contact::class.java) ?: Contact()
+                        ContactsCatalogManager(appContext).saveContactsState(contactVal)
+                        filterContactLines()
+                        validateShowModal()
+                    } catch (e: Exception) {
+                        Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
+                    }
+                } else {
+                    Log.e(
+                        "AppViewModel",
+                        "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
+                    )
+
+                }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error fetching contacts: ${e.message}")
+
+            }
+
+        }
+
+    }
+
 }
 
 class SosViewModelFactory(

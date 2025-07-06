@@ -290,8 +290,6 @@ class AppViewModel(context: Context) : ViewModel() {
                                 userLocation,
                                 onResult = { cityName ->
 
-                                    loadContacts(cityName ?: "")
-
                                     updateUserData(
                                         city = cityName ?: "",
                                         countryCode = countryCode ?: "",
@@ -434,42 +432,6 @@ class AppViewModel(context: Context) : ViewModel() {
         })
     }
 
-
-    private fun loadContacts(city: String) {
-        viewModelScope.launch {
-            try {
-                val firestore = FirebaseFirestore.getInstance()
-                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                    firestore.collection("dynamicContacts")
-                        .whereEqualTo("city", city)
-                        .get()
-                        .await()
-                }
-
-                if (!ratesQuerySnapshot.isEmpty) {
-                    val contactsDoc = ratesQuerySnapshot.documents[0]
-                    try {
-                        val contactVal =
-                            contactsDoc.toObject(Contact::class.java) ?: Contact()
-                        ContactsCatalogManager(appContext).saveContactsState(contactVal)
-                    } catch (e: Exception) {
-                        Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
-                    }
-                } else {
-                    Log.e(
-                        "AppViewModel",
-                        "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
-                    )
-
-                }
-            } catch (e: Exception) {
-                Log.e("AppViewModel", "Error fetching contacts: ${e.message}")
-
-            }
-
-        }
-
-    }
 }
 
 class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {

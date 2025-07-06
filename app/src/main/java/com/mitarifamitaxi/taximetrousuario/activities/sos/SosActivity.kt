@@ -122,7 +122,6 @@ class SosActivity : BaseActivity() {
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .padding(bottom = 40.dp)
                 ) {
                     items(uiState.contact.lines) { item ->
                         CustomAsyncImageButton(
