@@ -4,22 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
-import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.EmailTemplate
 import com.mitarifamitaxi.taximetrousuario.models.PqrsData
 import com.mitarifamitaxi.taximetrousuario.models.PqrsReasons
 import com.mitarifamitaxi.taximetrousuario.states.PqrsState
-import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -154,38 +148,43 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
         sendPqrEmail(onIntentReady)
     }
 
-
     private fun sendPqrEmail(onIntentReady: (Intent) -> Unit) {
-
-        /*val st = _uiState.value
+        val st = _uiState.value
 
         val irregularities = buildString {
-            if (st.isHighFare) append("- ${appContext.getString(R.string.high_fare)}\n")
-            if (st.isUserMistreated) append("- ${appContext.getString(R.string.user_mistreated)}\n")
-            if (st.isServiceAbandonment) append("- ${appContext.getString(R.string.service_abandonment)}\n")
-            if (st.isUnauthorizedCharges) append("- ${appContext.getString(R.string.unauthorized_charges)}\n")
-            if (st.isNoFareNotice) append("- ${appContext.getString(R.string.no_fare_notice)}\n")
-            if (st.isDangerousDriving) append("- ${appContext.getString(R.string.dangerous_driving)}\n")
-            if (st.isOther) append("- ${st.otherValue}\n")
+            st.reasonsSelected.forEach { reason ->
+                val line = if (reason.key == "OTHER") {
+                    st.otherValue
+                } else {
+                    reason.name.orEmpty()
+                }
+                append("- $line\n")
+            }
         }
 
-        val fullName =
-            "${appViewModel.uiState.value.userData?.firstName} ${appViewModel.uiState.value.userData?.lastName}"
-        val bodyEmail = (st.emailTemplate.body ?: "")
-            .replace("{city}", appViewModel.uiState.value.userData?.city ?: "")
+        val user = appViewModel.uiState.value.userData
+        val fullName = listOfNotNull(user?.firstName, user?.lastName)
+            .joinToString(" ")
+
+        val template = st.emailTemplate.body.orEmpty()
+        val bodyEmail = template
+            .replace("{city}", user?.city.orEmpty())
             .replace("{user_name}", fullName)
             .replace("{plate}", st.plate)
             .replace("{newline}", "\n")
             .replace("{irregularities}", irregularities)
 
+        val destination = st.pqrsData.email.orEmpty()
+        val subject = appContext.getString(R.string.email_subject)
+        val uri = Uri.encode("mailto:$destination?subject=$subject&body=$bodyEmail")
+
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data =
-                Uri.parse("mailto:${st.contact.pqrEmail}?subject=${appContext.getString(R.string.email_subject)}&body=$bodyEmail")
+            data = Uri.parse(uri)
         }
 
-        onIntentReady(emailIntent)*/
-
+        onIntentReady(emailIntent)
     }
+
 
     private fun getPqrsData(city: String) {
         viewModelScope.launch {
