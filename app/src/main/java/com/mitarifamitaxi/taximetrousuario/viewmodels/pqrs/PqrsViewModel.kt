@@ -176,7 +176,7 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
 
         val destination = st.pqrsData.email.orEmpty()
         val subject = appContext.getString(R.string.email_subject)
-        val uri = Uri.encode("mailto:$destination?subject=$subject&body=$bodyEmail")
+        val uri = "mailto:$destination?subject=$subject&body=$bodyEmail"
 
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse(uri)
