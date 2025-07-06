@@ -48,20 +48,37 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
     fun filterContactLines() {
         val originalContact = ContactsCatalogManager(appContext).getContactsState() ?: Contact()
+        val userData = appViewModel.uiState.value.userData
+        val supportNumber = userData?.supportNumber
+        val familyNumber = userData?.familyNumber
 
-        val filteredSortedLines = originalContact.lines
+        val updatedLines = originalContact.lines
+            .asSequence()
             .filter { it.show }
             .sortedBy { it.order }
-            .toMutableList()
+            .map { line ->
+                when (line.key) {
+                    "SUPPORT" -> line.copy(
+                        line2 = supportNumber,
+                        whatsapp = supportNumber
+                    )
+
+                    "FAMILY" -> line.copy(
+                        line2 = familyNumber,
+                        whatsapp = familyNumber
+                    )
+                    else -> line
+                }
+            }
+            .toList()
 
         _uiState.update { uiState ->
             uiState.copy(
-                contact = originalContact.copy(
-                    lines = filteredSortedLines
-                )
+                contact = originalContact.copy(lines = updatedLines)
             )
         }
     }
+
 
     fun showContactDialog(itemSelected: ContactCatalog? = null) {
 
@@ -223,14 +240,13 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
                     }
                 } else {
                     Log.e(
-                        "AppViewModel",
+                        "SosViewModel",
                         "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
                     )
 
                 }
             } catch (e: Exception) {
-                Log.e("AppViewModel", "Error fetching contacts: ${e.message}")
-
+                Log.e("SosViewModel", "Error fetching contacts: ${e.message}")
             }
 
         }

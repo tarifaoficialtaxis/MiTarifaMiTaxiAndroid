@@ -109,12 +109,6 @@
 
     <string name="reason_complaint">Motivo de la denuncia</string>
 
-    <string name="high_fare">Tarifa muy alta</string>
-    <string name="user_mistreated">Mal trato al usuario</string>
-    <string name="service_abandonment">Abandono del servicio</string>
-    <string name="unauthorized_charges">Cobro de recargos no autorizados</string>
-    <string name="no_fare_notice">No porta aviso de tarifas</string>
-    <string name="dangerous_driving">Conducción peligrosa</string>
     <string name="other">Otro</string>
 
     <string name="create_pqr">Radicar PQR</string>

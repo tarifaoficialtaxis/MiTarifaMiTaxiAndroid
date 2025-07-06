@@ -114,50 +114,21 @@ class PqrsActivity : BaseActivity() {
                             .padding(bottom = 10.dp)
                     )
 
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.high_fare),
-                        checked = uiState.isHighFare,
-                        onValueChange = { viewModel.onHighFareChange(it) }
-                    )
+                    uiState.pqrsData.reasons.forEach { reason ->
 
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.user_mistreated),
-                        checked = uiState.isUserMistreated,
-                        onValueChange = { viewModel.onUserMistreatedChange(it) }
-                    )
+                        val isSelected = uiState.reasonsSelected.any { it.key == reason.key }
 
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.service_abandonment),
-                        checked = uiState.isServiceAbandonment,
-                        onValueChange = { viewModel.onServiceAbandonmentChange(it) }
-                    )
+                        CustomCheckBox(
+                            text = reason.name.orEmpty(),
+                            checked = isSelected,
+                            onValueChange = { checked ->
+                                viewModel.onReasonToggled(reason, checked)
+                            }
+                        )
 
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.unauthorized_charges),
-                        checked = uiState.isUnauthorizedCharges,
-                        onValueChange = { viewModel.onUnauthorizedChargesChange(it) }
-                    )
+                    }
 
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.no_fare_notice),
-                        checked = uiState.isNoFareNotice,
-                        onValueChange = { viewModel.onNoFareNoticeChange(it) }
-                    )
-
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.dangerous_driving),
-                        checked = uiState.isDangerousDriving,
-                        onValueChange = { viewModel.onDangerousDrivingChange(it) }
-                    )
-
-                    CustomCheckBox(
-                        text = stringResource(id = R.string.other),
-                        checked = uiState.isOther,
-                        onValueChange = { viewModel.onOtherChange(it) }
-                    )
-
-
-                    if (uiState.isOther) {
+                    if (uiState.reasonsSelected.any { it.key == "OTHER" }) {
                         Spacer(modifier = Modifier.Companion.height(10.dp))
                         CustomMultilineTextField(
                             value = uiState.otherValue,

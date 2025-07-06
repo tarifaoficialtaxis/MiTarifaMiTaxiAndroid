@@ -16,6 +16,8 @@ import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.EmailTemplate
+import com.mitarifamitaxi.taximetrousuario.models.PqrsData
+import com.mitarifamitaxi.taximetrousuario.models.PqrsReasons
 import com.mitarifamitaxi.taximetrousuario.states.PqrsState
 import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
@@ -35,50 +37,30 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
     val uiState: StateFlow<PqrsState> = _uiState
 
     init {
+        getPqrsData(appViewModel.uiState.value.userData?.city ?: "")
         getEmailTemplate()
-        onContactChange(
-            ContactsCatalogManager(appContext).getContactsState() ?: Contact()
-        )
     }
 
     fun onPlateChange(value: String) = _uiState.update {
         it.copy(plate = value)
     }
 
-    fun onHighFareChange(value: Boolean) = _uiState.update {
-        it.copy(isHighFare = value)
-    }
-
-    fun onUserMistreatedChange(value: Boolean) = _uiState.update {
-        it.copy(isUserMistreated = value)
-    }
-
-    fun onServiceAbandonmentChange(value: Boolean) = _uiState.update {
-        it.copy(isServiceAbandonment = value)
-    }
-
-    fun onUnauthorizedChargesChange(value: Boolean) = _uiState.update {
-        it.copy(isUnauthorizedCharges = value)
-    }
-
-    fun onNoFareNoticeChange(value: Boolean) = _uiState.update {
-        it.copy(isNoFareNotice = value)
-    }
-
-    fun onDangerousDrivingChange(value: Boolean) = _uiState.update {
-        it.copy(isDangerousDriving = value)
-    }
-
-    fun onOtherChange(value: Boolean) = _uiState.update {
-        it.copy(isOther = value)
+    fun onReasonToggled(reason: PqrsReasons, isChecked: Boolean) {
+        val current = _uiState.value.reasonsSelected.toMutableList()
+        if (isChecked) {
+            if (!current.any { it.key == reason.key }) current += reason
+        } else {
+            current.removeAll { it.key == reason.key }
+        }
+        _uiState.value = _uiState.value.copy(reasonsSelected = current)
     }
 
     fun onOtherValueChange(value: String) = _uiState.update {
         it.copy(otherValue = value)
     }
 
-    fun onContactChange(value: Contact) = _uiState.update {
-        it.copy(contact = value)
+    fun onPqrsDataChange(value: PqrsData) = _uiState.update {
+        it.copy(pqrsData = value)
     }
 
     fun onEmailTemplateChange(value: EmailTemplate) = _uiState.update {
@@ -136,18 +118,19 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
 
 
     fun validateSendPqr(onIntentReady: (Intent) -> Unit) {
-
         _uiState.update { state ->
             state.copy(
                 plateIsError = state.plate.isBlank(),
-                plateErrorMessage = if (state.plate.isBlank()) appContext.getString(R.string.required_field) else "",
+                plateErrorMessage = if (state.plate.isBlank())
+                    appContext.getString(R.string.required_field)
+                else
+                    ""
             )
         }
-
         val st = _uiState.value
         if (st.plateIsError) return
 
-        if (!st.isHighFare && !st.isUserMistreated && !st.isServiceAbandonment && !st.isUnauthorizedCharges && !st.isNoFareNotice && !st.isDangerousDriving && !st.isOther) {
+        if (st.reasonsSelected.isEmpty()) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
                 title = appContext.getString(R.string.attention),
@@ -156,26 +139,25 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
             return
         }
 
+        val otherSelected = st.reasonsSelected.any { it.key == "OTHER" }
         _uiState.update { state ->
             state.copy(
-                isOtherValueError = state.isOther && state.otherValue.isBlank(),
-                otherValueErrorMessage = if (state.isOther && state.otherValue.isBlank()) appContext.getString(
-                    R.string.other_reason_required
-                ) else "",
+                isOtherValueError = otherSelected && state.otherValue.isBlank(),
+                otherValueErrorMessage = if (otherSelected && state.otherValue.isBlank())
+                    appContext.getString(R.string.other_reason_required)
+                else
+                    ""
             )
         }
-
-
         if (_uiState.value.isOtherValueError) return
 
         sendPqrEmail(onIntentReady)
-
     }
+
 
     private fun sendPqrEmail(onIntentReady: (Intent) -> Unit) {
 
-        val st = _uiState.value
-
+        /*val st = _uiState.value
 
         val irregularities = buildString {
             if (st.isHighFare) append("- ${appContext.getString(R.string.high_fare)}\n")
@@ -201,9 +183,45 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
                 Uri.parse("mailto:${st.contact.pqrEmail}?subject=${appContext.getString(R.string.email_subject)}&body=$bodyEmail")
         }
 
-        onIntentReady(emailIntent)
+        onIntentReady(emailIntent)*/
 
     }
+
+    private fun getPqrsData(city: String) {
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                    firestore.collection("dynamicPqrs")
+                        .whereEqualTo("city", city)
+                        .get()
+                        .await()
+                }
+
+                if (!ratesQuerySnapshot.isEmpty) {
+                    val contactsDoc = ratesQuerySnapshot.documents[0]
+                    try {
+                        val pqrsVal =
+                            contactsDoc.toObject(PqrsData::class.java) ?: PqrsData()
+                        onPqrsDataChange(pqrsVal)
+                    } catch (e: Exception) {
+                        Log.e("PqrsViewModel", "Error parsing contact data: ${e.message}")
+                    }
+                } else {
+                    Log.e(
+                        "PqrsViewModel",
+                        "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
+                    )
+
+                }
+            } catch (e: Exception) {
+                Log.e("PqrsViewModel", "Error fetching contacts: ${e.message}")
+            }
+
+        }
+
+    }
+
 }
 
 class PqrsViewModelFactory(
