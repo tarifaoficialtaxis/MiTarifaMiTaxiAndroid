@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,9 +32,9 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomMultilineTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.states.PqrsState
-import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.pqrs.PqrsViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.pqrs.PqrsViewModelFactory
 
@@ -146,6 +145,8 @@ class PqrsActivity : BaseActivity() {
                 CustomButton(
                     text = stringResource(id = R.string.create_pqr).uppercase(),
                     onClick = onClickSendPqr,
+                    modifier = Modifier.Companion
+                        .padding(top = K.GENERAL_PADDING),
                 )
 
             }
