@@ -11,6 +11,7 @@ data class Contact(
 
 data class ContactCatalog(
     val key: String? = null,
+    val name: String? = null,
     val line1: String? = null,
     val line2: String? = null,
     val whatsapp: String? = null,

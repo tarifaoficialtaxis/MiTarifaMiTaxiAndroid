@@ -248,10 +248,6 @@
 
     <string name="general_error">Ha ocurrido un error. Por favor, inténtalo de nuevo.</string>
 
-    <string name="police">Policía</string>
-    <string name="fire_fighters">Bomberos</string>
-    <string name="ambulance">Ambulancia</string>
-    <string name="animal_care">Defensoría animal</string>
     <string name="support">Grupo de apoyo</string>
     <string name="family">Familia</string>
     <string name="support_number_not_found">Contacto de grupo de apoyo no encontrado</string>

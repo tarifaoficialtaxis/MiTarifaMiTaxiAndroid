@@ -20,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +31,6 @@ import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomAsyncImageButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomContactActionDialog
-import com.mitarifamitaxi.taximetrousuario.components.ui.CustomImageButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
 import com.mitarifamitaxi.taximetrousuario.states.SosState
@@ -40,6 +38,7 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.grid.items
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 class SosActivity : BaseActivity() {
 
@@ -112,6 +111,7 @@ class SosActivity : BaseActivity() {
             Column(
                 modifier = Modifier.Companion
                     .fillMaxSize()
+                    .padding(K.GENERAL_PADDING)
                     .verticalScroll(rememberScrollState())
             ) {
 
@@ -161,7 +161,6 @@ class SosActivity : BaseActivity() {
                         onIntentReady = {
                             startActivity(it)
                         })
-
                 },
             )
         }

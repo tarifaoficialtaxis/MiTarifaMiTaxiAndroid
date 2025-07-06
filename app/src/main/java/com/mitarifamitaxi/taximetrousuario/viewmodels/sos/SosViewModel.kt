@@ -101,33 +101,13 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
     fun validateSosAction(isCall: Boolean, contactNumber: String, onIntentReady: (Intent) -> Unit) {
 
-        var sosType = ""
+        var sosType = _uiState.value.contactCatalogSelected?.name ?: "SOS"
         var event: String? = null
 
         when (_uiState.value.contactCatalogSelected?.key) {
-            "POLICE" -> {
-                sosType = appContext.getString(R.string.police)
-            }
-
-            "FIRE_FIGHTERS" -> {
-                sosType = appContext.getString(R.string.fire_fighters)
-            }
-
-            "AMBULANCE" -> {
-                sosType = appContext.getString(R.string.ambulance)
-            }
 
             "ANIMAL_CARE" -> {
-                sosType = appContext.getString(R.string.animal_care)
                 event = appContext.getString(R.string.sos_animal_care)
-            }
-
-            "SUPPORT" -> {
-                sosType = appContext.getString(R.string.support)
-            }
-
-            "FAMILY" -> {
-                sosType = appContext.getString(R.string.family)
             }
 
         }
