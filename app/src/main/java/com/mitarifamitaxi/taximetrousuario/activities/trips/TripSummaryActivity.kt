@@ -302,7 +302,7 @@ class TripSummaryActivity : BaseActivity() {
                             .background(colorResource(id = R.color.gray2))
                     )
 
-                    if (uiState.tripData.units != null) {
+                    if (uiState.tripData.units != null && uiState.tripData.showUnits == true) {
                         TripInfoRow(
                             title = stringResource(id = R.string.units),
                             value = uiState.tripData.units.toInt().toString()
@@ -386,7 +386,7 @@ class TripSummaryActivity : BaseActivity() {
                             modifier = Modifier
                                 .padding(start = 29.dp)
                         ) {
-                            if (uiState.tripData.baseUnits != null) {
+                            if (uiState.tripData.baseUnits != null && uiState.tripData.showUnits == true) {
                                 TripInfoRow(
                                     title = stringResource(id = R.string.units_base),
                                     value = uiState.tripData.baseUnits.toInt().toString()
@@ -410,13 +410,16 @@ class TripSummaryActivity : BaseActivity() {
                             modifier = Modifier
                                 .padding(start = 29.dp)
                         ) {
-                            uiState.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.units_recharge),
-                                    value = it.toInt().toString()
-                                )
-                            }
 
+                            if (uiState.tripData.showUnits == true) {
+
+                                uiState.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
+                                    TripInfoRow(
+                                        title = stringResource(id = R.string.units_recharge),
+                                        value = it.toInt().toString()
+                                    )
+                                }
+                            }
 
                             uiState.tripData.recharges.forEach { recharge ->
                                 TripInfoRow(

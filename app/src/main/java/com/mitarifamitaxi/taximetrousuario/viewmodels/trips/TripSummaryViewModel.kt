@@ -131,7 +131,11 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                     currentState.tripData.distance?.let { (it / 1000).formatDigits(1) }
                 } KM\n"
             )
-            append("*Unidades base:* ${currentState.tripData.baseUnits?.formatNumberWithDots()}\n")
+
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades base:* ${currentState.tripData.baseUnits?.formatNumberWithDots()}\n")
+            }
+
 
             append(
                 "*Tarifa base:* ${
@@ -139,7 +143,9 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
             )
 
-            append("*Unidades recargo:* ${currentState.tripData.rechargeUnits?.formatNumberWithDots()}\n")
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades recargo:* ${currentState.tripData.rechargeUnits?.formatNumberWithDots()}\n")
+            }
 
             for (recharge in currentState.tripData.recharges) {
                 append(
@@ -149,7 +155,9 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                 )
             }
 
-            append("*Unidades totales:* ${currentState.tripData.units?.formatNumberWithDots()}\n")
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades totales:* ${currentState.tripData.units?.formatNumberWithDots()}\n")
+            }
 
             append(
                 "*${appContext.getString(R.string.total)}* ${
