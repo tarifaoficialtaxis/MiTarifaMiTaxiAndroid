@@ -469,42 +469,45 @@ class TaximeterActivity : BaseActivity() {
                             )
                         }
 
-
-                        Button(
-                            onClick = {
-                                viewModel.onChangeIsAddRechargesOpen(!taximeterState.isRechargesOpen)
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.transparent)
-                            ),
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier
-                                .height(25.dp)
-                        ) {
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
+                        if (taximeterState.rates.recharges.isNotEmpty()) {
+                            Button(
+                                onClick = {
+                                    viewModel.onChangeIsAddRechargesOpen(!taximeterState.isRechargesOpen)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(id = R.color.transparent)
+                                ),
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier
+                                    .height(25.dp)
                             ) {
 
-                                Text(
-                                    text = stringResource(id = R.string.add_recharges),
-                                    fontFamily = MontserratFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = colorResource(id = R.color.main),
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
 
-                                Icon(
-                                    imageVector = if (taximeterState.isRechargesOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    tint = colorResource(id = R.color.main),
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                )
+                                    Text(
+                                        text = stringResource(id = R.string.add_recharges),
+                                        fontFamily = MontserratFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = colorResource(id = R.color.main),
+                                    )
+
+                                    Icon(
+                                        imageVector = if (taximeterState.isRechargesOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = colorResource(id = R.color.main),
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                    )
+
+                                }
 
                             }
-
                         }
+
+
 
                         if (taximeterState.isRechargesOpen) {
                             Column(
