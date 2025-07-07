@@ -401,35 +401,37 @@ class TripSummaryActivity : BaseActivity() {
                             )
                         }
 
-                        TripInfoRow(
-                            title = stringResource(id = R.string.recharges),
-                            value = ""
-                        )
+                        if (uiState.tripData.recharges.isNotEmpty()) {
 
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 29.dp)
-                        ) {
+                            TripInfoRow(
+                                title = stringResource(id = R.string.recharges),
+                                value = ""
+                            )
 
-                            if (uiState.tripData.showUnits == true) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(start = 29.dp)
+                            ) {
 
-                                uiState.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
+                                if (uiState.tripData.showUnits == true) {
+
+                                    uiState.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
+                                        TripInfoRow(
+                                            title = stringResource(id = R.string.units_recharge),
+                                            value = it.toInt().toString()
+                                        )
+                                    }
+                                }
+
+                                uiState.tripData.recharges.forEach { recharge ->
                                     TripInfoRow(
-                                        title = stringResource(id = R.string.units_recharge),
-                                        value = it.toInt().toString()
+                                        title = recharge.name ?: "",
+                                        value = "+$${
+                                            ((recharge.units ?: 0.0) * (uiState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
+                                        } ${uiState.tripData.currency}"
                                     )
                                 }
                             }
-
-                            uiState.tripData.recharges.forEach { recharge ->
-                                TripInfoRow(
-                                    title = recharge.name ?: "",
-                                    value = "+$${
-                                        ((recharge.units ?: 0.0) * (uiState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
-                                    } ${uiState.tripData.currency}"
-                                )
-                            }
-
                         }
                     }
 
