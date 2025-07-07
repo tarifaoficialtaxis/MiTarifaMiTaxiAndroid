@@ -158,11 +158,6 @@
 
     <string name="without_recharges">Sin Recargos</string>
     <string name="recharges">Recargos</string>
-    <string name="airport_surcharge">Recargo Aeropuerto</string>
-    <string name="holiday_surcharge">Recargo nocturno dominical o festivo</string>
-    <string name="holiday_surcharge_only">Recargo dominical o festivo</string>
-    <string name="night_surcharge_only">Recargo nocturno</string>
-    <string name="door_to_door_surcharge">Recargo puerta a puerta</string>
 
     <string name="begin_your_trip">Inicia tu viaje</string>
     <string name="select_start_and_end">Selecciona inicio y fin de tu viaje</string>

@@ -222,9 +222,6 @@ class TaximeterActivity : BaseActivity() {
             onToggleFab = { viewModel.toggleFab() },
             onOpenWaze = { viewModel.openWazeApp { startActivity(it) } },
             onOpenGoogleMaps = { viewModel.openGoogleMapsApp { startActivity(it) } },
-            onDoorToDoorChange = { viewModel.setDoorToDoorSurcharge(it) },
-            onAirportChange = { viewModel.setAirportSurcharge(it) },
-            onHolidayChange = { viewModel.setHolidaySurcharge(it) },
             onSetTakeScreenshot = { viewModel.setTakeMapScreenshot(it) }
         )
         BackHandler(enabled = true) {
@@ -248,9 +245,6 @@ class TaximeterActivity : BaseActivity() {
         onToggleFab: () -> Unit,
         onOpenWaze: () -> Unit,
         onOpenGoogleMaps: () -> Unit,
-        onDoorToDoorChange: (Boolean) -> Unit,
-        onAirportChange: (Boolean) -> Unit,
-        onHolidayChange: (Boolean) -> Unit,
         onSetTakeScreenshot: (Boolean) -> Unit
     ) {
 
@@ -470,39 +464,22 @@ class TaximeterActivity : BaseActivity() {
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier.padding(top = 10.dp)
                     ) {
-                        if (taximeterState.rates.doorToDoorRateUnits != null && taximeterState.rates.doorToDoorRateUnits != 0.0) {
+
+                        taximeterState.rates.recharges.forEach { recharge ->
+
+                            val isSelected =
+                                taximeterState.rechargesSelected.any { it.key == recharge.key }
+
                             CustomCheckBox(
-                                text = stringResource(id = R.string.door_to_door_surcharge).replace(
-                                    ":",
-                                    ""
-                                ),
-                                checked = taximeterState.isDoorToDoorSurcharge,
-                                isEnabled = taximeterState.isTaximeterStarted,
-                                onValueChange = onDoorToDoorChange
+                                text = recharge.name.orEmpty(),
+                                checked = isSelected,
+                                onValueChange = { checked ->
+                                    viewModel.onRechargeToggled(recharge, checked)
+                                }
                             )
+
                         }
-                        if (taximeterState.rates.airportRateUnits != null && taximeterState.rates.airportRateUnits != 0.0) {
-                            CustomCheckBox(
-                                text = stringResource(id = R.string.airport_surcharge).replace(
-                                    ":",
-                                    ""
-                                ),
-                                checked = taximeterState.isAirportSurcharge,
-                                isEnabled = taximeterState.isTaximeterStarted,
-                                onValueChange = onAirportChange
-                            )
-                        }
-                        if (taximeterState.rates.holidayRateUnits != null && taximeterState.rates.holidayRateUnits != 0.0) {
-                            CustomCheckBox(
-                                text = stringResource(id = R.string.holiday_surcharge).replace(
-                                    ":",
-                                    ""
-                                ),
-                                checked = taximeterState.isHolidaySurcharge,
-                                isEnabled = taximeterState.isTaximeterStarted,
-                                onValueChange = onHolidayChange
-                            )
-                        }
+
                     }
 
                     Spacer(Modifier.weight(1f))
@@ -569,7 +546,6 @@ class TaximeterActivity : BaseActivity() {
             endAddress = "Avenida Siempre Viva 742",
             currentSpeed = 45,
             isTaximeterStarted = true,
-            isHolidaySurcharge = true
         )
         val sampleAppState = AppState(
             userData = LocalUser(
@@ -589,9 +565,6 @@ class TaximeterActivity : BaseActivity() {
             onToggleFab = {},
             onOpenWaze = {},
             onOpenGoogleMaps = {},
-            onDoorToDoorChange = {},
-            onAirportChange = {},
-            onHolidayChange = {},
             onSetTakeScreenshot = {}
         )
     }

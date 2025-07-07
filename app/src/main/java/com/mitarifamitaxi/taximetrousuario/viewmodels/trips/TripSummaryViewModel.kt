@@ -141,7 +141,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
             append("*Unidades recargo:* ${currentState.tripData.rechargeUnits}\n")
 
-            if (currentState.tripData.airportSurchargeEnabled == true) {
+            /*if (currentState.tripData.airportSurchargeEnabled == true) {
                 append(
                     "*Recargo aeropuerto:* ${
                         currentState.tripData.airportSurcharge?.toInt()?.formatNumberWithDots()
@@ -179,7 +179,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                         currentState.tripData.nightSurcharge?.toInt()?.formatNumberWithDots()
                     } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
-            }
+            }*/
 
             append("*Unidades totales:* ${currentState.tripData.units}\n")
 

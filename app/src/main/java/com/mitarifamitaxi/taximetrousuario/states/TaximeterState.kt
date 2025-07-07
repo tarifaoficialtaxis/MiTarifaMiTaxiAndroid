@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.states
 
 import com.google.android.gms.maps.model.LatLng
 import com.mitarifamitaxi.taximetrousuario.models.Rates
+import com.mitarifamitaxi.taximetrousuario.models.Recharge
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
 
 data class TaximeterState(
@@ -24,7 +25,5 @@ data class TaximeterState(
     val takeMapScreenshot: Boolean = false,
     val isMapLoaded: Boolean = false,
     val rates: Rates = Rates(),
-    val isDoorToDoorSurcharge: Boolean = false,
-    val isAirportSurcharge: Boolean = false,
-    val isHolidaySurcharge: Boolean = false
+    val rechargesSelected: List<Recharge> = emptyList()
 )

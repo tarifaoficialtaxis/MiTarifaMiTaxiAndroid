@@ -2,9 +2,6 @@ package com.mitarifamitaxi.taximetrousuario.models
 
 data class Rates(
     val city: String? = null,
-    val airportRateUnits: Double? = null,
-    val doorToDoorRateUnits: Double? = null,
-    val holidayRateUnits: Double? = null,
     val dragSpeed: Double? = null,
     val meters: Int? = null,
     val minimumRateUnits: Double? = null,
@@ -12,11 +9,17 @@ data class Rates(
     val unitPrice: Double? = null,
     val waitTime: Int? = null,
     val waitTimeRateUnit: Double? = null,
-    val nightHourSurcharge: Int? = null,
-    val nighMinuteSurcharge: Int? = null,
-    val morningHourSurcharge: Int? = null,
-    val morningMinuteSurcharge: Int? = null,
-    val validateHolidaySurcharge: Boolean? = null,
     val speedLimit: Int? = null,
-    val speedUnits: String? = null
+    val speedUnits: String? = null,
+    val recharges: List<Recharge> = emptyList(),
 )
+
+data class Recharge(
+    val key: String? = null,
+    val isEnabled: Boolean? = null,
+    val name: String? = null,
+    val order: Int? = null,
+    val units: Double? = null,
+    val show: Boolean? = null
+)
+

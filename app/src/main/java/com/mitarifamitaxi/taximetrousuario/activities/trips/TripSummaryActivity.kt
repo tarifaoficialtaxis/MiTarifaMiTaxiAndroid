@@ -417,55 +417,16 @@ class TripSummaryActivity : BaseActivity() {
                                 )
                             }
 
-                            if (uiState.tripData.airportSurchargeEnabled == true) {
+
+                            uiState.tripData.recharges.forEach { recharge ->
                                 TripInfoRow(
-                                    title = stringResource(id = R.string.airport_surcharge),
+                                    title = recharge.name ?: "",
                                     value = "+$${
-                                        uiState.tripData.airportSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
+                                        ((recharge.units ?: 0.0) * (uiState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
                                     } ${uiState.tripData.currency}"
                                 )
                             }
 
-                            if (uiState.tripData.doorToDoorSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.door_to_door_surcharge),
-                                    value = "+$${
-                                        uiState.tripData.doorToDoorSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${uiState.tripData.currency}"
-                                )
-                            }
-
-                            if (uiState.tripData.nightSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.night_surcharge_only),
-                                    value = "+$${
-                                        uiState.tripData.nightSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${uiState.tripData.currency}"
-                                )
-                            }
-
-                            if (uiState.tripData.holidaySurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.holiday_surcharge_only),
-                                    value = "+$${
-                                        uiState.tripData.holidaySurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${uiState.tripData.currency}"
-                                )
-                            }
-
-                            if (uiState.tripData.holidayOrNightSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.holiday_surcharge),
-                                    value = "+$${
-                                        uiState.tripData.holidayOrNightSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${uiState.tripData.currency}"
-                                )
-                            }
                         }
                     }
 
@@ -531,17 +492,13 @@ class TripSummaryActivity : BaseActivity() {
             uiState = TripSummaryState(
                 tripData = Trip(
                     endAddress = "Welland Ave + Bunting Rd, St. Catharines, ON L2M 5V7, Canada",
-                    holidayOrNightSurchargeEnabled = true,
                     startCoords = UserLocation(43.158396629424381, -79.223706008781051),
                     currency = "CAD",
                     total = 12675.266674339222,
                     routeImage = "https://firebasestorage.googleapis.com:443/v0/b/mitarifamitaxi-4a0e2.appspot.com/o/images%2F1749259927386.186.png?alt=media&token=0f39484a-7217-4760-83cd-32a7ca7decf3",
                     endHour = "2025-06-07T01:32:06.798000Z",
                     startHour = "2025-06-07T01:24:58.292000Z",
-                    holidayOrNightSurcharge = 3500.0699999999997,
                     endCoords = UserLocation(43.176251155140861, -79.212042830449874),
-                    doorToDoorSurchargeEnabled = false,
-                    airportSurchargeEnabled = false,
                     units = 86.226303907069536,
                     distance = 3041.6303907069505,
                     baseRate = 9175.1966743392222,

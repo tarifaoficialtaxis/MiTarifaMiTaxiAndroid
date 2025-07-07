@@ -41,6 +41,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Rates
+import com.mitarifamitaxi.taximetrousuario.models.Recharge
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
 import com.mitarifamitaxi.taximetrousuario.states.TaximeterState
@@ -216,7 +217,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 try {
                     val firestore = FirebaseFirestore.getInstance()
                     val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("rates").whereEqualTo("city", userCity).get().await()
+                        firestore.collection("dynamicRates").whereEqualTo("city", userCity).get().await()
                     }
 
                     if (!ratesQuerySnapshot.isEmpty) {
@@ -479,21 +480,14 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             endCoords = state.currentPosition,
             startHour = startTime,
             endHour = endTime,
+            unitPrice = state.rates.unitPrice,
             units = baseUnits + state.rechargeUnits,
             baseUnits = baseUnits,
             rechargeUnits = state.rechargeUnits,
             total = (baseUnits + state.rechargeUnits) * (rates.unitPrice ?: 0.0),
             baseRate = baseUnits * (rates.unitPrice ?: 0.0),
             distance = state.distanceMade,
-            airportSurchargeEnabled = state.isAirportSurcharge,
-            airportSurcharge = if (state.isAirportSurcharge) (rates.airportRateUnits
-                ?: 0.0) * (rates.unitPrice ?: 0.0) else null,
-            holidayOrNightSurchargeEnabled = state.isHolidaySurcharge,
-            holidayOrNightSurcharge = if (state.isHolidaySurcharge) (rates.holidayRateUnits
-                ?: 0.0) * (rates.unitPrice ?: 0.0) else null,
-            doorToDoorSurchargeEnabled = state.isDoorToDoorSurcharge,
-            doorToDoorSurcharge = if (state.isDoorToDoorSurcharge) (rates.doorToDoorRateUnits
-                ?: 0.0) * (rates.unitPrice ?: 0.0) else null,
+            recharges = state.rechargesSelected,
             currency = appViewModel.uiState.value.userData?.countryCurrency,
             routeImageLocal = compressedBitmap
         )
@@ -550,24 +544,13 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     putIfNotNull("startHour", tripData.startHour)
                     putIfNotNull("endHour", tripData.endHour)
                     putIfNotNull("distance", tripData.distance)
+                    putIfNotNull("unitPrice", tripData.unitPrice)
                     putIfNotNull("units", tripData.units)
                     putIfNotNull("baseUnits", tripData.baseUnits)
                     putIfNotNull("rechargeUnits", tripData.rechargeUnits)
                     putIfNotNull("total", tripData.total)
                     putIfNotNull("baseRate", tripData.baseRate)
-                    putIfNotNull("isAirportSurcharge", tripData.airportSurchargeEnabled)
-                    putIfNotNull("airportSurcharge", tripData.airportSurcharge)
-                    putIfNotNull("isHolidaySurcharge", tripData.holidaySurchargeEnabled)
-                    putIfNotNull("holidaySurcharge", tripData.holidaySurcharge)
-                    putIfNotNull("isDoorToDoorSurcharge", tripData.doorToDoorSurchargeEnabled)
-                    putIfNotNull("doorToDoorSurcharge", tripData.doorToDoorSurcharge)
-                    putIfNotNull("isNightSurcharge", tripData.nightSurchargeEnabled)
-                    putIfNotNull("nightSurcharge", tripData.nightSurcharge)
-                    putIfNotNull(
-                        "isHolidayOrNightSurcharge",
-                        tripData.holidayOrNightSurchargeEnabled
-                    )
-                    putIfNotNull("holidayOrNightSurcharge", tripData.holidayOrNightSurcharge)
+                    putIfNotNull("recharges", tripData.recharges)
                     putIfNotNull("currency", appViewModel.uiState.value.userData?.countryCurrency)
                     putIfNotNull("startAddress", tripData.startAddress)
                     putIfNotNull("endAddress", tripData.endAddress)
@@ -623,40 +606,19 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         _uiState.update { it.copy(isFabExpanded = !it.isFabExpanded) }
     }
 
-    fun setDoorToDoorSurcharge(checked: Boolean) {
-        val rates = _uiState.value.rates
+    fun onRechargeToggled(recharge: Recharge, isChecked: Boolean) {
+        val current = _uiState.value.rechargesSelected.toMutableList()
         var newRechargeUnits = _uiState.value.rechargeUnits
-        if (checked) {
-            newRechargeUnits += rates.doorToDoorRateUnits ?: 0.0
-        } else {
-            newRechargeUnits -= rates.doorToDoorRateUnits ?: 0.0
-        }
-        _uiState.update { it.copy(isDoorToDoorSurcharge = checked) }
-        updateTotal(newRechargeUnits)
-    }
 
-    fun setAirportSurcharge(checked: Boolean) {
-        val rates = _uiState.value.rates
-        var newRechargeUnits = _uiState.value.rechargeUnits
-        if (checked) {
-            newRechargeUnits += rates.airportRateUnits ?: 0.0
+        if (isChecked) {
+            newRechargeUnits += recharge.units ?: 0.0
+            if (!current.any { it.key == recharge.key }) current += recharge
         } else {
-            newRechargeUnits -= rates.airportRateUnits ?: 0.0
+            newRechargeUnits -= recharge.units ?: 0.0
+            current.removeAll { it.key == recharge.key }
         }
-        _uiState.update { it.copy(isAirportSurcharge = checked) }
         updateTotal(newRechargeUnits)
-    }
-
-    fun setHolidaySurcharge(checked: Boolean) {
-        val rates = _uiState.value.rates
-        var newRechargeUnits = _uiState.value.rechargeUnits
-        if (checked) {
-            newRechargeUnits += rates.holidayRateUnits ?: 0.0
-        } else {
-            newRechargeUnits -= rates.holidayRateUnits ?: 0.0
-        }
-        _uiState.update { it.copy(isHolidaySurcharge = checked) }
-        updateTotal(newRechargeUnits)
+        _uiState.value = _uiState.value.copy(rechargesSelected = current)
     }
 }
 
