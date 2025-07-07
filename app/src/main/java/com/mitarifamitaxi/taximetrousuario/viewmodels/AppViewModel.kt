@@ -133,12 +133,12 @@ class AppViewModel(context: Context) : ViewModel() {
                             )
 
                         } else {
-                            Log.i("AppViewModel", "App Version is up to date")
+                            Log.i("AppViewModel", "App is up to date")
                         }
 
 
                     } catch (e: Exception) {
-                        Log.e("AppViewModel", "Error parsing rates: ${e.message}")
+                        Log.e("AppViewModel", "Error on get app version: ${e.message}")
                         showMessage(
                             type = DialogType.ERROR,
                             title = appContext.getString(R.string.something_went_wrong),
@@ -153,7 +153,7 @@ class AppViewModel(context: Context) : ViewModel() {
                     )
                 }
             } catch (e: Exception) {
-                Log.e("AppViewModel", "Error fetching contacts: ${e.message}")
+                Log.e("AppViewModel", "Error on get app version: ${e.message}")
                 showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),

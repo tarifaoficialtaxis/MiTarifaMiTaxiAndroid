@@ -34,6 +34,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.TermsConditionsViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.TermsConditionsViewModelFactory
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 class TermsConditionsActivity : BaseActivity() {
 
@@ -99,7 +100,7 @@ class TermsConditionsActivity : BaseActivity() {
                 Column(
                     modifier = Modifier.Companion
                         .fillMaxSize()
-                        .padding(29.dp)
+                        .padding(K.GENERAL_PADDING)
                 ) {
 
                     Column(
