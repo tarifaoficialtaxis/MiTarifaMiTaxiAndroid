@@ -131,61 +131,29 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
                     currentState.tripData.distance?.let { (it / 1000).formatDigits(1) }
                 } KM\n"
             )
-            append("*Unidades base:* ${currentState.tripData.baseUnits}\n")
+            append("*Unidades base:* ${currentState.tripData.baseUnits?.formatNumberWithDots()}\n")
 
             append(
                 "*Tarifa base:* ${
-                    currentState.tripData.baseRate?.toInt()?.formatNumberWithDots()
+                    currentState.tripData.baseRate?.formatNumberWithDots()
                 } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
             )
 
-            append("*Unidades recargo:* ${currentState.tripData.rechargeUnits}\n")
+            append("*Unidades recargo:* ${currentState.tripData.rechargeUnits?.formatNumberWithDots()}\n")
 
-            /*if (currentState.tripData.airportSurchargeEnabled == true) {
+            for (recharge in currentState.tripData.recharges) {
                 append(
-                    "*Recargo aeropuerto:* ${
-                        currentState.tripData.airportSurcharge?.toInt()?.formatNumberWithDots()
+                    "*${recharge.name}:* ${
+                        ((recharge.units ?: 0.0) * (currentState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
                     } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
-            if (currentState.tripData.holidayOrNightSurchargeEnabled == true) {
-                append(
-                    "*Recargo nocturno dominical o festivo:* ${
-                        currentState.tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
-                )
-            }
-
-            if (currentState.tripData.doorToDoorSurchargeEnabled == true) {
-                append(
-                    "*Recargo puerta a puerta:* ${
-                        currentState.tripData.doorToDoorSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
-                )
-            }
-
-            if (currentState.tripData.holidaySurchargeEnabled == true) {
-                append(
-                    "*Recargo dominical o festivo:* ${
-                        currentState.tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
-                )
-            }
-
-            if (currentState.tripData.nightSurchargeEnabled == true) {
-                append(
-                    "*Recargo nocturno:* ${
-                        currentState.tripData.nightSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
-                )
-            }*/
-
-            append("*Unidades totales:* ${currentState.tripData.units}\n")
+            append("*Unidades totales:* ${currentState.tripData.units?.formatNumberWithDots()}\n")
 
             append(
                 "*${appContext.getString(R.string.total)}* ${
-                    currentState.tripData.total?.toInt()?.formatNumberWithDots()
+                    currentState.tripData.total?.formatNumberWithDots()
                 } ${appViewModel.uiState.value.userData?.countryCurrency}"
             )
         }

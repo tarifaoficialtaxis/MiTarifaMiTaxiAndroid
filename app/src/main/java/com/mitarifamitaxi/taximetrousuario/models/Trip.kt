@@ -11,6 +11,7 @@ data class Trip(
     val endCoords: UserLocation? = null,
     val startHour: String? = null,
     val endHour: String? = null,
+    val isUnits: Boolean? = null,
     val unitPrice: Double? = null,
     val units: Double? = null,
     val baseUnits: Double? = null,

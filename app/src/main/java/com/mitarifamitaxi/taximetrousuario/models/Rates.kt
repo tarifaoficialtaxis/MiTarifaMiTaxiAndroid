@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.models
 
 data class Rates(
     val city: String? = null,
+    val isUnits: Boolean? = null,
     val dragSpeed: Double? = null,
     val meters: Int? = null,
     val minimumRateUnits: Double? = null,

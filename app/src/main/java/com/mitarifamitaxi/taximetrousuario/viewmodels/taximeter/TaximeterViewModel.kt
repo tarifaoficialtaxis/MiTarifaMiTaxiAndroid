@@ -217,7 +217,8 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 try {
                     val firestore = FirebaseFirestore.getInstance()
                     val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("dynamicRates").whereEqualTo("city", userCity).get().await()
+                        firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
+                            .await()
                     }
 
                     if (!ratesQuerySnapshot.isEmpty) {
@@ -480,6 +481,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             endCoords = state.currentPosition,
             startHour = startTime,
             endHour = endTime,
+            isUnits = state.rates.isUnits,
             unitPrice = state.rates.unitPrice,
             units = baseUnits + state.rechargeUnits,
             baseUnits = baseUnits,
@@ -544,6 +546,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     putIfNotNull("startHour", tripData.startHour)
                     putIfNotNull("endHour", tripData.endHour)
                     putIfNotNull("distance", tripData.distance)
+                    putIfNotNull("isUnits", tripData.isUnits)
                     putIfNotNull("unitPrice", tripData.unitPrice)
                     putIfNotNull("units", tripData.units)
                     putIfNotNull("baseUnits", tripData.baseUnits)
@@ -604,6 +607,10 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     fun toggleFab() {
         _uiState.update { it.copy(isFabExpanded = !it.isFabExpanded) }
+    }
+
+    fun onChangeIsAddRechargesOpen(value: Boolean) {
+        _uiState.update { it.copy(isRechargesOpen = value) }
     }
 
     fun onRechargeToggled(recharge: Recharge, isChecked: Boolean) {

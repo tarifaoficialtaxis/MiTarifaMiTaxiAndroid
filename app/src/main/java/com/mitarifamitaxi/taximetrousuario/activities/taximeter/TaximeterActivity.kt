@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,9 +28,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -388,8 +393,8 @@ class TaximeterActivity : BaseActivity() {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
+                        .background(colorResource(id = R.color.white))
                         .padding(K.GENERAL_PADDING)
-                        .verticalScroll(rememberScrollState())
                 ) {
                     Text(
                         text = "$ ${
@@ -415,28 +420,22 @@ class TaximeterActivity : BaseActivity() {
                             .padding(bottom = 10.dp)
                     )
 
-                    TaximeterInfoRow(
-                        title = stringResource(id = R.string.distance_made),
-                        value = "${(taximeterState.distanceMade / 1000).formatDigits(1)} KM",
-                    )
-                    TaximeterInfoRow(
-                        title = stringResource(id = R.string.units_base),
-                        value = taximeterState.units.formatNumberWithDots().toString()
-                    )
-                    TaximeterInfoRow(
-                        title = stringResource(id = R.string.units_recharge),
-                        value = taximeterState.rechargeUnits.toInt().toString()
-                    )
-                    TaximeterInfoRow(
-                        title = stringResource(id = R.string.time_trip),
-                        value = taximeterState.formattedTime
-                    )
 
-                    Column {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(colorResource(id = R.color.white))
+                            .padding(top = 10.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+
                         Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 10.dp)
+                                .padding(bottom = 5.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
@@ -452,37 +451,87 @@ class TaximeterActivity : BaseActivity() {
                                 color = colorResource(id = R.color.gray1),
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(2.dp)
-                                .background(colorResource(id = R.color.gray2))
+
+                        TaximeterInfoRow(
+                            title = stringResource(id = R.string.distance_made),
+                            value = "${(taximeterState.distanceMade / 1000).formatDigits(1)} KM",
                         )
-                    }
+                        TaximeterInfoRow(
+                            title = stringResource(id = R.string.time_trip),
+                            value = taximeterState.formattedTime
+                        )
 
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.padding(top = 10.dp)
-                    ) {
-
-                        taximeterState.rates.recharges.forEach { recharge ->
-
-                            val isSelected =
-                                taximeterState.rechargesSelected.any { it.key == recharge.key }
-
-                            CustomCheckBox(
-                                text = recharge.name.orEmpty(),
-                                checked = isSelected,
-                                onValueChange = { checked ->
-                                    viewModel.onRechargeToggled(recharge, checked)
-                                }
+                        if (taximeterState.rates.isUnits == true) {
+                            TaximeterInfoRow(
+                                title = stringResource(id = R.string.units),
+                                value = (taximeterState.units + taximeterState.rechargeUnits).formatNumberWithDots()
+                                    .toString()
                             )
+                        }
+
+
+                        Button(
+                            onClick = {
+                                viewModel.onChangeIsAddRechargesOpen(!taximeterState.isRechargesOpen)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(id = R.color.transparent)
+                            ),
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier
+                                .height(25.dp)
+                        ) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+
+                                Text(
+                                    text = stringResource(id = R.string.add_recharges),
+                                    fontFamily = MontserratFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = colorResource(id = R.color.main),
+                                )
+
+                                Icon(
+                                    imageVector = if (taximeterState.isRechargesOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = colorResource(id = R.color.main),
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                )
+
+                            }
 
                         }
 
+                        if (taximeterState.isRechargesOpen) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                taximeterState.rates.recharges.forEach { recharge ->
+
+                                    val isSelected =
+                                        taximeterState.rechargesSelected.any { it.key == recharge.key }
+
+                                    CustomCheckBox(
+                                        text = recharge.name.orEmpty(),
+                                        checked = isSelected,
+                                        onValueChange = { checked ->
+                                            viewModel.onRechargeToggled(recharge, checked)
+                                        }
+                                    )
+
+                                }
+
+                            }
+                        }
+
+
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    //Spacer(Modifier.weight(1f))
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
