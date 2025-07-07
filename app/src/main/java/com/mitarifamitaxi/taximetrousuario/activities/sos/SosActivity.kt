@@ -7,16 +7,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,20 +29,22 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.profile.ProfileActivity
-import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButtonActionDialog
-import com.mitarifamitaxi.taximetrousuario.components.ui.CustomImageButton
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomAsyncImageButton
+import com.mitarifamitaxi.taximetrousuario.components.ui.CustomContactActionDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
-import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
+import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
+import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.grid.items
+import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 class SosActivity : BaseActivity() {
 
     private val viewModel: SosViewModel by viewModels {
         SosViewModelFactory(this, appViewModel)
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,64 +84,15 @@ class SosActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView()
-
-        if (viewModel.showContactDialog) {
-            CustomButtonActionDialog(
-                title = stringResource(id = R.string.select_one_action),
-                onDismiss = { viewModel.showContactDialog = false },
-                onPrimaryActionClicked = {
-                    viewModel.showContactDialog = false
-                    viewModel.validateSosAction(isCall = false, onIntentReady = {
-                        startActivity(it)
-                    })
-                },
-                onSecondaryActionClicked = {
-                    viewModel.showContactDialog = false
-                    viewModel.validateSosAction(isCall = true, onIntentReady = {
-                        startActivity(it)
-                    })
-                }
-            )
-        }
-
-    }
-
-
-    @Composable
-    fun sosItems(): List<ItemImageButton> {
-        return listOf(
-            ItemImageButton(
-                id = "POLICE",
-                image = painterResource(id = R.drawable.sos_police_button),
-            ),
-            ItemImageButton(
-                id = "FIRE_FIGHTERS",
-                image = painterResource(id = R.drawable.sos_firefighters_button),
-            ),
-            ItemImageButton(
-                id = "AMBULANCE",
-                image = painterResource(id = R.drawable.sos_ambulance_button),
-            ),
-            ItemImageButton(
-                id = "FAMILY",
-                image = painterResource(id = R.drawable.sos_family_button),
-            ),
-            ItemImageButton(
-                id = "SUPPORT",
-                image = painterResource(id = R.drawable.sos_support_button),
-            ),
-            ItemImageButton(
-                id = "ANIMAL_CARE",
-                image = painterResource(id = R.drawable.sos_animal_care_button),
-            )
+        val uiState by viewModel.uiState.collectAsState()
+        SosScreen(
+            uiState = uiState
         )
     }
 
-
     @Composable
-    private fun MainView(
-
+    private fun SosScreen(
+        uiState: SosState
     ) {
 
         Column(
@@ -153,30 +111,65 @@ class SosActivity : BaseActivity() {
             Column(
                 modifier = Modifier.Companion
                     .fillMaxSize()
+                    .padding(K.GENERAL_PADDING)
                     .verticalScroll(rememberScrollState())
             ) {
-                Column(
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.Companion
-                        .padding(horizontal = 29.dp)
-                        .padding(top = 20.dp)
-                        .padding(bottom = 40.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 ) {
-                    sosItems().forEach { item ->
-                        CustomImageButton(
-                            image = item.image,
-                            height = item.height,
+                    items(uiState.contact.lines) { item ->
+                        CustomAsyncImageButton(
+                            image = item.image ?: "",
                             onClick = {
-                                viewModel.showContactDialog = true
-                                viewModel.itemSelected = item
+                                viewModel.showContactDialog(item)
                             }
                         )
                     }
-
                 }
+
+
             }
 
-
         }
+
+        if (uiState.showContactDialog) {
+            CustomContactActionDialog(
+                title = stringResource(id = R.string.select_one_action),
+                contactCatalog = uiState.contactCatalogSelected ?: ContactCatalog(),
+                onDismiss = { viewModel.hideContactDialog() },
+                onCallAction = { number ->
+                    viewModel.hideContactDialog()
+                    viewModel.validateSosAction(
+                        isCall = true,
+                        contactNumber = number,
+                        onIntentReady = {
+                            startActivity(it)
+                        })
+                },
+                onMessageAction = { number ->
+                    viewModel.hideContactDialog()
+                    viewModel.validateSosAction(
+                        isCall = false,
+                        contactNumber = number,
+                        onIntentReady = {
+                            startActivity(it)
+                        })
+                },
+            )
+        }
+    }
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        SosScreen(
+            uiState = SosState()
+        )
     }
 }

@@ -45,7 +45,8 @@ fun CustomContactBoxView(
         shape = RoundedCornerShape(8.dp),
         modifier = modifier
             .shadow(
-                elevation = 4.dp
+                elevation = 4.dp,
+                shape = RoundedCornerShape(8.dp)
             )
     ) {
         Column(

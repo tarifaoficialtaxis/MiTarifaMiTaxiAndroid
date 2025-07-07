@@ -4,23 +4,24 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
 import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
 import com.mitarifamitaxi.taximetrousuario.helpers.shareFormatDate
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Trip
+import com.mitarifamitaxi.taximetrousuario.states.TripSummaryState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.net.URLEncoder
@@ -29,21 +30,34 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
     private val appContext = context.applicationContext
 
-    var isDetails by mutableStateOf(false)
-
-    var tripData by mutableStateOf(Trip())
-
-    var showShareDialog by mutableStateOf(false)
-    var shareNumber = mutableStateOf("")
-    var isShareNumberError = mutableStateOf(false)
-
-    var isDetailsOpen by mutableStateOf(false)
+    private val _uiState = MutableStateFlow(TripSummaryState())
+    val uiState = _uiState.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
 
     sealed class NavigationEvent {
         object GoBack : NavigationEvent()
+    }
+
+    fun setTrip(trip: Trip) {
+        _uiState.update { it.copy(tripData = trip) }
+    }
+
+    fun onShareNumberChange(number: String) {
+        _uiState.update { it.copy(shareNumber = number, isShareNumberError = false) }
+    }
+
+    fun onShowShareDialog(show: Boolean) {
+        _uiState.update { it.copy(showShareDialog = show) }
+    }
+
+    fun onChangeDetails(value: Boolean) {
+        _uiState.update { it.copy(isDetails = value) }
+    }
+
+    fun onChangeIsDetailsOpen(value: Boolean) {
+        _uiState.update { it.copy(isDetailsOpen = value) }
     }
 
     fun onDeleteAction() {
@@ -53,30 +67,23 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             message = appContext.getString(R.string.delete_trip_message),
             buttonText = appContext.getString(R.string.delete),
             onButtonClicked = {
-                tripData.id?.let { deleteTrip(it) }
+                _uiState.value.tripData.id?.let { deleteTrip(it) }
             }
         )
     }
 
-    fun deleteTrip(tripId: String) {
-
+    private fun deleteTrip(tripId: String) {
         viewModelScope.launch {
             try {
-                appViewModel.isLoading = true
+                appViewModel.setLoading(true)
 
-                tripData.routeImage?.let { imageUrl ->
-                    try {
-                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                        storageRef.delete().await()
-                        Log.d("TripViewModel", "Imagen borrada de Storage correctamente.")
-                    } catch (e: Exception) {
-                        Log.e("TripViewModel", "Error al borrar imagen de Storage: ${e.message}")
-                    }
+                _uiState.value.tripData.routeImage?.let { imageUrl ->
+                    FirebaseStorageUtils.deleteImage(imageUrl)
                 }
 
                 FirebaseFirestore.getInstance().collection("trips").document(tripId).delete()
                     .await()
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
 
                 appViewModel.showMessage(
                     type = DialogType.SUCCESS,
@@ -93,7 +100,7 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
             } catch (error: Exception) {
                 Log.e("TripSummaryViewModel", "Error deleting trip: ${error.message}")
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -104,89 +111,64 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
     }
 
 
-
     fun sendWatsAppMessage(onIntentReady: (Intent) -> Unit) {
-
-        if (shareNumber.value.isEmpty()) {
-            isShareNumberError.value = true
+        val currentState = _uiState.value
+        if (currentState.shareNumber.isEmpty()) {
+            _uiState.update { it.copy(isShareNumberError = true) }
             return
         }
 
-        showShareDialog = false
+        _uiState.update { it.copy(showShareDialog = false) }
 
         val message = buildString {
             append("*Esta es la información de mi viaje:*\n")
-            append("*Dirección de origen:* ${tripData.startAddress}\n")
-            append("*Dirección de destino:* ${tripData.endAddress}\n")
-            append("*Fecha de recogida:* ${tripData.startHour?.let { shareFormatDate(it) }}\n")
-            append("*Fecha de llegada:* ${tripData.endHour?.let { shareFormatDate(it) }}\n")
+            append("*Dirección de origen:* ${currentState.tripData.startAddress}\n")
+            append("*Dirección de destino:* ${currentState.tripData.endAddress}\n")
+            append("*Fecha de recogida:* ${currentState.tripData.startHour?.let { shareFormatDate(it) }}\n")
+            append("*Fecha de llegada:* ${currentState.tripData.endHour?.let { shareFormatDate(it) }}\n")
             append(
                 "*Distancia recorrida:* ${
-                    tripData.distance?.let { (it / 1000).formatDigits(1) }
+                    currentState.tripData.distance?.let { (it / 1000).formatDigits(1) }
                 } KM\n"
             )
-            append("*Unidades base:* ${tripData.baseUnits}\n")
+
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades base:* ${currentState.tripData.baseUnits?.formatNumberWithDots()}\n")
+            }
+
 
             append(
                 "*Tarifa base:* ${
-                    tripData.baseRate?.toInt()?.formatNumberWithDots()
-                } ${appViewModel.userData?.countryCurrency}\n"
+                    currentState.tripData.baseRate?.formatNumberWithDots()
+                } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
             )
 
-            append("*Unidades recargo:* ${tripData.rechargeUnits}\n")
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades recargo:* ${currentState.tripData.rechargeUnits?.formatNumberWithDots()}\n")
+            }
 
-            if (tripData.airportSurchargeEnabled == true) {
+            for (recharge in currentState.tripData.recharges) {
                 append(
-                    "*Recargo aeropuerto:* ${
-                        tripData.airportSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
+                    "*${recharge.name}:* ${
+                        ((recharge.units ?: 0.0) * (currentState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
+                    } ${appViewModel.uiState.value.userData?.countryCurrency}\n"
                 )
             }
 
-            if (tripData.holidayOrNightSurchargeEnabled == true) {
-                append(
-                    "*Recargo nocturno dominical o festivo:* ${
-                        tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
-                )
+            if (currentState.tripData.showUnits == true) {
+                append("*Unidades totales:* ${currentState.tripData.units?.formatNumberWithDots()}\n")
             }
-
-            if (tripData.doorToDoorSurchargeEnabled == true) {
-                append(
-                    "*Recargo puerta a puerta:* ${
-                        tripData.doorToDoorSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
-                )
-            }
-
-            if (tripData.holidaySurchargeEnabled == true) {
-                append(
-                    "*Recargo dominical o festivo:* ${
-                        tripData.holidaySurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
-                )
-            }
-
-            if (tripData.nightSurchargeEnabled == true) {
-                append(
-                    "*Recargo nocturno:* ${
-                        tripData.nightSurcharge?.toInt()?.formatNumberWithDots()
-                    } ${appViewModel.userData?.countryCurrency}\n"
-                )
-            }
-
-            append("*Unidades totales:* ${tripData.units}\n")
 
             append(
                 "*${appContext.getString(R.string.total)}* ${
-                    tripData.total?.toInt()?.formatNumberWithDots()
-                } ${appViewModel.userData?.countryCurrency}"
+                    currentState.tripData.total?.formatNumberWithDots()
+                } ${appViewModel.uiState.value.userData?.countryCurrency}"
             )
         }
 
         val messageToSend = URLEncoder.encode(message, "UTF-8").replace("%0A", "%0D%0A")
         val whatsappURL =
-            "whatsapp://send?text=$messageToSend&phone=${appViewModel.userData?.countryCodeWhatsapp}${shareNumber.value}"
+            "whatsapp://send?text=$messageToSend&phone=${appViewModel.uiState.value.userData?.countryCodeWhatsapp}${currentState.shareNumber}"
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(whatsappURL)
@@ -202,8 +184,6 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             )
         }
     }
-
-
 }
 
 class TripSummaryViewModelFactory(

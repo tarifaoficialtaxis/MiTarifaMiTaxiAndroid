@@ -34,8 +34,10 @@ import kotlinx.coroutines.launch
 fun CustomButton(
     text: String,
     onClick: () -> Unit,
+    textColor: Color = colorResource(id = R.color.white),
     color: Color = colorResource(id = R.color.main),
     leadingIcon: ImageVector? = null,
+    modifier: Modifier? = Modifier.fillMaxWidth(),
 ) {
 
     var isClicked by remember { mutableStateOf(false) }
@@ -54,11 +56,10 @@ fun CustomButton(
         colors = ButtonDefaults.buttonColors(containerColor = color),
         shape = RoundedCornerShape(50),
         enabled = !isClicked,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier ?: Modifier.fillMaxWidth()
     ) {
 
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
@@ -82,6 +83,7 @@ fun CustomButton(
                 fontSize = 20.sp,
                 modifier = Modifier
                     .padding(vertical = 3.dp),
+                color = textColor,
                 textAlign = TextAlign.Center,
             )
         }

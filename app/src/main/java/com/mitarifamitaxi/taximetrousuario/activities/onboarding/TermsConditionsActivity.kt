@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,16 +19,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
+import com.mitarifamitaxi.taximetrousuario.components.ui.MainTitleText
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.TermsConditionsViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding.TermsConditionsViewModelFactory
@@ -42,7 +43,7 @@ class TermsConditionsActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+        TermsConditionsScreen(
             onAcceptClicked = {
                 viewModel.saveAcceptedTerms()
                 startActivity(Intent(this, LoginActivity::class.java))
@@ -52,99 +53,105 @@ class TermsConditionsActivity : BaseActivity() {
     }
 
     @Composable
-    private fun MainView(
+    private fun TermsConditionsScreen(
         onAcceptClicked: () -> Unit
     ) {
-        Column {
+
+        Box(modifier = Modifier.Companion.fillMaxSize()) {
             Box(
                 modifier = Modifier.Companion
-                    .fillMaxSize()
-                    .background(colorResource(id = R.color.white))
+                    .fillMaxWidth()
+                    .height(LocalConfiguration.current.screenHeightDp.dp * 0.27f)
+                    .background(colorResource(id = R.color.main))
             ) {
-                Column(modifier = Modifier.Companion.fillMaxSize()) {
-
-                    Box(
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .background(colorResource(id = R.color.main))
-                    ) {
-
-                        Box(
-                            modifier = Modifier.Companion
-                                .fillMaxSize()
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.city_background),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                                    .align(Alignment.Companion.BottomCenter)
-                                    .offset(y = 16.dp)
-                            )
-
-                            Image(
-                                painter = painterResource(id = R.drawable.logo1),
-                                contentDescription = null,
-                                modifier = Modifier.Companion
-                                    .height(134.dp)
-                                    .align(Alignment.Companion.Center)
-                            )
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier.Companion
-                            .fillMaxSize()
-                            .offset(y = (-24).dp),
-                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorResource(id = R.color.white),
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.Companion
-                                .fillMaxSize()
-                                .padding(top = 29.dp, bottom = 70.dp, start = 29.dp, end = 29.dp)
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.terms_title),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
-                                fontSize = 24.sp,
-                                modifier = Modifier.Companion
-                                    .fillMaxWidth()
-                                    .padding(bottom = 25.dp),
-                                textAlign = TextAlign.Companion.Center,
-                            )
-
-                            Column(
-                                modifier = Modifier.Companion
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.terms_body),
-                                    fontFamily = MontserratFamily,
-                                    fontWeight = FontWeight.Companion.Normal,
-                                    fontSize = 12.sp,
-                                )
-                            }
-                        }
-                    }
-                }
-
                 Box(
                     modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomCenter)
-                        .padding(horizontal = 29.dp)
-                        .padding(bottom = 29.dp)
+                        .fillMaxSize()
                 ) {
-                    CustomButton(
-                        text = stringResource(id = R.string.accept_continue).uppercase(),
-                        onClick = onAcceptClicked
+                    Image(
+                        painter = painterResource(id = R.drawable.city_background),
+                        contentDescription = null,
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .align(Alignment.Companion.BottomCenter)
+                            .padding(bottom = 30.dp)
+                    )
+
+                    Image(
+                        painter = painterResource(id = R.drawable.logo1),
+                        contentDescription = null,
+                        modifier = Modifier.Companion
+                            .height(91.dp)
+                            .align(Alignment.Companion.Center)
                     )
                 }
             }
+
+            Card(
+                modifier = Modifier.Companion
+                    .fillMaxSize()
+                    .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.23f),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = colorResource(id = R.color.white),
+                )
+            ) {
+                Column(
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                        .padding(29.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.Companion
+                            .weight(0.9f)
+                            .padding(bottom = 10.dp)
+                    ) {
+
+                        MainTitleText(
+                            title = stringResource(id = R.string.terms_title),
+                            titleColor = colorResource(id = R.color.black),
+                            modifier = Modifier.Companion.padding(bottom = 25.dp)
+                        )
+
+                        Column(
+                            modifier = Modifier.Companion
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.terms_body),
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Normal,
+                                fontSize = 12.sp,
+                            )
+                        }
+                    }
+
+
+                    Box(
+                        contentAlignment = Alignment.BottomCenter,
+                        modifier = Modifier.Companion
+                            .weight(0.1f)
+                    ) {
+                        CustomButton(
+                            text = stringResource(id = R.string.accept_continue).uppercase(),
+                            onClick = onAcceptClicked
+                        )
+                    }
+
+
+                }
+            }
         }
+
+
+    }
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        TermsConditionsScreen(
+            onAcceptClicked = { }
+        )
     }
 }

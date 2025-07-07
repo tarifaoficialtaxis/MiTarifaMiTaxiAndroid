@@ -19,17 +19,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
 
 @Composable
-fun CustomButtonActionDialog(
+fun CustomContactActionDialog(
     title: String,
+    contactCatalog: ContactCatalog,
     onDismiss: () -> Unit,
-    onPrimaryActionClicked: () -> Unit,
-    onSecondaryActionClicked: () -> Unit
+    onCallAction: (number: String) -> Unit,
+    onMessageAction: (number: String) -> Unit
 ) {
 
     Box(
@@ -67,31 +70,38 @@ fun CustomButtonActionDialog(
 
                 Spacer(modifier = Modifier.height(29.dp))
 
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(29.dp)
+                ) {
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(29.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentWidth(Alignment.CenterHorizontally)
-                )
-                {
+                    if (contactCatalog.line1 != null) {
+                        CustomCardCallAction(
+                            icon = Icons.Default.Call,
+                            text = stringResource(id = R.string.emergency_line),
+                            number = contactCatalog.line1,
+                            onClick = { onCallAction(contactCatalog.line1) },
+                        )
+                    }
 
-                    CustomContactBoxView(
-                        icon = Icons.Default.Whatsapp,
-                        text = stringResource(id = R.string.send_message),
-                        onClick = onPrimaryActionClicked,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
+                    if (contactCatalog.line2 != null) {
+                        CustomCardCallAction(
+                            icon = Icons.Default.Call,
+                            text = stringResource(id = R.string.phone),
+                            number = contactCatalog.line2,
+                            onClick = { onCallAction(contactCatalog.line2) },
+                        )
+                    }
+
+                    if (contactCatalog.whatsapp != null) {
+                        CustomCardCallAction(
+                            icon = Icons.Default.Whatsapp,
+                            text = stringResource(id = R.string.whatsapp),
+                            number = contactCatalog.whatsapp,
+                            onClick = { onMessageAction(contactCatalog.whatsapp) },
+                        )
+                    }
 
 
-                    CustomContactBoxView(
-                        icon = Icons.Default.Call,
-                        text = stringResource(id = R.string.call),
-                        onClick = onSecondaryActionClicked,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(29.dp))
@@ -120,5 +130,22 @@ fun CustomButtonActionDialog(
             }
         }
     }
+
+
 }
 
+@Preview
+@Composable
+fun CustomContactActionDialogPreview() {
+    CustomContactActionDialog(
+        title = "Contact Us",
+        contactCatalog = ContactCatalog(
+            line1 = "1234567890",
+            line2 = "0987654321",
+            whatsapp = "1234567890"
+        ),
+        onDismiss = {},
+        onCallAction = {},
+        onMessageAction = {}
+    )
+}

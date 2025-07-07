@@ -1,13 +1,14 @@
 package com.mitarifamitaxi.taximetrousuario.activities.profile
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +22,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.rounded.FamilyRestroom
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Mail
@@ -38,6 +39,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,8 +51,10 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -61,7 +66,13 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextField
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
+import com.mitarifamitaxi.taximetrousuario.components.ui.TwoOptionSelectorDialog
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.createTempImageUri
+import com.mitarifamitaxi.taximetrousuario.models.AuthProvider
+import com.mitarifamitaxi.taximetrousuario.states.AppState
+import com.mitarifamitaxi.taximetrousuario.states.ProfileState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.profile.ProfileViewModelFactory
 import kotlinx.coroutines.launch
@@ -135,7 +146,13 @@ class ProfileActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+
+        val uiState by viewModel.uiState.collectAsState()
+        val appState by appViewModel.uiState.collectAsState()
+
+        ProfileScreen(
+            uiState = uiState,
+            appState = appState,
             onClickBack = {
                 finish()
             },
@@ -150,29 +167,41 @@ class ProfileActivity : BaseActivity() {
             }
         )
 
-        if (viewModel.showPasswordPopUp) {
-            CustomPasswordPopupDialog(
-                title = stringResource(id = R.string.warning),
-                message = stringResource(id = R.string.re_auth_message),
-                buttonText = stringResource(id = R.string.delete_account),
-                onDismiss = { viewModel.showPasswordPopUp = false },
-                onPasswordValid = { password ->
-                    viewModel.showPasswordPopUp = false
-                    viewModel.authenticateUserByEmailAndPassword(password)
-                }
-
-            )
-        }
 
     }
 
     @Composable
-    private fun MainView(
+    private fun ProfileScreen(
+        uiState: ProfileState,
+        appState: AppState,
         onClickBack: () -> Unit,
         onDeleteAccountClicked: () -> Unit,
         onUpdateClicked: () -> Unit,
         onLogOutClicked: () -> Unit,
     ) {
+
+        val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+            viewModel.onImageSelected(uri)
+        }
+
+        val takePictureLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture()
+        ) { success ->
+            viewModel.onImageCaptured(success)
+        }
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            viewModel.onPermissionResult(isGranted)
+            if (isGranted) {
+                val tempUri = createTempImageUri(this)
+                viewModel.onTempImageUriChange(tempUri)
+                takePictureLauncher.launch(tempUri)
+            }
+        }
 
         Column(
             modifier = Modifier.Companion
@@ -250,25 +279,16 @@ class ProfileActivity : BaseActivity() {
 
                     }
 
-                    Box(
-                        modifier = Modifier.Companion
-                            .size(90.dp)
-                            .background(colorResource(id = R.color.blue1), shape = CircleShape)
-                            .border(2.dp, colorResource(id = R.color.white), CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description",
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.Center)
-                                .size(66.dp),
-                            tint = colorResource(id = R.color.white),
-
-                            )
-                    }
+                    ProfilePictureBox(
+                        imageUri = uiState.imageUri,
+                        onClickEdit = {
+                            hideKeyboard()
+                            viewModel.onShowDialogSelectPhotoChange(true)
+                        }
+                    )
 
                     Text(
-                        text = appViewModel.userData?.firstName + " " + appViewModel.userData?.lastName,
+                        text = appState.userData?.firstName + " " + appState.userData?.lastName,
                         color = colorResource(id = R.color.white),
                         fontSize = 18.sp,
                         fontFamily = MontserratFamily,
@@ -282,7 +302,7 @@ class ProfileActivity : BaseActivity() {
                     Text(
                         text = stringResource(
                             id = R.string.city_param,
-                            appViewModel.userData?.city ?: ""
+                            appState.userData?.city ?: ""
                         ),
                         color = colorResource(id = R.color.white),
                         fontSize = 14.sp,
@@ -307,7 +327,7 @@ class ProfileActivity : BaseActivity() {
                         {
 
                             Text(
-                                text = viewModel.tripsCount.toString(),
+                                text = uiState.tripsCount.toString(),
                                 color = colorResource(id = R.color.white),
                                 fontSize = 16.sp,
                                 fontFamily = MontserratFamily,
@@ -343,7 +363,7 @@ class ProfileActivity : BaseActivity() {
                         ) {
 
                             Text(
-                                text = viewModel.distanceCount.toString(),
+                                text = uiState.distanceCount.toString(),
                                 color = colorResource(id = R.color.white),
                                 fontSize = 16.sp,
                                 fontFamily = MontserratFamily,
@@ -379,46 +399,70 @@ class ProfileActivity : BaseActivity() {
             ) {
 
                 CustomTextField(
-                    value = viewModel.firstName ?: "",
-                    onValueChange = { viewModel.firstName = it },
+                    value = uiState.firstName,
+                    onValueChange = { viewModel.onFistNameChange(it) },
                     placeholder = stringResource(id = R.string.firstName),
                     leadingIcon = Icons.Rounded.Person,
+                    capitalization = KeyboardCapitalization.Words,
+                    isError = uiState.firstNameIsError,
+                    errorMessage = uiState.firstNameErrorMessage
                 )
 
                 CustomTextField(
-                    value = viewModel.lastName ?: "",
-                    onValueChange = { viewModel.lastName = it },
+                    value = uiState.lastName,
+                    onValueChange = { viewModel.onLastNameChange(it) },
                     placeholder = stringResource(id = R.string.lastName),
                     leadingIcon = Icons.Rounded.Person,
+                    capitalization = KeyboardCapitalization.Words,
+                    isError = uiState.lastNameIsError,
+                    errorMessage = uiState.lastNameErrorMessage
                 )
 
                 CustomTextField(
-                    value = viewModel.mobilePhone ?: "",
-                    onValueChange = { viewModel.mobilePhone = it },
+                    value = uiState.mobilePhone,
+                    onValueChange = { newText ->
+                        if (newText.all { it.isDigit() }) {
+                            viewModel.onMobilePhoneChange(newText)
+                        }
+                    },
                     placeholder = stringResource(id = R.string.mobilePhone),
                     leadingIcon = Icons.Rounded.PhoneIphone,
-                    keyboardType = KeyboardType.Companion.Phone
+                    keyboardType = KeyboardType.Companion.Phone,
+                    isError = uiState.mobilePhoneIsError,
+                    errorMessage = uiState.mobilePhoneErrorMessage
                 )
 
+
                 CustomTextField(
-                    value = viewModel.email ?: "",
-                    onValueChange = { viewModel.email = it },
+                    value = uiState.email,
+                    onValueChange = { viewModel.onEmailChange(it) },
                     placeholder = stringResource(id = R.string.email),
                     leadingIcon = Icons.Rounded.Mail,
-                    keyboardType = KeyboardType.Companion.Email
+                    keyboardType = KeyboardType.Companion.Email,
+                    isEnabled = false,
+                    isError = uiState.emailIsError,
+                    errorMessage = uiState.emailErrorMessage
                 )
 
                 CustomTextField(
-                    value = viewModel.familyNumber ?: "",
-                    onValueChange = { viewModel.familyNumber = it },
+                    value = uiState.familyNumber ?: "",
+                    onValueChange = { newText ->
+                        if (newText.all { it.isDigit() }) {
+                            viewModel.onFamilyNumberChange(newText)
+                        }
+                    },
                     placeholder = stringResource(id = R.string.family_number),
                     leadingIcon = Icons.Rounded.FamilyRestroom,
                     keyboardType = KeyboardType.Companion.Phone
                 )
 
                 CustomTextField(
-                    value = viewModel.supportNumber ?: "",
-                    onValueChange = { viewModel.supportNumber = it },
+                    value = uiState.supportNumber ?: "",
+                    onValueChange = { newText ->
+                        if (newText.all { it.isDigit() }) {
+                            viewModel.onSupportNumberChange(newText)
+                        }
+                    },
                     placeholder = stringResource(id = R.string.support_number),
                     leadingIcon = Icons.Rounded.Groups,
                     keyboardType = KeyboardType.Companion.Phone
@@ -430,33 +474,20 @@ class ProfileActivity : BaseActivity() {
                         .fillMaxWidth()
                 ) {
 
-                    Button(
-                        onClick = { onDeleteAccountClicked() },
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.red2)
-                        ),
-                        shape = RoundedCornerShape(50),
-                        modifier =
-                            Modifier.Companion
-                                .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.delete_account).uppercase(),
-                            color = colorResource(id = R.color.red1),
-                            fontSize = 16.sp,
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Companion.Bold,
-                            textAlign = TextAlign.Companion.Center,
-                        )
-                    }
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.Companion
                             .padding(top = 20.dp, bottom = 30.dp)
                             .fillMaxWidth()
                     ) {
+
+                        CustomButton(
+                            text = stringResource(id = R.string.delete_account).uppercase(),
+                            color = colorResource(id = R.color.red2),
+                            textColor = colorResource(id = R.color.red1),
+                            onClick = { onDeleteAccountClicked() },
+                        )
+
                         CustomButton(
                             text = stringResource(id = R.string.update).uppercase(),
                             onClick = { onUpdateClicked() },
@@ -476,5 +507,57 @@ class ProfileActivity : BaseActivity() {
 
 
         }
+
+        if (uiState.showPasswordPopUp) {
+            CustomPasswordPopupDialog(
+                title = stringResource(id = R.string.warning),
+                message = stringResource(id = R.string.re_auth_message),
+                buttonText = stringResource(id = R.string.delete_account),
+                onDismiss = { viewModel.onShowDialogPassword(false) },
+                onPasswordValid = { password ->
+                    viewModel.onShowDialogPassword(false)
+                    viewModel.authenticateUserByEmailAndPassword(password)
+                }
+            )
+        }
+
+        if (uiState.showDialogSelectPhoto) {
+            TwoOptionSelectorDialog(
+                title = stringResource(id = R.string.select_profile_photo),
+                primaryTitle = stringResource(id = R.string.camera),
+                secondaryTitle = stringResource(id = R.string.gallery),
+                primaryIcon = Icons.Default.CameraAlt,
+                secondaryIcon = Icons.Default.Image,
+                onDismiss = { viewModel.onShowDialogSelectPhotoChange(false) },
+                onPrimaryActionClicked = {
+                    if (uiState.hasCameraPermission) {
+                        val tempUri = createTempImageUri(this)
+                        viewModel.onTempImageUriChange(tempUri)
+                        takePictureLauncher.launch(tempUri)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                    viewModel.onShowDialogSelectPhotoChange(false)
+                },
+                onSecondaryActionClicked = {
+                    viewModel.onShowDialogSelectPhotoChange(false)
+                    imagePickerLauncher.launch("image/*")
+                }
+            )
+        }
+    }
+
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        ProfileScreen(
+            uiState = ProfileState(),
+            appState = AppState(),
+            onClickBack = { },
+            onDeleteAccountClicked = { },
+            onUpdateClicked = { },
+            onLogOutClicked = { }
+        )
     }
 }

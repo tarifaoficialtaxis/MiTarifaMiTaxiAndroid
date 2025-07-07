@@ -2,10 +2,9 @@
 
     <string name="default_web_client_id">178227041122-l4cahm8bm5d9ftb8ur22jmmgp2pto95l.apps.googleusercontent.com</string>
 
-
     <string name="app_name">MiTarifaMiTaxi</string>
     <string name="app_header">TaximetroUsuarioNative</string>
-    <string name="terms_title">Términos y Condiciones</string>
+    <string name="terms_title">Términos y condiciones</string>
     <string name="terms_body">1. Información que recolectamos\na. Información personal\nPodemos recopilar información personal identificable como su nombre, número de teléfono y correo electrónico cuando usted se registra en la aplicación o utiliza sus servicios. Esta información es proporcionada de forma voluntaria y se utiliza únicamente para brindarle el servicio solicitado.\nb. Información de geolocalización\nPara proporcionar servicios precisos y en tiempo real, recolectamos información sobre su ubicación. Utilizamos el GPS de su dispositivo para ubicar su posición durante la solicitud de servicios de taxi. Esta información es utilizada exclusivamente para conectar conductores y usuarios, y no será compartida con terceros fuera de la finalidad del servicio.\nc. Información de uso\nRecolectamos automáticamente información sobre su interacción con la aplicación, incluyendo el dispositivo utilizado, dirección IP, sistema operativo, identificadores únicos de dispositivo, fecha y hora de acceso, entre otros. Esto nos ayuda a mejorar la experiencia del usuario y resolver problemas técnicos.\n2. Uso de la información\nLa información que recopilamos es utilizada para los siguientes propósitos:\n- Proporcionar y mejorar los servicios ofrecidos en la aplicación.\n- Procesar solicitudes de servicio de taxi y gestionar el contacto entre el usuario y el conductor.\n- Enviar notificaciones o alertas relacionadas con el servicio, como la confirmación de una reserva, el seguimiento del viaje y el cálculo de tarifas.\n- Garantizar la seguridad y evitar fraudes.\n- Cumplir con requisitos legales.\n3. Compartición de la información\nNo compartimos su información personal con terceros, excepto en los siguientes casos:\n- Con conductores: La información de ubicación, nombre y número de contacto del usuario será compartida con los conductores para facilitar la prestación del servicio de taxi.\n- Autoridades legales: Podemos divulgar información si es requerido por ley o en cumplimiento de procesos legales, investigaciones o para proteger la seguridad de nuestros usuarios.\n- Proveedores de servicios: Podremos compartir información con terceros que nos asisten en el funcionamiento de la aplicación, siempre bajo estrictas medidas de confidencialidad y seguridad.\n</string>
     <string name="accept_continue">Aceptar y continuar</string>
     <string name="welcome">¡Bienvenido!</string>
@@ -16,14 +15,33 @@
     <string name="remember_me">Recuerdame</string>
     <string name="recover_password">Recuperar contraseña</string>
     <string name="login">INGRESAR</string>
-    <string name="connect_with">Conectate con:</string>
+    <string name="connect_with">Conéctate con:</string>
     <string name="no_account">Aún no tienes cuenta?</string>
-    <string name="register_here">Registrate Aquí</string>
+    <string name="register_here">Registrate aquí</string>
 
     <string name="register">¡Registrate!</string>
+    <string name="personal_information">Información personal</string>
+    <string name="register_action">REGISTRARSE</string>
+
+    <string name="camera">Camera</string>
+    <string name="gallery">Galería</string>
+    <string name="select_profile_photo">Elige una opción para tu foto de perfil.</string>
+
+    <string name="next">SIGUIENTE</string>
+    <string name="select_one_option">Selecciona una opción</string>
+
+    <string name="user">Usuario</string>
+    <string name="driver">Conductor</string>
 
     <string name="firstName">Nombres*</string>
     <string name="lastName">Apellidos*</string>
+
+    <string name="documentNumber">Número de documento*</string>
+
+    <string name="error_image_required">Debes selecionar una foto de perfil.</string>
+    <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir un número y un símbolo.</string>
+    <string name="error_document_exists">Este número de documento ya está registrado.</string>
+
     <string name="mobilePhone">Celular*</string>
     <string name="email">Correo electrónico*</string>
     <string name="confirm_password">Confirmar contraseña*</string>
@@ -52,6 +70,8 @@
 
     <string name="something_went_wrong">¡Algo salió mal!</string>
 
+    <string name="wrong_credentials">Credenciales incorrectas.</string>
+
     <string name="error_invalid_email">La dirección de correo electrónico tiene un formato incorrecto.</string>
     <string name="error_wrong_credentials">Las credenciales son incorrectas. Inténtalo de nuevo.</string>
     <string name="error_user_not_found">No se encontró un usuario con este correo electrónico.</string>
@@ -59,6 +79,7 @@
     <string name="error_too_many_requests">Demasiados intentos fallidos. Inténtalo de nuevo más tarde.</string>
     <string name="error_operation_not_allowed">Este método de inicio de sesión no está habilitado.</string>
     <string name="error_authentication_failed">La autenticación falló. Por favor, inténtalo de nuevo.</string>
+    <string name="error_email_already_in_use">La dirección de correo electrónico ya está siendo utilizada por otra cuenta.</string>
 
     <string name="error_google_sign_in">Error al iniciar sesón con Google.</string>
 
@@ -88,12 +109,6 @@
 
     <string name="reason_complaint">Motivo de la denuncia</string>
 
-    <string name="high_fare">Tarifa muy alta</string>
-    <string name="user_mistreated">Mal trato al usuario</string>
-    <string name="service_abandonment">Abandono del servicio</string>
-    <string name="unauthorized_charges">Cobro de recargos no autorizados</string>
-    <string name="no_fare_notice">No porta aviso de tarifas</string>
-    <string name="dangerous_driving">Conducción peligrosa</string>
     <string name="other">Otro</string>
 
     <string name="create_pqr">Radicar PQR</string>
@@ -143,14 +158,9 @@
 
     <string name="without_recharges">Sin Recargos</string>
     <string name="recharges">Recargos</string>
-    <string name="airport_surcharge">Recargo Aeropuerto</string>
-    <string name="holiday_surcharge">Recargo nocturno dominical o festivo</string>
-    <string name="holiday_surcharge_only">Recargo dominical o festivo</string>
-    <string name="night_surcharge_only">Recargo nocturno</string>
-    <string name="door_to_door_surcharge">Recargo puerta a puerta</string>
 
     <string name="begin_your_trip">Inicia tu viaje</string>
-    <string name="select_start_and_end">Selecciona inicio y fin de tu viaje,</string>
+    <string name="select_start_and_end">Selecciona inicio y fin de tu viaje</string>
     <string name="we_will_show_best_route">te mostramos la mejor ruta</string>
 
     <string name="start_point">Punto de origen</string>
@@ -159,6 +169,8 @@
 
     <string name="select_start_and_end_points">Selecciona punto de origen y destino para continuar.</string>
     <string name="attention">Atención</string>
+    <string name="profile_photo_required">Foto de perfil requerida</string>
+    <string name="must_select_profile_photo">Para continuar, debes subir\nuna foto de perfil.</string>
 
     <string name="set_point_on_map">Fijar punto de inicio en el mapa</string>
     <string name="set_end_point_on_map">Fijar punto de destino en el mapa</string>
@@ -173,6 +185,8 @@
     <string name="finish_trip">Finalizar Viaje</string>
 
     <string name="see_details">Ver detalles</string>
+
+    <string name="add_recharges">Agregar recargos</string>
 
     <string name="error_fetching_location">Ha ocurrido un error al intentar obtener tu ubicación. Por favor, verifica que el GPS esté activado y que la aplicación tenga permisos para acceder a tu ubicación.</string>
     <string name="error_fetching_city">Ha ocurrido un error al intentar obtener tu ciudad.</string>
@@ -225,10 +239,6 @@
 
     <string name="general_error">Ha ocurrido un error. Por favor, inténtalo de nuevo.</string>
 
-    <string name="police">Policía</string>
-    <string name="fire_fighters">Bomberos</string>
-    <string name="ambulance">Ambulancia</string>
-    <string name="animal_care">Defensoría animal</string>
     <string name="support">Grupo de apoyo</string>
     <string name="family">Familia</string>
     <string name="support_number_not_found">Contacto de grupo de apoyo no encontrado</string>
@@ -256,7 +266,6 @@
     <string name="notification_permission_denied">El permiso de notificaciones ha sido denegado, conceda el permiso de notificaciones para que la app funcione correctamente.</string>
 
 
-
     <string name="error_on_save_trip">Ha ocurrido un error al intentar guardar el viaje.</string>
     <string name="no_results_found">No se encontraron resultados</string>
 
@@ -279,7 +288,37 @@
 
     <string name="version_param">Versión: %1$s</string>
 
+    <string name="driving_license">Licencia de conducción</string>
+    <string name="error_driving_license">Debes adjuntar las fotos de tu licencia de conducción: frente y reverso.</string>
+
+    <string name="front">Frente</string>
+    <string name="reverse">Reverso</string>
+    <string name="side">Lateral</string>
+
+    <string name="error_vehicle_pictures">Debes adjuntar las fotos de tu vehículo: frente, reverso y lateral.</string>
+
+    <string name="vehicle_information">Información del vehículo</string>
+    <string name="brand_mandatory">Marca*</string>
+    <string name="model_mandatory">Modelo*</string>
+    <string name="year_mandatory">Año*</string>
+    <string name="plate_mandatory">Placa*</string>
+
+    <string name="vehicle_pictures">Fotos del vehículo</string>
+
+    <string name="account_created">¡Cuenta creada con éxito!</string>
+    <string name="account_created_success_message">Ahora, nuestro equipo verificará los datos. Te notificaremos por correo electrónico cuando tu cuenta esté activa.</string>
+
+    <string name="account_pending_review">Tu cuenta está en revisión</string>
+    <string name="let_you_know">Te avisaremos cuando puedas\nempezar a recibir servicios.</string>
+
+    <string name="for_security_login_again">Por seguridad, vuelve a iniciar sesión para cambiar tu correo.</string>
+
     <string name="we_need_access_to_your_location">Necesitamos acceder a tu ubicación.</string>
     <string name="access_location_message">Para calcular la tarifa de tu viaje de forma precisa, esta aplicación recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso. Esto nos permite seguir calculando la distancia y el costo del viaje si cambias a otra aplicación o apagas la pantalla.\n\nTus datos de ubicación se utilizan únicamente para el cálculo de la tarifa y el historial de tus viajes. No se comparten con terceros para fines publicitarios. \n\n Por favor selecciona permitir todo el tiempo.</string>
+
+    <string name="emergency_line">Línea de emergencia</string>
+    <string name="phone">Teléfono</string>
+    <string name="whatsapp">WhatsApp</string>
+
 
 </resources>

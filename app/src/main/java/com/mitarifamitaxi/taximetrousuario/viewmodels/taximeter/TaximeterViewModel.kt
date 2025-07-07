@@ -12,13 +12,13 @@ import android.media.MediaPlayer
 import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.scale
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -36,15 +36,23 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
-import com.mitarifamitaxi.taximetrousuario.helpers.isColombianHoliday
-import com.mitarifamitaxi.taximetrousuario.helpers.isNightTime
+import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Rates
+import com.mitarifamitaxi.taximetrousuario.models.Recharge
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.states.TaximeterState
+import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -52,19 +60,14 @@ import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.util.Locale
 import java.util.concurrent.Executor
-import androidx.core.graphics.scale
-import androidx.core.net.toUri
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.storageMetadata
-import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
-import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 class TaximeterViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
 
     private val appContext = context.applicationContext
+
+    private val _uiState = MutableStateFlow(TaximeterState())
+    val uiState = _uiState.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
@@ -76,75 +79,15 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         object StopLocationUpdateNotification : NavigationEvent()
     }
 
-    var startAddress by mutableStateOf("")
-    var startLocation by mutableStateOf(UserLocation())
-
-    var endAddress by mutableStateOf("")
-    var endLocation by mutableStateOf(UserLocation())
-
-    var isFabExpanded by mutableStateOf(false)
-
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private var locationCallback: LocationCallback? = null
     private val executor: Executor = ContextCompat.getMainExecutor(context)
 
-    var isSheetExpanded by mutableStateOf(true)
-
-    // Taximeter values
-    var total by mutableDoubleStateOf(0.0)
-    var distanceMade by mutableDoubleStateOf(0.0)
-
-    private val _units = mutableDoubleStateOf(0.0)
-
-    var units: Double
-        get() = _units.doubleValue
-        set(value) {
-            _units.doubleValue = value
-            onUnitsChanged(value)
-        }
-
-    private val _rechargeUnits = mutableDoubleStateOf(0.0)
-    var rechargeUnits: Double
-        get() = _rechargeUnits.doubleValue
-        set(value) {
-            _rechargeUnits.doubleValue = value
-            updateTotal(value)
-        }
-
-    var timeElapsed by mutableIntStateOf(0)
-    var dragTimeElapsed by mutableIntStateOf(0)
-    var formattedTime by mutableStateOf("0")
-
-    var isAirportSurcharge by mutableStateOf(false)
-    var isHolidaySurcharge by mutableStateOf(false)
-    var isDoorToDoorSurcharge by mutableStateOf(false)
-
-    val ratesObj = mutableStateOf(Rates())
-
-    var isTaximeterStarted by mutableStateOf(false)
-    var isMooving by mutableStateOf(false)
-
-    var routeCoordinates by mutableStateOf<List<LatLng>>(emptyList())
-    var currentPosition by mutableStateOf(startLocation)
-
-    var previousLocation: Location? = null
-
-    var fitCameraPosition by mutableStateOf(false)
-    var isMapLoaded by mutableStateOf(false)
-    var takeMapScreenshot by mutableStateOf(false)
-
+    private var previousLocation: Location? = null
     private var startTime by mutableStateOf("")
     private var endTime by mutableStateOf("")
-
-    //var currentSpeed by mutableIntStateOf(0)
-
-    private val _currentSpeed = mutableIntStateOf(0)
-    var currentSpeed: Int
-        get() = _currentSpeed.intValue
-        set(value) {
-            _currentSpeed.intValue = value
-            validateSpeedExceeded()
-        }
+    private var isMooving by mutableStateOf(false)
+    private var timeElapsed by mutableIntStateOf(0)
 
     private val mediaPlayer: MediaPlayer by lazy {
         MediaPlayer.create(appContext, R.raw.soft_alert).apply {
@@ -153,7 +96,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     init {
-        getCityRates(appViewModel.userData?.city)
+        getCityRates(appViewModel.uiState.value.userData?.city)
     }
 
     override fun onCleared() {
@@ -162,6 +105,50 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             mediaPlayer.stop()
         }
         mediaPlayer.release()
+    }
+
+    fun setInitialData(
+        startAddress: String?,
+        startLocationJson: String?,
+        endAddress: String?,
+        endLocationJson: String?
+    ) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                startAddress = startAddress ?: "",
+                startLocation = startLocationJson?.let {
+                    Gson().fromJson(
+                        it,
+                        UserLocation::class.java
+                    )
+                } ?: UserLocation(),
+                endAddress = endAddress ?: "",
+                endLocation = endLocationJson?.let { Gson().fromJson(it, UserLocation::class.java) }
+                    ?: UserLocation()
+            )
+        }
+    }
+
+    private fun onUnitsChanged(newValue: Double) {
+        val currentRates = _uiState.value.rates
+        val rechargeUnits = _uiState.value.rechargeUnits
+        _uiState.update {
+            it.copy(
+                units = newValue,
+                total = (newValue + rechargeUnits) * (currentRates.unitPrice ?: 0.0)
+            )
+        }
+    }
+
+    private fun updateTotal(rechargeUnits: Double) {
+        val currentRates = _uiState.value.rates
+        val currentUnits = _uiState.value.units
+        _uiState.update {
+            it.copy(
+                rechargeUnits = rechargeUnits,
+                total = (rechargeUnits + currentUnits) * (currentRates.unitPrice ?: 0.0)
+            )
+        }
     }
 
     fun validateLocationPermission() {
@@ -185,23 +172,24 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     @SuppressLint("MissingPermission")
     fun getCurrentLocation() {
-
-        appViewModel.isLoading = true
-
+        appViewModel.setLoading(true)
         val cancellationTokenSource = CancellationTokenSource()
-
         val task: Task<Location> = fusedLocationClient.getCurrentLocation(
             Priority.PRIORITY_HIGH_ACCURACY,
             cancellationTokenSource.token
         )
 
         task.addOnSuccessListener(executor) { location ->
-            appViewModel.isLoading = false
+            appViewModel.setLoading(false)
             if (location != null) {
-                currentPosition = UserLocation(
-                    latitude = location.latitude,
-                    longitude = location.longitude
-                )
+                _uiState.update {
+                    it.copy(
+                        currentPosition = UserLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
+                    )
+                }
                 startTaximeter()
             } else {
                 FirebaseCrashlytics.getInstance()
@@ -213,7 +201,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 )
             }
         }.addOnFailureListener {
-            appViewModel.isLoading = false
+            appViewModel.setLoading(false)
             FirebaseCrashlytics.getInstance().recordException(it)
             appViewModel.showMessage(
                 type = DialogType.ERROR,
@@ -224,27 +212,20 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     private fun getCityRates(userCity: String?) {
-
         viewModelScope.launch {
             if (userCity != null) {
                 try {
                     val firestore = FirebaseFirestore.getInstance()
                     val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("rates")
-                            .whereEqualTo("city", userCity)
-                            .get()
+                        firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
                             .await()
                     }
 
                     if (!ratesQuerySnapshot.isEmpty) {
                         val cityRatesDoc = ratesQuerySnapshot.documents[0]
                         try {
-                            ratesObj.value =
-                                cityRatesDoc.toObject(Rates::class.java) ?: Rates()
-
-                            if (ratesObj.value.validateHolidaySurcharge == true) {
-                                validateSurcharges()
-                            }
+                            val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
+                            _uiState.update { it.copy(rates = rates) }
 
                         } catch (e: Exception) {
                             FirebaseCrashlytics.getInstance().recordException(e)
@@ -252,9 +233,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                                 type = DialogType.ERROR,
                                 title = appContext.getString(R.string.something_went_wrong),
                                 message = appContext.getString(R.string.general_error),
-                                onDismiss = {
-                                    goBack()
-                                }
+                                onDismiss = { goBack() }
                             )
                         }
                     } else {
@@ -264,9 +243,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                             type = DialogType.ERROR,
                             title = appContext.getString(R.string.something_went_wrong),
                             message = appContext.getString(R.string.general_error),
-                            onDismiss = {
-                                goBack()
-                            }
+                            onDismiss = { goBack() }
                         )
                     }
                 } catch (e: Exception) {
@@ -275,9 +252,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
                         message = appContext.getString(R.string.general_error),
-                        onDismiss = {
-                            goBack()
-                        }
+                        onDismiss = { goBack() }
                     )
                 }
             } else {
@@ -287,9 +262,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
                     message = appContext.getString(R.string.error_no_city_set),
-                    onDismiss = {
-                        goBack()
-                    }
+                    onDismiss = { goBack() }
                 )
             }
         }
@@ -301,37 +274,16 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    private fun validateSurcharges() {
-        if (isNightTime(
-                ratesObj.value.nightHourSurcharge ?: 21,
-                ratesObj.value.nighMinuteSurcharge ?: 0,
-                ratesObj.value.morningHourSurcharge ?: 5,
-                ratesObj.value.morningMinuteSurcharge ?: 30
-            )
-        ) {
-            rechargeUnits += ratesObj.value.holidayRateUnits ?: 0.0
-            isHolidaySurcharge = true
-            return
-        }
-
-        if (isColombianHoliday()) {
-            rechargeUnits += ratesObj.value.holidayRateUnits ?: 0.0
-            isHolidaySurcharge = true
-            return
-        }
-    }
-
-    private fun onUnitsChanged(newValue: Double) {
-        total = (newValue + rechargeUnits) * (ratesObj.value.unitPrice ?: 0.0)
-    }
-
-    private fun updateTotal(rechargeUnits: Double) {
-        total = (rechargeUnits + units) * (ratesObj.value.unitPrice ?: 0.0)
-    }
-
     fun startTaximeter() {
-        isTaximeterStarted = true
-        units = ratesObj.value.startRateUnits ?: 0.0
+        _uiState.update {
+            it.copy(
+                isTaximeterStarted = true,
+                units = it.rates.startRateUnits ?: 0.0,
+                total = it.rates.startRateUnits?.let { units ->
+                    units * (it.rates.unitPrice ?: 0.0)
+                } ?: 0.0,
+            )
+        }
         startTime = Instant.now().toString()
         startTimer()
         startWatchLocation()
@@ -342,39 +294,40 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun showFinishConfirmation() {
-        isSheetExpanded = true
         appViewModel.showMessage(
             type = DialogType.WARNING,
             title = appContext.getString(R.string.finish_your_trip),
             message = appContext.getString(R.string.you_are_about_to_finish),
             buttonText = appContext.getString(R.string.finish_trip),
-            onButtonClicked = {
-                stopTaximeter()
-            }
+            onButtonClicked = { stopTaximeter() }
         )
     }
 
     fun stopTaximeter() {
-        currentSpeed = 0
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.StopLocationUpdateNotification)
-        }
-        appViewModel.isLoading = true
+        _uiState.update { it.copy(currentSpeed = 0) }
+        viewModelScope.launch { _navigationEvents.emit(NavigationEvent.StopLocationUpdateNotification) }
+        appViewModel.setLoading(true)
+
+        val currentPos = _uiState.value.currentPosition
         getAddressFromCoordinates(
-            latitude = currentPosition.latitude ?: 0.0,
-            longitude = currentPosition.longitude ?: 0.0,
+            latitude = currentPos.latitude ?: 0.0,
+            longitude = currentPos.longitude ?: 0.0,
             callbackSuccess = { address ->
-                appViewModel.isLoading = false
-                endAddress = address
-                isTaximeterStarted = false
+                appViewModel.setLoading(false)
+                _uiState.update {
+                    it.copy(
+                        endAddress = address,
+                        isTaximeterStarted = false,
+                        fitCameraPosition = true
+                    )
+                }
                 stopWatchLocation()
                 endTime = Instant.now().toString()
-                fitCameraPosition = true
             },
             callbackError = {
                 FirebaseCrashlytics.getInstance()
                     .recordException(Exception("TaximeterViewModel error on stop, ${it.message}"))
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -386,36 +339,31 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     private fun startTimer() {
         viewModelScope.launch {
-            while (isTaximeterStarted) {
+            while (_uiState.value.isTaximeterStarted) {
                 timeElapsed++
                 val hours = timeElapsed / 3600
                 val minutes = (timeElapsed % 3600) / 60
                 val seconds = timeElapsed % 60
 
-                formattedTime = when {
+                val formatted = when {
+                    timeElapsed < 3600 -> String.format(Locale.US, "%02d:%02d", minutes, seconds)
+                    else -> String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
+                }
+                _uiState.update { it.copy(formattedTime = formatted) }
 
-                    timeElapsed < 3600 -> {
-                        String.format(Locale.US, "%02d:%02d", minutes, seconds)
-                    }
+                if (!isMooving && _uiState.value.isTaximeterStarted) {
+                    val newDragTime = _uiState.value.dragTimeElapsed + 1
+                    val waitTime = _uiState.value.rates.waitTime ?: 24
 
-                    else -> {
-                        String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
+                    if (newDragTime >= waitTime) {
+                        val newUnits =
+                            _uiState.value.units + (_uiState.value.rates.waitTimeRateUnit ?: 1.0)
+                        onUnitsChanged(newUnits)
+                        _uiState.update { it.copy(dragTimeElapsed = 0) }
+                    } else {
+                        _uiState.update { it.copy(dragTimeElapsed = newDragTime) }
                     }
                 }
-
-                if (!isMooving && isTaximeterStarted) {
-
-                    dragTimeElapsed++
-                    val waitTime = ratesObj.value.waitTime ?: 24
-
-                    //Log.d("TaximeterViewModel", "waitTime: $waitTime")
-                    //Log.d("TaximeterViewModel", "dragTimeElapsed: $dragTimeElapsed")
-                    if (dragTimeElapsed >= waitTime) {
-                        units += ratesObj.value.waitTimeRateUnit ?: 1.0
-                        dragTimeElapsed = 0
-                    }
-                }
-
                 delay(1000)
             }
         }
@@ -428,6 +376,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun startWatchLocation() {
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
             .setMinUpdateIntervalMillis(2000L)
@@ -436,61 +385,72 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-                locationResult.lastLocation?.let { location ->
+                val location = locationResult.lastLocation ?: return
 
-                    currentPosition = UserLocation(
-                        latitude = location.latitude,
-                        longitude = location.longitude
-                    )
-
-                    if (previousLocation == null || (previousLocation?.distanceTo(location)
-                            ?: 0f) >= 25f
-                    ) {
-                        routeCoordinates = routeCoordinates + LatLng(
-                            currentPosition.latitude ?: 0.0,
-                            currentPosition.longitude ?: 0.0
-                        )
-                    }
-
-                    val speedMetersPerSecond = location.speed
-                    val speedKmPerHour = speedMetersPerSecond * 3.6
-
-                    currentSpeed = speedKmPerHour.toInt()
-
-                    //Log.d("TaximeterViewModel", "Location Speed: ${location.speed}")
-                    //Log.d("TaximeterViewModel", "Speed: $speedKmPerHour")
-                    //Log.d("TaximeterViewModel", "Drag Speed: ${ratesObj.value.dragSpeed}")
-                    //Log.d("TaximeterViewModel", "Condition: ${speedKmPerHour > (ratesObj.value.dragSpeed ?: 0.0)}")
-
-                    if (speedKmPerHour > (ratesObj.value.dragSpeed ?: 0.0)) {
-                        isMooving = true
-                        dragTimeElapsed = 0
-                        val distanceCovered: Float = previousLocation?.distanceTo(location) ?: 0f
-                        distanceMade += distanceCovered.toDouble()
-
-                        val additionalUnits = distanceCovered / (ratesObj.value.meters ?: 0)
-                        units += additionalUnits
-
-                    } else {
-                        isMooving = false
-                    }
-
+                if (previousLocation == null) {
                     previousLocation = location
-
+                    _uiState.update { it.copy(currentSpeed = 0) }
+                    return
                 }
+
+                val timeDeltaSec = (location.time - previousLocation!!.time) / 1000f
+                val distanceMeters = previousLocation!!.distanceTo(location)
+                val speedMps = if (timeDeltaSec > 0) distanceMeters / timeDeltaSec else 0f
+                val speedKph = (speedMps * 3.6f).toInt()
+
+                var newRoute = _uiState.value.routeCoordinates
+                if (distanceMeters >= 15f) {
+                    newRoute = newRoute + LatLng(location.latitude, location.longitude)
+                }
+
+                val userLocation = UserLocation(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+
+                _uiState.update {
+                    it.copy(
+                        currentSpeed = speedKph,
+                        currentPosition = userLocation,
+                        routeCoordinates = newRoute,
+                        distanceMade = it.distanceMade + distanceMeters.toDouble()
+                    )
+                }
+
+                appViewModel.updateUserLocation(userLocation)
+
+                //Log.d("TaximeterVM", "speedKph=$speedKph km/h over $distanceMeters m in $timeDeltaSec s")
+
+                val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
+                isMooving = speedKph > dragThreshold
+                if (isMooving) {
+                    _uiState.update { state ->
+                        state.copy(dragTimeElapsed = 0)
+                    }
+                    val addedUnits = distanceMeters / (_uiState.value.rates.meters ?: 1)
+                    val newUnits = _uiState.value.units + addedUnits
+                    onUnitsChanged(newUnits)
+                }
+
+                validateSpeedExceeded()
+
+                previousLocation = location
             }
         }
 
         if (ActivityCompat.checkSelfPermission(
                 appContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
                 appContext,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            // No tenemos permisos: simplemente salimos
             return
         }
+
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback!!,
@@ -498,174 +458,113 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
-    fun mapScreenshotReady(bitmap: Bitmap, onIntentReady: (Intent) -> Unit) {
 
+    fun mapScreenshotReady(bitmap: Bitmap, onIntentReady: (Intent) -> Unit) {
         val newWidth = bitmap.width / 1.3
         val newHeight = bitmap.height / 1.3
-        val scaledBitmap =
-            bitmap.scale(newWidth.toInt(), newHeight.toInt())
-
+        val scaledBitmap = bitmap.scale(newWidth.toInt(), newHeight.toInt())
         val outputStream = ByteArrayOutputStream()
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
         val compressedBytes = outputStream.toByteArray()
         val compressedBitmap =
             BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
 
-        val baseUnits =
-            if (units < (ratesObj.value.minimumRateUnits ?: 0.0)) ratesObj.value.minimumRateUnits
-                ?: 0.0 else units
+        val state = _uiState.value
+        val rates = state.rates
+        val baseUnits = if (state.units < (rates.minimumRateUnits ?: 0.0)) rates.minimumRateUnits
+            ?: 0.0 else state.units
 
         val tripObj = Trip(
-            startAddress = startAddress,
-            startCoords = startLocation,
-            endAddress = endAddress,
-            endCoords = currentPosition,
+            startAddress = state.startAddress,
+            startCoords = state.startLocation,
+            endAddress = state.endAddress,
+            endCoords = state.currentPosition,
             startHour = startTime,
             endHour = endTime,
-            units = baseUnits + rechargeUnits,
+            showUnits = state.rates.showUnits,
+            unitPrice = state.rates.unitPrice,
+            units = baseUnits + state.rechargeUnits,
             baseUnits = baseUnits,
-            rechargeUnits = rechargeUnits,
-            total = (baseUnits + rechargeUnits) * (ratesObj.value.unitPrice ?: 0.0),
-            baseRate = baseUnits * (ratesObj.value.unitPrice ?: 0.0),
-            distance = distanceMade,
-            airportSurchargeEnabled = isAirportSurcharge,
-            airportSurcharge = if (isAirportSurcharge) (ratesObj.value.airportRateUnits
-                ?: 0.0) * (ratesObj.value.unitPrice ?: 0.0) else null,
-            holidayOrNightSurchargeEnabled = isHolidaySurcharge,
-            holidayOrNightSurcharge = if (isHolidaySurcharge) (ratesObj.value.holidayRateUnits
-                ?: 0.0) * (ratesObj.value.unitPrice ?: 0.0) else null,
-            doorToDoorSurchargeEnabled = isDoorToDoorSurcharge,
-            doorToDoorSurcharge = if (isDoorToDoorSurcharge) (ratesObj.value.doorToDoorRateUnits
-                ?: 0.0) * (ratesObj.value.unitPrice ?: 0.0) else null,
-            currency = appViewModel.userData?.countryCurrency,
+            rechargeUnits = state.rechargeUnits,
+            total = (baseUnits + state.rechargeUnits) * (rates.unitPrice ?: 0.0),
+            baseRate = baseUnits * (rates.unitPrice ?: 0.0),
+            distance = state.distanceMade,
+            recharges = state.rechargesSelected,
+            currency = appViewModel.uiState.value.userData?.countryCurrency,
             routeImageLocal = compressedBitmap
         )
-
         saveTripData(tripData = tripObj) {
             val tripJson = Gson().toJson(tripObj)
             val intent = Intent(appContext, TripSummaryActivity::class.java)
             intent.putExtra("trip_data", tripJson)
             onIntentReady(intent)
         }
-
     }
 
-    fun openGoogleMapsApp(
-        originLat: Double,
-        originLng: Double,
-        destLat: Double,
-        destLng: Double,
-        onIntentReady: (Intent) -> Unit
-    ) {
+    fun openGoogleMapsApp(onIntentReady: (Intent) -> Unit) {
+        val state = _uiState.value
         val url =
-            "comgooglemaps://?saddr=$originLat,$originLng&daddr=$destLat,$destLng&directionsmode=driving"
+            "comgooglemaps://?saddr=${state.startLocation.latitude},${state.startLocation.longitude}&daddr=${state.endLocation.latitude},${state.endLocation.longitude}&directionsmode=driving"
         try {
             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
             intent.setPackage("com.google.android.apps.maps")
             onIntentReady(intent)
-
         } catch (e: Exception) {
             val webUrl =
-                "https://www.google.com/maps/dir/?api=1&origin=$originLat,$originLng&destination=$destLat,$destLng&travelmode=driving"
+                "http://maps.google.com/maps?saddr=${state.startLocation.latitude},${state.startLocation.longitude}&daddr=${state.endLocation.latitude},${state.endLocation.longitude}"
             val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
             onIntentReady(webIntent)
-
         }
     }
 
-    fun openWazeApp(destLat: Double, destLng: Double, onIntentReady: (Intent) -> Unit) {
-        val wazeUrl = "waze://?ll=$destLat,$destLng&navigate=yes"
+    fun openWazeApp(onIntentReady: (Intent) -> Unit) {
+        val state = _uiState.value
+        val wazeUrl =
+            "waze://?ll=${state.endLocation.latitude},${state.endLocation.longitude}&navigate=yes"
         try {
             val intent = Intent(Intent.ACTION_VIEW, wazeUrl.toUri())
             intent.setPackage("com.waze")
             onIntentReady(intent)
         } catch (e: Exception) {
-            val webUrl = "https://waze.com/ul?ll=$destLat,$destLng&navigate=yes"
+            val webUrl =
+                "https://waze.com/ul?ll=${state.endLocation.latitude},${state.endLocation.longitude}&navigate=yes"
             val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
             onIntentReady(webIntent)
         }
     }
 
-    fun updateSheetStateFromUI(isExpanded: Boolean) {
-        isSheetExpanded = isExpanded
-    }
-
-    // Upload image and save trip
-
-    private suspend fun uploadImage(bitmap: Bitmap): String? {
-        return try {
-            // Create a unique reference path
-            val fileName = "images/${System.currentTimeMillis()}.png"
-            val storageRef = FirebaseStorage.getInstance().reference.child(fileName)
-
-            // Set metadata, including content type
-            val metadata = storageMetadata {
-                contentType = "image/png"
-            }
-
-            // Convert bitmap to byte array
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream.toByteArray()
-
-            // Upload byte array directly
-            storageRef.putBytes(byteArray, metadata).await()
-
-            // Get download URL
-            storageRef.downloadUrl.await().toString()
-        } catch (error: Exception) {
-            Log.e("TripSummaryViewModel", "Error uploading image: ${error.message}")
-            null
-        }
-    }
-
-
     fun saveTripData(tripData: Trip, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-
-                appViewModel.isLoading = true
-
-                val imageUrl = tripData.routeImageLocal?.let { uploadImage(it) }
-
+                appViewModel.setLoading(true)
+                val imageUrl =
+                    tripData.routeImageLocal?.let { FirebaseStorageUtils.uploadImage("trips", it) }
                 val tripDataReq = mutableMapOf<String, Any?>().apply {
-                    putIfNotNull("userId", appViewModel.userData?.id)
+                    putIfNotNull("userId", appViewModel.uiState.value.userData?.id)
                     putIfNotNull("startCoords", tripData.startCoords)
                     putIfNotNull("endCoords", tripData.endCoords)
                     putIfNotNull("startHour", tripData.startHour)
                     putIfNotNull("endHour", tripData.endHour)
                     putIfNotNull("distance", tripData.distance)
+                    putIfNotNull("showUnits", tripData.showUnits)
+                    putIfNotNull("unitPrice", tripData.unitPrice)
                     putIfNotNull("units", tripData.units)
                     putIfNotNull("baseUnits", tripData.baseUnits)
                     putIfNotNull("rechargeUnits", tripData.rechargeUnits)
                     putIfNotNull("total", tripData.total)
                     putIfNotNull("baseRate", tripData.baseRate)
-                    putIfNotNull("isAirportSurcharge", tripData.airportSurchargeEnabled)
-                    putIfNotNull("airportSurcharge", tripData.airportSurcharge)
-                    putIfNotNull("isHolidaySurcharge", tripData.holidaySurchargeEnabled)
-                    putIfNotNull("holidaySurcharge", tripData.holidaySurcharge)
-                    putIfNotNull("isDoorToDoorSurcharge", tripData.doorToDoorSurchargeEnabled)
-                    putIfNotNull("doorToDoorSurcharge", tripData.doorToDoorSurcharge)
-                    putIfNotNull("isNightSurcharge", tripData.nightSurchargeEnabled)
-                    putIfNotNull("nightSurcharge", tripData.nightSurcharge)
-                    putIfNotNull(
-                        "isHolidayOrNightSurcharge",
-                        tripData.holidayOrNightSurchargeEnabled
-                    )
-                    putIfNotNull("holidayOrNightSurcharge", tripData.holidayOrNightSurcharge)
-                    putIfNotNull("currency", appViewModel.userData?.countryCurrency)
+                    putIfNotNull("recharges", tripData.recharges)
+                    putIfNotNull("currency", appViewModel.uiState.value.userData?.countryCurrency)
                     putIfNotNull("startAddress", tripData.startAddress)
                     putIfNotNull("endAddress", tripData.endAddress)
                     putIfNotNull("routeImage", imageUrl)
                 }
 
                 FirebaseFirestore.getInstance().collection("trips").add(tripDataReq).await()
-                appViewModel.isLoading = false
-
+                appViewModel.setLoading(false)
                 onSuccess()
-
             } catch (error: Exception) {
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 Log.e("TripSummaryViewModel", "Error saving trip data: ${error.message}")
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
@@ -677,7 +576,8 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun validateSpeedExceeded() {
-        val speedLimit = ratesObj.value.speedLimit ?: 0
+        val state = _uiState.value
+        val speedLimit = state.rates.speedLimit ?: 0
         if (speedLimit <= 0) {
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.pause()
@@ -685,8 +585,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             return
         }
 
-        val speedExceeded = currentSpeed > speedLimit
-
+        val speedExceeded = state.currentSpeed > speedLimit
         if (speedExceeded) {
             if (!mediaPlayer.isPlaying) {
                 mediaPlayer.start()
@@ -698,7 +597,36 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
+    fun setTakeMapScreenshot(value: Boolean) {
+        _uiState.update { it.copy(takeMapScreenshot = value) }
+    }
 
+    fun setIsMapLoaded(value: Boolean) {
+        _uiState.update { it.copy(isMapLoaded = value) }
+    }
+
+    fun toggleFab() {
+        _uiState.update { it.copy(isFabExpanded = !it.isFabExpanded) }
+    }
+
+    fun onChangeIsAddRechargesOpen(value: Boolean) {
+        _uiState.update { it.copy(isRechargesOpen = value) }
+    }
+
+    fun onRechargeToggled(recharge: Recharge, isChecked: Boolean) {
+        val current = _uiState.value.rechargesSelected.toMutableList()
+        var newRechargeUnits = _uiState.value.rechargeUnits
+
+        if (isChecked) {
+            newRechargeUnits += recharge.units ?: 0.0
+            if (!current.any { it.key == recharge.key }) current += recharge
+        } else {
+            newRechargeUnits -= recharge.units ?: 0.0
+            current.removeAll { it.key == recharge.key }
+        }
+        updateTotal(newRechargeUnits)
+        _uiState.value = _uiState.value.copy(rechargesSelected = current)
+    }
 }
 
 class TaximeterViewModelFactory(
@@ -708,9 +636,7 @@ class TaximeterViewModelFactory(
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TaximeterViewModel::class.java)) {
-            return TaximeterViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return TaximeterViewModel(context, appViewModel) as T
+
     }
 }

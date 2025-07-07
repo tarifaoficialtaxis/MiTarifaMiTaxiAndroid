@@ -40,11 +40,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -66,6 +67,8 @@ import com.mitarifamitaxi.taximetrousuario.helpers.getShortAddress
 import com.mitarifamitaxi.taximetrousuario.helpers.hourFormatDate
 import com.mitarifamitaxi.taximetrousuario.helpers.tripSummaryFormatDate
 import com.mitarifamitaxi.taximetrousuario.models.Trip
+import com.mitarifamitaxi.taximetrousuario.models.UserLocation
+import com.mitarifamitaxi.taximetrousuario.states.TripSummaryState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.TripSummaryViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.TripSummaryViewModelFactory
 import kotlinx.coroutines.launch
@@ -81,10 +84,10 @@ class TripSummaryActivity : BaseActivity() {
         observeViewModelEvents()
 
         val isDetails = intent.getBooleanExtra("is_details", false)
-        viewModel.isDetails = isDetails
+        viewModel.onChangeDetails(isDetails)
         val tripJson = intent.getStringExtra("trip_data")
         tripJson?.let {
-            viewModel.tripData = Gson().fromJson(it, Trip::class.java)
+            viewModel.setTrip(Gson().fromJson(it, Trip::class.java))
         }
     }
 
@@ -105,7 +108,11 @@ class TripSummaryActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+
+        val uiState by viewModel.uiState.collectAsState()
+
+        TripSummaryScreen(
+            uiState = uiState,
             onDeleteAction = {
                 viewModel.onDeleteAction()
             },
@@ -115,7 +122,7 @@ class TripSummaryActivity : BaseActivity() {
                 startActivity(intent)
             },
             onShareAction = {
-                viewModel.showShareDialog = true
+                viewModel.onShowShareDialog(true)
             },
             onFinishAction = {
                 val intent = Intent(this, HomeActivity::class.java)
@@ -124,28 +131,11 @@ class TripSummaryActivity : BaseActivity() {
             }
         )
 
-        if (viewModel.showShareDialog) {
-            CustomTextFieldDialog(
-                title = getString(R.string.share_trip),
-                message = getString(R.string.share_trip_message),
-                textButton = getString(R.string.send),
-                textFieldValue = viewModel.shareNumber,
-                isTextFieldError = viewModel.isShareNumberError,
-                onDismiss = { viewModel.showShareDialog = false },
-                onButtonClicked = {
-                    viewModel.sendWatsAppMessage(
-                        onIntentReady = { intent ->
-                            startActivity(intent)
-                        }
-                    )
-                }
-            )
-        }
-
     }
 
     @Composable
-    private fun MainView(
+    private fun TripSummaryScreen(
+        uiState: TripSummaryState,
         onDeleteAction: () -> Unit,
         onSosAction: () -> Unit,
         onShareAction: () -> Unit,
@@ -161,13 +151,13 @@ class TripSummaryActivity : BaseActivity() {
                 title = stringResource(id = R.string.trip_summary),
                 leadingIcon = Icons.Filled.ChevronLeft,
                 onClickLeading = {
-                    if (viewModel.isDetails) {
+                    if (uiState.isDetails) {
                         finish()
                     } else {
                         onFinishAction()
                     }
                 },
-                trailingIcon = if (viewModel.isDetails) Icons.Filled.Delete else null,
+                trailingIcon = if (uiState.isDetails) Icons.Filled.Delete else null,
                 onClickTrailing = onDeleteAction
             )
 
@@ -176,16 +166,16 @@ class TripSummaryActivity : BaseActivity() {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (viewModel.isDetails) {
+                if (uiState.isDetails) {
                     AsyncImage(
-                        model = viewModel.tripData.routeImage,
+                        model = uiState.tripData.routeImage,
                         contentDescription = "Trip route map image",
                         contentScale = ContentScale.Companion.FillWidth,
                         modifier = Modifier.Companion
                             .fillMaxWidth()
                     )
                 } else {
-                    viewModel.tripData.routeImageLocal?.let {
+                    uiState.tripData.routeImageLocal?.let {
                         Image(
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,
@@ -206,7 +196,7 @@ class TripSummaryActivity : BaseActivity() {
                     Row {
                         Column {
                             Text(
-                                text = tripSummaryFormatDate(viewModel.tripData.startHour ?: ""),
+                                text = tripSummaryFormatDate(uiState.tripData.startHour ?: ""),
                                 fontFamily = MontserratFamily,
                                 fontWeight = FontWeight.Companion.Medium,
                                 fontSize = 20.sp,
@@ -215,8 +205,8 @@ class TripSummaryActivity : BaseActivity() {
 
                             Text(
                                 text = "$ ${
-                                    viewModel.tripData.total?.toInt()?.formatNumberWithDots()
-                                } ${viewModel.tripData.currency}",
+                                    uiState.tripData.total?.toInt()?.formatNumberWithDots()
+                                } ${uiState.tripData.currency}",
                                 fontFamily = MontserratFamily,
                                 fontWeight = FontWeight.Companion.Bold,
                                 fontSize = 24.sp,
@@ -226,9 +216,9 @@ class TripSummaryActivity : BaseActivity() {
 
                         Spacer(modifier = Modifier.Companion.weight(1f))
 
-                        if (viewModel.tripData.companyImage != null) {
+                        if (uiState.tripData.companyImage != null) {
                             AsyncImage(
-                                model = viewModel.tripData.companyImage,
+                                model = uiState.tripData.companyImage,
                                 contentDescription = "Company logo",
                                 contentScale = ContentScale.Companion.Crop,
                                 modifier = Modifier.Companion
@@ -253,7 +243,7 @@ class TripSummaryActivity : BaseActivity() {
                         )
 
                         Text(
-                            text = viewModel.tripData.startAddress ?: "",
+                            text = uiState.tripData.startAddress ?: "",
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Companion.Normal,
                             fontSize = 12.sp,
@@ -264,7 +254,7 @@ class TripSummaryActivity : BaseActivity() {
                         Spacer(modifier = Modifier.Companion.weight(0.2f))
 
                         Text(
-                            text = hourFormatDate(viewModel.tripData.startHour ?: ""),
+                            text = hourFormatDate(uiState.tripData.startHour ?: ""),
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Companion.Medium,
                             fontSize = 14.sp,
@@ -286,7 +276,7 @@ class TripSummaryActivity : BaseActivity() {
                         )
 
                         Text(
-                            text = viewModel.tripData.endAddress?.getShortAddress() ?: "",
+                            text = uiState.tripData.endAddress?.getShortAddress() ?: "",
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Companion.Normal,
                             fontSize = 12.sp,
@@ -297,7 +287,7 @@ class TripSummaryActivity : BaseActivity() {
                         Spacer(modifier = Modifier.Companion.weight(0.2f))
 
                         Text(
-                            text = hourFormatDate(viewModel.tripData.endHour ?: ""),
+                            text = hourFormatDate(uiState.tripData.endHour ?: ""),
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Companion.Medium,
                             fontSize = 14.sp,
@@ -312,30 +302,30 @@ class TripSummaryActivity : BaseActivity() {
                             .background(colorResource(id = R.color.gray2))
                     )
 
-                    if (viewModel.tripData.units != null) {
+                    if (uiState.tripData.units != null && uiState.tripData.showUnits == true) {
                         TripInfoRow(
                             title = stringResource(id = R.string.units),
-                            value = viewModel.tripData.units?.toInt().toString()
+                            value = uiState.tripData.units.toInt().toString()
                         )
                     }
 
-                    if (viewModel.tripData.startHour != null && viewModel.tripData.endHour != null) {
+                    if (uiState.tripData.startHour != null && uiState.tripData.endHour != null) {
                         TripInfoRow(
                             title = stringResource(id = R.string.time_trip),
                             value = formatElapsed(
-                                viewModel.tripData.startHour ?: "",
-                                viewModel.tripData.endHour ?: ""
+                                uiState.tripData.startHour,
+                                uiState.tripData.endHour
                             )
                         )
                     }
 
-                    if (viewModel.tripData.total != null) {
+                    if (uiState.tripData.total != null) {
                         TripInfoRow(
                             title = stringResource(id = R.string.total),
                             value = "$${
-                                viewModel.tripData.total?.toInt()
-                                    ?.formatNumberWithDots()
-                            } ${viewModel.tripData.currency}"
+                                uiState.tripData.total.toInt()
+                                    .formatNumberWithDots()
+                            } ${uiState.tripData.currency}"
                         )
                     }
 
@@ -347,7 +337,7 @@ class TripSummaryActivity : BaseActivity() {
 
                         Button(
                             onClick = {
-                                viewModel.isDetailsOpen = !viewModel.isDetailsOpen
+                                viewModel.onChangeIsDetailsOpen(!uiState.isDetailsOpen)
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colorResource(id = R.color.transparent)
@@ -368,7 +358,7 @@ class TripSummaryActivity : BaseActivity() {
                                 )
 
                                 Icon(
-                                    imageVector = if (viewModel.isDetailsOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    imageVector = if (uiState.isDetailsOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                     contentDescription = null,
                                     tint = colorResource(id = R.color.main),
                                     modifier = Modifier
@@ -381,10 +371,10 @@ class TripSummaryActivity : BaseActivity() {
                         }
                     }
 
-                    if (viewModel.isDetailsOpen) {
+                    if (uiState.isDetailsOpen) {
                         TripInfoRow(
                             title = stringResource(id = R.string.distance_made),
-                            value = "${((viewModel.tripData.distance ?: 0.0) / 1000).formatDigits(1)} KM"
+                            value = "${((uiState.tripData.distance ?: 0.0) / 1000).formatDigits(1)} KM"
                         )
 
                         TripInfoRow(
@@ -396,85 +386,51 @@ class TripSummaryActivity : BaseActivity() {
                             modifier = Modifier
                                 .padding(start = 29.dp)
                         ) {
-                            if (viewModel.tripData.baseUnits != null) {
+                            if (uiState.tripData.baseUnits != null && uiState.tripData.showUnits == true) {
                                 TripInfoRow(
                                     title = stringResource(id = R.string.units_base),
-                                    value = viewModel.tripData.baseUnits?.toInt().toString()
+                                    value = uiState.tripData.baseUnits.toInt().toString()
                                 )
                             }
 
                             TripInfoRow(
                                 title = stringResource(id = R.string.fare_base),
                                 value = "$${
-                                    viewModel.tripData.baseRate?.toInt()?.formatNumberWithDots()
-                                } ${viewModel.tripData.currency}"
+                                    uiState.tripData.baseRate?.toInt()?.formatNumberWithDots()
+                                } ${uiState.tripData.currency}"
                             )
                         }
 
-                        TripInfoRow(
-                            title = stringResource(id = R.string.recharges),
-                            value = ""
-                        )
+                        if (uiState.tripData.recharges.isNotEmpty()) {
 
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 29.dp)
-                        ) {
-                            viewModel.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.units_recharge),
-                                    value = it.toInt().toString()
-                                )
-                            }
+                            TripInfoRow(
+                                title = stringResource(id = R.string.recharges),
+                                value = ""
+                            )
 
-                            if (viewModel.tripData.airportSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.airport_surcharge),
-                                    value = "+$${
-                                        viewModel.tripData.airportSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${viewModel.tripData.currency}"
-                                )
-                            }
+                            Column(
+                                modifier = Modifier
+                                    .padding(start = 29.dp)
+                            ) {
 
-                            if (viewModel.tripData.doorToDoorSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.door_to_door_surcharge),
-                                    value = "+$${
-                                        viewModel.tripData.doorToDoorSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${viewModel.tripData.currency}"
-                                )
-                            }
+                                if (uiState.tripData.showUnits == true) {
 
-                            if (viewModel.tripData.nightSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.night_surcharge_only),
-                                    value = "+$${
-                                        viewModel.tripData.nightSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${viewModel.tripData.currency}"
-                                )
-                            }
+                                    uiState.tripData.rechargeUnits?.takeIf { it > 0.0 }?.let {
+                                        TripInfoRow(
+                                            title = stringResource(id = R.string.units_recharge),
+                                            value = it.toInt().toString()
+                                        )
+                                    }
+                                }
 
-                            if (viewModel.tripData.holidaySurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.holiday_surcharge_only),
-                                    value = "+$${
-                                        viewModel.tripData.holidaySurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${viewModel.tripData.currency}"
-                                )
-                            }
-
-                            if (viewModel.tripData.holidayOrNightSurchargeEnabled == true) {
-                                TripInfoRow(
-                                    title = stringResource(id = R.string.holiday_surcharge),
-                                    value = "+$${
-                                        viewModel.tripData.holidayOrNightSurcharge?.toInt()
-                                            ?.formatNumberWithDots()
-                                    } ${viewModel.tripData.currency}"
-                                )
+                                uiState.tripData.recharges.forEach { recharge ->
+                                    TripInfoRow(
+                                        title = recharge.name ?: "",
+                                        value = "+$${
+                                            ((recharge.units ?: 0.0) * (uiState.tripData.unitPrice ?: 0.0)).formatNumberWithDots()
+                                        } ${uiState.tripData.currency}"
+                                    )
+                                }
                             }
                         }
                     }
@@ -497,7 +453,7 @@ class TripSummaryActivity : BaseActivity() {
                             leadingIcon = Icons.Rounded.Share
                         )
 
-                        if (!viewModel.isDetails) {
+                        if (!uiState.isDetails) {
                             CustomButton(
                                 text = stringResource(id = R.string.finish).uppercase(),
                                 onClick = onFinishAction,
@@ -512,6 +468,53 @@ class TripSummaryActivity : BaseActivity() {
             }
         }
 
+        if (uiState.showShareDialog) {
+            CustomTextFieldDialog(
+                title = getString(R.string.share_trip),
+                message = getString(R.string.share_trip_message),
+                textButton = getString(R.string.send),
+                textFieldValue = uiState.shareNumber,
+                onValueChange = { newNumber ->
+                    viewModel.onShareNumberChange(newNumber)
+                },
+                isTextFieldError = uiState.isShareNumberError,
+                onDismiss = { viewModel.onShowShareDialog(false) },
+                onButtonClicked = {
+                    viewModel.sendWatsAppMessage(
+                        onIntentReady = { intent ->
+                            startActivity(intent)
+                        }
+                    )
+                }
+            )
+        }
     }
 
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        TripSummaryScreen(
+            uiState = TripSummaryState(
+                tripData = Trip(
+                    endAddress = "Welland Ave + Bunting Rd, St. Catharines, ON L2M 5V7, Canada",
+                    startCoords = UserLocation(43.158396629424381, -79.223706008781051),
+                    currency = "CAD",
+                    total = 12675.266674339222,
+                    routeImage = "https://firebasestorage.googleapis.com:443/v0/b/mitarifamitaxi-4a0e2.appspot.com/o/images%2F1749259927386.186.png?alt=media&token=0f39484a-7217-4760-83cd-32a7ca7decf3",
+                    endHour = "2025-06-07T01:32:06.798000Z",
+                    startHour = "2025-06-07T01:24:58.292000Z",
+                    endCoords = UserLocation(43.176251155140861, -79.212042830449874),
+                    units = 86.226303907069536,
+                    distance = 3041.6303907069505,
+                    baseRate = 9175.1966743392222,
+                    startAddress = "50 Herrick Ave, St. Catharines, ON L2P 0G3, Canada",
+                    userId = "uIeFGe937wd0d0r5ItGK7RfFKut2"
+                )
+            ),
+            onDeleteAction = {},
+            onSosAction = {},
+            onShareAction = {},
+            onFinishAction = {}
+        )
+    }
 }

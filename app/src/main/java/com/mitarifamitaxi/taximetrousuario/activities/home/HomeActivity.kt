@@ -24,15 +24,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +45,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
@@ -57,9 +57,12 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
+import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.models.Trip
+import com.mitarifamitaxi.taximetrousuario.states.AppState
+import com.mitarifamitaxi.taximetrousuario.states.HomeState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.home.HomeViewModelFactory
 
@@ -88,7 +91,13 @@ class HomeActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
-        MainView(
+
+        val uiState by viewModel.uiState.collectAsState()
+        val appState by appViewModel.uiState.collectAsState()
+
+        HomeScreen(
+            uiState = uiState,
+            appState = appState,
             onTaximeterClick = {
                 startActivity(Intent(this, RoutePlannerActivity::class.java))
                 //startActivity(Intent(this, TaximeterActivity::class.java))
@@ -114,7 +123,9 @@ class HomeActivity : BaseActivity() {
     }
 
     @Composable
-    private fun MainView(
+    private fun HomeScreen(
+        uiState: HomeState,
+        appState: AppState,
         onTaximeterClick: () -> Unit,
         onSosClick: () -> Unit,
         onPqrsClick: () -> Unit,
@@ -122,7 +133,6 @@ class HomeActivity : BaseActivity() {
         onTripClicked: (Trip) -> Unit
     ) {
         val openDrawer = LocalOpenDrawer.current
-        val trips by viewModel.trips
 
         Column(
             modifier = Modifier.Companion
@@ -171,9 +181,12 @@ class HomeActivity : BaseActivity() {
                             contentColor = colorResource(id = R.color.white)
                         ),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "content description"
+
+                        ProfilePictureBox(
+                            imageUri = appState.userData?.profilePicture?.toUri(),
+                            editable = false,
+                            boxSize = 45,
+                            iconSize = 30
                         )
                     }
 
@@ -189,7 +202,7 @@ class HomeActivity : BaseActivity() {
                     )
 
                     Text(
-                        text = appViewModel.userData?.firstName ?: "",
+                        text = appState.userData?.firstName ?: "",
                         color = colorResource(id = R.color.main),
                         fontSize = 20.sp,
                         fontFamily = MontserratFamily,
@@ -200,7 +213,7 @@ class HomeActivity : BaseActivity() {
                     Spacer(modifier = Modifier.Companion.height(5.dp))
 
                     Text(
-                        text = appViewModel.userData?.city ?: "",
+                        text = appState.userData?.city ?: "",
                         color = colorResource(id = R.color.white),
                         fontSize = 14.sp,
                         fontFamily = MontserratFamily,
@@ -221,7 +234,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
 
-            if (appViewModel.isGettingLocation) {
+            if (appState.isGettingLocation) {
                 Column(
                     horizontalAlignment = Alignment.Companion.CenterHorizontally,
                 ) {
@@ -243,127 +256,162 @@ class HomeActivity : BaseActivity() {
                 }
             } else {
 
-                Column(
-                    Modifier.Companion
-                        .padding(horizontal = 29.dp)
-                        .padding(top = 30.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-
-                    OutlinedButton(
-                        onClick = onTaximeterClick,
-                        modifier = Modifier.Companion
-                            .fillMaxWidth(),
-                        border = null,
-                        contentPadding = PaddingValues(0.dp),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.home_taximetro_button),
-                            contentDescription = null,
-                            contentScale = ContentScale.Companion.Fit,
-                            modifier = Modifier.Companion
-                                .fillMaxSize()
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(11.dp),
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                            .padding(vertical = 11.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = onSosClick,
-                            modifier = Modifier.Companion
-                                .weight(1.0f),
-                            border = null,
-                            contentPadding = PaddingValues(0.dp),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.home_sos_button),
-                                contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = onPqrsClick,
-                            modifier = Modifier.Companion
-                                .weight(1.0f),
-                            border = null,
-                            contentPadding = PaddingValues(0.dp),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.home_pqrs_button),
-                                contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion
-                                    .fillMaxSize()
-                            )
-                        }
-                    }
-
-                    Column {
-                        Row {
-                            Text(
-                                text = stringResource(id = R.string.my_trips),
-                                color = colorResource(id = R.color.black),
-                                fontSize = 16.sp,
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
-                                modifier = Modifier.Companion
-                                    .padding(top = 15.dp)
-                            )
-
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
-
-                            if (trips.isNotEmpty()) {
-                                TextButton(onClick = onMyTripsClick) {
-                                    Text(
-                                        text = stringResource(id = R.string.see_all),
-                                        color = colorResource(id = R.color.main),
-                                        textDecoration = TextDecoration.Companion.Underline,
-                                        fontSize = 14.sp,
-                                        fontFamily = MontserratFamily,
-                                        fontWeight = FontWeight.Companion.Bold,
-                                    )
-                                }
-                            }
-                        }
-
-
-                        if (trips.isEmpty()) {
-                            NoTripsView()
-                        } else {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(11.dp),
-                                modifier = Modifier.Companion
-                                    .fillMaxWidth()
-                                    .background(colorResource(id = R.color.white))
-                                    .padding(top = 10.dp)
-                                    .padding(bottom = 40.dp)
-                            ) {
-                                trips.forEach { trip ->
-                                    TripItem(
-                                        trip, onTripClicked = {
-                                            onTripClicked(trip)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-
-                }
+                UserView(
+                    uiState = uiState,
+                    onTaximeterClick = onTaximeterClick,
+                    onSosClick = onSosClick,
+                    onPqrsClick = onPqrsClick,
+                    onMyTripsClick = onMyTripsClick,
+                    onTripClicked = onTripClicked
+                )
 
 
             }
         }
     }
+
+    @Composable
+    private fun UserView(
+        uiState: HomeState,
+        onTaximeterClick: () -> Unit,
+        onSosClick: () -> Unit,
+        onPqrsClick: () -> Unit,
+        onMyTripsClick: () -> Unit,
+        onTripClicked: (Trip) -> Unit
+    ) {
+
+        Column(
+            Modifier.Companion
+                .padding(horizontal = 29.dp)
+                .padding(top = 30.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
+        ) {
+
+            OutlinedButton(
+                onClick = onTaximeterClick,
+                modifier = Modifier.Companion
+                    .fillMaxWidth(),
+                border = null,
+                contentPadding = PaddingValues(0.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.home_taximetro_button),
+                    contentDescription = null,
+                    contentScale = ContentScale.Companion.FillWidth,
+                    modifier = Modifier.Companion
+                        .fillMaxSize()
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(11.dp),
+                modifier = Modifier.Companion
+                    .fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = onSosClick,
+                    modifier = Modifier.Companion
+                        .weight(1.0f),
+                    border = null,
+                    contentPadding = PaddingValues(0.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.home_sos_button),
+                        contentDescription = null,
+                        contentScale = ContentScale.Companion.FillWidth,
+                        modifier = Modifier.Companion
+                            .fillMaxSize()
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = onPqrsClick,
+                    modifier = Modifier.Companion
+                        .weight(1.0f),
+                    border = null,
+                    contentPadding = PaddingValues(0.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.home_pqrs_button),
+                        contentDescription = null,
+                        contentScale = ContentScale.Companion.FillWidth,
+                        modifier = Modifier.Companion
+                            .fillMaxSize()
+                    )
+                }
+            }
+
+            Column {
+                Row {
+                    Text(
+                        text = stringResource(id = R.string.my_trips),
+                        color = colorResource(id = R.color.black),
+                        fontSize = 16.sp,
+                        fontFamily = MontserratFamily,
+                        fontWeight = FontWeight.Companion.Bold,
+                        modifier = Modifier.Companion
+                            .padding(top = 15.dp)
+                    )
+
+                    Spacer(modifier = Modifier.Companion.weight(1.0f))
+
+                    if (uiState.trips.isNotEmpty()) {
+                        TextButton(onClick = onMyTripsClick) {
+                            Text(
+                                text = stringResource(id = R.string.see_all),
+                                color = colorResource(id = R.color.main),
+                                textDecoration = TextDecoration.Companion.Underline,
+                                fontSize = 14.sp,
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Bold,
+                            )
+                        }
+                    }
+                }
+
+
+                if (uiState.trips.isEmpty()) {
+                    NoTripsView()
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(11.dp),
+                        modifier = Modifier.Companion
+                            .fillMaxWidth()
+                            .background(colorResource(id = R.color.white))
+                            .padding(top = 10.dp)
+                            .padding(bottom = 40.dp)
+                    ) {
+                        uiState.trips.forEach { trip ->
+                            TripItem(
+                                trip, onTripClicked = {
+                                    onTripClicked(trip)
+                                }
+                            )
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    @Preview
+    @Composable
+    fun ScreenPreview() {
+        HomeScreen(
+            uiState = HomeState(),
+            appState = AppState(),
+            onTaximeterClick = {},
+            onSosClick = {},
+            onPqrsClick = {},
+            onMyTripsClick = {},
+            onTripClicked = {}
+        )
+    }
+
 }

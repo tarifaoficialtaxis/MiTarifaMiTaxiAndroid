@@ -3,24 +3,25 @@ package com.mitarifamitaxi.taximetrousuario.viewmodels.sos
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.models.Contact
+import com.mitarifamitaxi.taximetrousuario.models.ContactCatalog
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
-import com.mitarifamitaxi.taximetrousuario.models.ItemImageButton
+import com.mitarifamitaxi.taximetrousuario.states.SosState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
-import com.mitarifamitaxi.taximetrousuario.viewmodels.UserDataUpdateEvent
+import com.mitarifamitaxi.taximetrousuario.viewmodels.trips.MyTripsViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -30,10 +31,8 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
     private val appContext = context.applicationContext
 
-    var showContactDialog by mutableStateOf(false)
-
-    private val contactObj = mutableStateOf(Contact())
-    var itemSelected: ItemImageButton? = null
+    private val _uiState = MutableStateFlow(SosState())
+    val uiState: StateFlow<SosState> = _uiState
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
@@ -44,167 +43,107 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
     }
 
     init {
-        appViewModel.isLoading = true
-        observeAppViewModelEvents()
+        loadContacts(appViewModel.uiState.value.userData?.city ?: "")
     }
 
-    private fun observeAppViewModelEvents() {
-        viewModelScope.launch {
-            appViewModel.userDataUpdateEvents.collectLatest { event ->
-                when (event) {
-                    is UserDataUpdateEvent.FirebaseUserUpdated -> {
-                        Log.d(
-                            "SosViewModel",
-                            "Received FirebaseUserUpdated event. Current appViewModel city: ${appViewModel.userData?.city}"
-                        )
-                        getCityContacts(appViewModel.userData?.city)
-                    }
-                }
-            }
-        }
-    }
+    fun filterContactLines() {
+        val originalContact = ContactsCatalogManager(appContext).getContactsState() ?: Contact()
+        val userData = appViewModel.uiState.value.userData
+        val supportNumber = userData?.supportNumber
+        val familyNumber = userData?.familyNumber
 
-    private fun getCityContacts(userCity: String?) {
-
-        viewModelScope.launch {
-            if (userCity != null) {
-                try {
-                    val firestore = FirebaseFirestore.getInstance()
-                    val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("contacts")
-                            .whereEqualTo("city", userCity)
-                            .get()
-                            .await()
-                    }
-
-                    if (!ratesQuerySnapshot.isEmpty) {
-                        val contactsDoc = ratesQuerySnapshot.documents[0]
-                        try {
-                            appViewModel.isLoading = false
-                            contactObj.value =
-                                contactsDoc.toObject(Contact::class.java) ?: Contact()
-                            validateShowModal()
-                        } catch (e: Exception) {
-                            Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
-                            appViewModel.isLoading = false
-                            appViewModel.showMessage(
-                                DialogType.ERROR,
-                                appContext.getString(R.string.something_went_wrong),
-                                appContext.getString(R.string.general_error)
-                            )
-                        }
-                    } else {
-                        appViewModel.isLoading = false
-                        appViewModel.showMessage(
-                            DialogType.ERROR,
-                            appContext.getString(R.string.something_went_wrong),
-                            appContext.getString(R.string.error_no_contacts_found),
-                            onDismiss = {
-                                goBack()
-                            }
-                        )
-                    }
-                } catch (e: Exception) {
-                    Log.e("SosViewModel", "Error fetching contacts: ${e.message}")
-                    appViewModel.isLoading = false
-                    appViewModel.showMessage(
-                        DialogType.ERROR,
-                        appContext.getString(R.string.something_went_wrong),
-                        appContext.getString(R.string.general_error),
-                        onDismiss = {
-                            goBack()
-                        }
+        val updatedLines = originalContact.lines
+            .asSequence()
+            .filter { it.show }
+            .sortedBy { it.order }
+            .map { line ->
+                when (line.key) {
+                    "SUPPORT" -> line.copy(
+                        line2 = supportNumber,
+                        whatsapp = supportNumber
                     )
+
+                    "FAMILY" -> line.copy(
+                        line2 = familyNumber,
+                        whatsapp = familyNumber
+                    )
+                    else -> line
                 }
-            } else {
-                appViewModel.isLoading = false
-                appViewModel.showMessage(
-                    DialogType.ERROR,
-                    appContext.getString(R.string.something_went_wrong),
-                    appContext.getString(R.string.error_no_city_set),
-                    onDismiss = {
-                        goBack()
-                    }
-                )
             }
+            .toList()
+
+        _uiState.update { uiState ->
+            uiState.copy(
+                contact = originalContact.copy(lines = updatedLines)
+            )
+        }
+    }
+
+
+    fun showContactDialog(itemSelected: ContactCatalog? = null) {
+
+        if (itemSelected?.key == "SUPPORT" && appViewModel.uiState.value.userData?.supportNumber.isNullOrEmpty()) {
+            appViewModel.showMessage(
+                DialogType.WARNING,
+                appContext.getString(R.string.support_number_not_found),
+                appContext.getString(R.string.set_up_support_number),
+                appContext.getString(R.string.add_number),
+                onButtonClicked = {
+                    goToProfile()
+                }
+            )
+            return
+
+        }
+
+        if (itemSelected?.key == "FAMILY" && appViewModel.uiState.value.userData?.familyNumber.isNullOrEmpty()) {
+            appViewModel.showMessage(
+                DialogType.WARNING,
+                appContext.getString(R.string.family_number_not_found),
+                appContext.getString(R.string.set_up_family_number),
+                appContext.getString(R.string.add_number),
+                onButtonClicked = {
+                    goToProfile()
+                }
+            )
+            return
         }
 
 
+        _uiState.update { currentState ->
+            currentState.copy(showContactDialog = true, contactCatalogSelected = itemSelected)
+        }
+
+    }
+
+
+    fun hideContactDialog() {
+        _uiState.update { currentState ->
+            currentState.copy(showContactDialog = false)
+        }
     }
 
     fun validateShowModal() {
-        if (contactObj.value.showSosWarning) {
+        if (_uiState.value.contact.showSosWarning) {
             appViewModel.showMessage(
                 DialogType.WARNING,
                 appContext.getString(R.string.warning),
-                contactObj.value.warningMessage ?: "",
+                _uiState.value.contact.warningMessage ?: "",
                 appContext.getString(R.string.confirm),
                 showCloseButton = false
             )
         }
     }
 
-    fun validateSosAction(isCall: Boolean, onIntentReady: (Intent) -> Unit) {
+    fun validateSosAction(isCall: Boolean, contactNumber: String, onIntentReady: (Intent) -> Unit) {
 
-        var contactNumber = ""
-        var sosType = ""
+        var sosType = _uiState.value.contactCatalogSelected?.name ?: "SOS"
         var event: String? = null
 
-        when (itemSelected?.id) {
-            "POLICE" -> {
-                contactNumber = contactObj.value.policeNumber ?: ""
-                sosType = appContext.getString(R.string.police)
-            }
-
-            "FIRE_FIGHTERS" -> {
-                contactNumber = contactObj.value.firefightersNumber ?: ""
-                sosType = appContext.getString(R.string.fire_fighters)
-            }
-
-            "AMBULANCE" -> {
-                contactNumber = contactObj.value.ambulanceNumber ?: ""
-                sosType = appContext.getString(R.string.ambulance)
-            }
+        when (_uiState.value.contactCatalogSelected?.key) {
 
             "ANIMAL_CARE" -> {
-                contactNumber = contactObj.value.animalCareNumber ?: ""
-                sosType = appContext.getString(R.string.animal_care)
                 event = appContext.getString(R.string.sos_animal_care)
-            }
-
-            "SUPPORT" -> {
-
-                if (appViewModel.userData?.supportNumber != null) {
-                    contactNumber = appViewModel.userData?.supportNumber ?: ""
-                    sosType = appContext.getString(R.string.support)
-                } else {
-                    appViewModel.showMessage(
-                        DialogType.WARNING,
-                        appContext.getString(R.string.support_number_not_found),
-                        appContext.getString(R.string.set_up_support_number),
-                        appContext.getString(R.string.add_number),
-                        onButtonClicked = {
-                            goToProfile()
-                        }
-                    )
-                }
-            }
-
-            "FAMILY" -> {
-                if (appViewModel.userData?.familyNumber != null) {
-                    contactNumber = appViewModel.userData?.familyNumber ?: ""
-                    sosType = appContext.getString(R.string.family)
-                } else {
-                    appViewModel.showMessage(
-                        DialogType.WARNING,
-                        appContext.getString(R.string.family_number_not_found),
-                        appContext.getString(R.string.set_up_family_number),
-                        appContext.getString(R.string.add_number),
-                        onButtonClicked = {
-                            goToProfile()
-                        }
-                    )
-                }
             }
 
         }
@@ -233,7 +172,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         onIntentReady: (Intent) -> Unit
     ) {
 
-        val userLocation = appViewModel.userData?.location
+        val userLocation = appViewModel.uiState.value.userLocation
         val message = buildString {
             append("*SOS ${sosType.uppercase()}*\n")
             if (event != null) {
@@ -246,7 +185,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
 
         val messageToSend = URLEncoder.encode(message, "UTF-8").replace("%0A", "%0D%0A")
         val whatsappURL =
-            "whatsapp://send?text=$messageToSend&phone=${appViewModel.userData?.countryCodeWhatsapp}${phoneNumber}"
+            "whatsapp://send?text=$messageToSend&phone=${appViewModel.uiState.value.userData?.countryCodeWhatsapp}${phoneNumber}"
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(whatsappURL)
@@ -277,23 +216,51 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
         }
     }
 
-    fun goBack() {
+    private fun loadContacts(city: String) {
         viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.GoBack)
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                    firestore.collection("dynamicContacts")
+                        .whereEqualTo("city", city)
+                        .get()
+                        .await()
+                }
+
+                if (!ratesQuerySnapshot.isEmpty) {
+                    val contactsDoc = ratesQuerySnapshot.documents[0]
+                    try {
+                        val contactVal =
+                            contactsDoc.toObject(Contact::class.java) ?: Contact()
+                        ContactsCatalogManager(appContext).saveContactsState(contactVal)
+                        filterContactLines()
+                        validateShowModal()
+                    } catch (e: Exception) {
+                        Log.e("SosViewModel", "Error parsing contact data: ${e.message}")
+                    }
+                } else {
+                    Log.e(
+                        "SosViewModel",
+                        "Error fetching contacts: ${appContext.getString(R.string.error_no_contacts_found)}"
+                    )
+
+                }
+            } catch (e: Exception) {
+                Log.e("SosViewModel", "Error fetching contacts: ${e.message}")
+            }
+
         }
+
     }
+
 }
 
 class SosViewModelFactory(
     private val context: Context,
     private val appViewModel: AppViewModel
-) :
-    ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SosViewModel::class.java)) {
-            return SosViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    override fun <T : ViewModel> create(cls: Class<T>): T {
+        return SosViewModel(context, appViewModel) as T
     }
 }

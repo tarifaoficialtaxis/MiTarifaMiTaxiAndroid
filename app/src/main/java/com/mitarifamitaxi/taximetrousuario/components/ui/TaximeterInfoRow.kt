@@ -28,7 +28,8 @@ fun TaximeterInfoRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp)
+                .padding(bottom = 5.dp)
+
         ) {
 
             Text(

@@ -1,18 +1,20 @@
 package com.mitarifamitaxi.taximetrousuario.viewmodels.onboarding
 
 import android.content.Context
-import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.helpers.Constants
 import com.mitarifamitaxi.taximetrousuario.helpers.isValidEmail
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
+import com.mitarifamitaxi.taximetrousuario.states.ForgotPasswordState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ForgotPasswordViewModel(context: Context, private val appViewModel: AppViewModel) :
@@ -21,9 +23,8 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     private val appContext = context.applicationContext
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    var email by mutableStateOf("")
-    var emailIsValid by mutableStateOf(true)
-    var emailErrorMessage by mutableStateOf(appContext.getString(R.string.required_field))
+    private val _uiState = MutableStateFlow(ForgotPasswordState())
+    val uiState: StateFlow<ForgotPasswordState> = _uiState
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
@@ -33,31 +34,49 @@ class ForgotPasswordViewModel(context: Context, private val appViewModel: AppVie
     }
 
     init {
-        if (Constants.IS_DEV) {
+        /*if (Constants.IS_DEV) {
             email = "mateotest1@yopmail.com"
-        }
+        }*/
+    }
+
+    fun onEmailChange(value: String) = _uiState.update {
+        it.copy(email = value)
     }
 
     fun validateEmail() {
-        emailIsValid = email.isNotEmpty() && email.isValidEmail()
-        if (!emailIsValid) {
-            emailErrorMessage = appContext.getString(R.string.invalid_email)
+        _uiState.update { state ->
+            state.copy(
+                emailIsError = state.email.isEmpty(),
+                emailErrorMessage = if (state.email.isBlank()) appContext.getString(R.string.required_field) else "",
+            )
         }
 
-        if (emailIsValid) {
+        if (_uiState.value.email.isNotEmpty()) {
+            if (!_uiState.value.email.isValidEmail()) {
+                _uiState.update { state ->
+                    state.copy(
+                        emailIsError = true,
+                        emailErrorMessage = appContext.getString(R.string.invalid_email)
+                    )
+                }
+            }
+
+        }
+
+        if (!_uiState.value.emailIsError) {
             sendPasswordReset()
         }
     }
 
     fun sendPasswordReset() {
-        appViewModel.isLoading = true
+        appViewModel.setLoading(true)
         auth.setLanguageCode("es")
-        auth.sendPasswordResetEmail(email.trim())
+        auth.sendPasswordResetEmail(_uiState.value.email.trim())
             .addOnCompleteListener { task ->
-                appViewModel.isLoading = false
+                appViewModel.setLoading(false)
                 if (task.isSuccessful) {
                     appViewModel.showMessage(
-                        type = DialogType.SUCCESS,
+                        type = DialogType.WARNING,
                         title = appContext.getString(R.string.recoveryEmailSent),
                         message = appContext.getString(R.string.weHaveSentRecoveryEmailPassword),
                         buttonText = appContext.getString(R.string.accept),
@@ -97,9 +116,6 @@ class ForgotPasswordViewModelFactory(
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ForgotPasswordViewModel::class.java)) {
-            return ForgotPasswordViewModel(context, appViewModel) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return ForgotPasswordViewModel(context, appViewModel) as T
     }
 }
