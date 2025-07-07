@@ -481,7 +481,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             endCoords = state.currentPosition,
             startHour = startTime,
             endHour = endTime,
-            isUnits = state.rates.isUnits,
+            showUnits = state.rates.showUnits,
             unitPrice = state.rates.unitPrice,
             units = baseUnits + state.rechargeUnits,
             baseUnits = baseUnits,
@@ -546,7 +546,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     putIfNotNull("startHour", tripData.startHour)
                     putIfNotNull("endHour", tripData.endHour)
                     putIfNotNull("distance", tripData.distance)
-                    putIfNotNull("isUnits", tripData.isUnits)
+                    putIfNotNull("showUnits", tripData.showUnits)
                     putIfNotNull("unitPrice", tripData.unitPrice)
                     putIfNotNull("units", tripData.units)
                     putIfNotNull("baseUnits", tripData.baseUnits)

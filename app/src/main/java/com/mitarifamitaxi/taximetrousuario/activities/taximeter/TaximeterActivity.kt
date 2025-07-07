@@ -461,7 +461,7 @@ class TaximeterActivity : BaseActivity() {
                             value = taximeterState.formattedTime
                         )
 
-                        if (taximeterState.rates.isUnits == true) {
+                        if (taximeterState.rates.showUnits == true) {
                             TaximeterInfoRow(
                                 title = stringResource(id = R.string.units),
                                 value = (taximeterState.units + taximeterState.rechargeUnits).formatNumberWithDots()
