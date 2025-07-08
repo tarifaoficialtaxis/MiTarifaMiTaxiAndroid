@@ -9,7 +9,7 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
-import com.mitarifamitaxi.taximetrousuario.helpers.getPlaceDetails
+import com.mitarifamitaxi.taximetrousuario.helpers.getCoordinatesFromQuery
 import com.mitarifamitaxi.taximetrousuario.helpers.getPlacePredictions
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.PlacePrediction
@@ -91,7 +91,7 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
     }
 
     private fun loadPlacePredictions(input: String) {
-        if (input.length < 2) {
+        if (input.length < 5) {
             _uiState.update { it.copy(places = emptyList()) }
             return
         }
@@ -114,11 +114,11 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     fun selectPlacePrediction(place: PlacePrediction) {
         _uiState.update { it.copy(places = emptyList()) }
-        place.placeId?.let { placeId ->
-            getPlaceDetails(
-                placeId,
+        place.description?.let { description ->
+            getCoordinatesFromQuery(
+                description,
                 callbackSuccess = { location ->
-                    place.description?.let { description ->
+                    place.description.let { description ->
                         if (_uiState.value.isSelectingStart) {
                             _uiState.update {
                                 it.copy(

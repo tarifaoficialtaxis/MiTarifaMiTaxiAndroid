@@ -11,7 +11,8 @@ object K {
 
     const val NOMINATIM_URL = "https://nominatim.openstreetmap.org/"
 
-    //https://nominatim.openstreetmap.org/reverse?lat=-22.6792&lon=14.5272&format=json
+    const val GEOCODE_EARTH_API_URL = "https://api.geocode.earth/v1/"
+    const val GEOCODE_EARTH_API_KEY = "ge-a2b6d79bf7e411fd"
 
     val GENERAL_PADDING = 29.dp
 }

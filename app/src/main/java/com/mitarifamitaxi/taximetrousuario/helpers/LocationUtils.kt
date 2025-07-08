@@ -11,6 +11,7 @@ import com.mitarifamitaxi.taximetrousuario.resources.countries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URLEncoder
@@ -186,7 +187,7 @@ fun getAddressFromCoordinates(
     })
 }*/
 
-fun getPlacePredictions(
+/*fun getPlacePredictions(
     input: String,
     latitude: Double,
     longitude: Double,
@@ -243,10 +244,76 @@ fun getPlacePredictions(
             }
         }
     })
+}*/
+
+// GEOCODE EARTH API
+fun getPlacePredictions(
+    input: String,
+    latitude: Double,
+    longitude: Double,
+    country: String = "CO",
+    radius: Int = 30000,
+    callbackSuccess: (ArrayList<PlacePrediction>) -> Unit,
+    callbackError: (Exception) -> Unit
+) {
+    val encodedInput = URLEncoder.encode(input, "UTF-8")
+    val radiusInKm = radius / 1000
+
+    val url =
+        "${K.GEOCODE_EARTH_API_URL}autocomplete?" +
+                "api_key=${K.GEOCODE_EARTH_API_KEY}" +
+                "&text=$encodedInput" +
+                "&focus.point.lat=$latitude" +
+                "&focus.point.lon=$longitude" +
+                "&boundary.country=$country" +
+                "&boundary.circle.lat=$latitude" +
+                "&boundary.circle.lon=$longitude" +
+                "&boundary.circle.radius=$radiusInKm" +
+                "&lang=es"
+
+    val client = OkHttpClient()
+    val request = Request.Builder().url(url).build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            callbackError(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                if (!it.isSuccessful) {
+                    callbackError(IOException("Unexpected response $response"))
+                    return
+                }
+
+                val jsonResponse = JSONObject(it.body?.string() ?: "")
+                val features = jsonResponse.optJSONArray("features")
+
+                if (features != null && features.length() > 0) {
+                    val predictionsList = ArrayList<PlacePrediction>()
+                    for (i in 0 until features.length()) {
+                        val feature = features.getJSONObject(i)
+                        val properties = feature.optJSONObject("properties")
+                        if (properties != null) {
+                            predictionsList.add(
+                                PlacePrediction(
+                                    placeId = properties.optString("gid"),
+                                    description = properties.optString("label")
+                                )
+                            )
+                        }
+                    }
+                    callbackSuccess(predictionsList)
+                } else {
+                    callbackSuccess(ArrayList())
+                }
+            }
+        }
+    })
 }
 
 
-fun getPlaceDetails(
+/*fun getPlaceDetails(
     placeId: String,
     callbackSuccess: (UserLocation) -> Unit,
     callbackError: (Exception) -> Unit
@@ -282,6 +349,53 @@ fun getPlaceDetails(
                     )
                 )
 
+            }
+        }
+    })
+}*/
+
+fun getCoordinatesFromQuery(
+    query: String,
+    callbackSuccess: (UserLocation) -> Unit,
+    callbackError: (Exception) -> Unit
+) {
+    val encodedQuery = URLEncoder.encode(query, "UTF-8")
+    val url = "${K.NOMINATIM_URL}search?q=$encodedQuery&format=json"
+
+    val client = OkHttpClient()
+    val request = Request.Builder().url(url).build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            callbackError(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                if (!it.isSuccessful) {
+                    callbackError(IOException("Unexpected response $response"))
+                    return
+                }
+
+                val responseBody = it.body?.string() ?: ""
+                if (responseBody.isEmpty()) {
+                    callbackError(IOException("Response body is empty."))
+                    return
+                }
+
+                val jsonArray = JSONArray(responseBody)
+
+                if (jsonArray.length() > 0) {
+                    val firstResult = jsonArray.getJSONObject(0)
+                    callbackSuccess(
+                        UserLocation(
+                            latitude = firstResult.optDouble("lat"),
+                            longitude = firstResult.optDouble("lon")
+                        )
+                    )
+                } else {
+                    callbackError(Exception("No results found for query: $query"))
+                }
             }
         }
     })
