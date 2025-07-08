@@ -53,7 +53,99 @@ suspend fun getCityFromCoordinates(
     }
 }
 
+// OPEN CAGE API
+
+/*fun getAddressFromCoordinates(
+    latitude: Double,
+    longitude: Double,
+    callbackSuccess: (address: String) -> Unit,
+    callbackError: (Exception) -> Unit
+) {
+    val url =
+        "${K.OPEN_CAGE_API_URL}geocode/v1/json?q=$latitude,$longitude&key=${K.OPEN_CAGE_API_KEY}"
+
+    val client = OkHttpClient()
+    val request = Request.Builder().url(url).build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            callbackError(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                if (!it.isSuccessful) {
+                    callbackError(IOException("Unexpected response $response"))
+                    return
+                }
+
+                val jsonResponse = JSONObject(it.body?.string() ?: "")
+                val results = jsonResponse.optJSONArray("results")
+
+                if (results != null && results.length() > 0) {
+                    val address =
+                        results.getJSONObject(0).getString("formatted")
+
+                    callbackSuccess(address)
+
+                } else {
+                    callbackError(IOException("No results found"))
+                }
+            }
+        }
+    })
+}*/
+
+// NOMINATIM API
 fun getAddressFromCoordinates(
+    latitude: Double,
+    longitude: Double,
+    callbackSuccess: (address: String) -> Unit,
+    callbackError: (Exception) -> Unit
+) {
+    val url =
+        "${K.NOMINATIM_URL}reverse?lat=${latitude}&lon=${longitude}&format=json"
+
+    val client = OkHttpClient()
+    val request = Request.Builder().url(url).build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            callbackError(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                if (!it.isSuccessful) {
+                    callbackError(IOException("Unexpected response $response"))
+                    return
+                }
+
+                val jsonResponse = JSONObject(it.body?.string() ?: "")
+
+                if (jsonResponse.has("address")) {
+                    val addressObject = jsonResponse.getJSONObject("address")
+                    val road = addressObject.optString("road", "")
+                    val city = addressObject.optString("city", "")
+
+                    if (road.isNotBlank() || city.isNotBlank()) {
+                        val finalAddress = listOf(road, city)
+                            .filter { part -> part.isNotBlank() }
+                            .joinToString(", ")
+                        callbackSuccess(finalAddress)
+                    } else {
+                        callbackError(IOException("Road or City not found in address details"))
+                    }
+                } else {
+                    callbackError(IOException("Address object not found in response"))
+                }
+            }
+        }
+    })
+}
+
+
+/*fun getAddressFromCoordinates(
     latitude: Double,
     longitude: Double,
     callbackSuccess: (address: String) -> Unit,
@@ -92,8 +184,7 @@ fun getAddressFromCoordinates(
             }
         }
     })
-}
-
+}*/
 
 fun getPlacePredictions(
     input: String,
