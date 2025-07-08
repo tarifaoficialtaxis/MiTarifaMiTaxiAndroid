@@ -128,7 +128,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyA_JVIFufi7zeH8nfkrglUg4c2QOjQqCx8" />
+            android:value="AIzaSyAImihhaYsu-IgeIYe0nXuP_Yt2Onlclrc" />
 
         <service
             android:name=".helpers.NotificationForegroundService"
