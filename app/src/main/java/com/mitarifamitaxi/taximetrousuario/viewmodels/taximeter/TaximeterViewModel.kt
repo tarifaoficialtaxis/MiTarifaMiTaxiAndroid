@@ -36,6 +36,7 @@ import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
+import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
@@ -46,7 +47,6 @@ import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
 import com.mitarifamitaxi.taximetrousuario.states.TaximeterState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,7 +55,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.util.Locale
@@ -96,7 +95,11 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     init {
-        getCityRates(appViewModel.uiState.value.userData?.city)
+        _uiState.update {
+            it.copy(
+                rates = CityRatesManager(appContext).getRatesState() ?: Rates(),
+            )
+        }
     }
 
     override fun onCleared() {
@@ -211,62 +214,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    private fun getCityRates(userCity: String?) {
-        viewModelScope.launch {
-            if (userCity != null) {
-                try {
-                    val firestore = FirebaseFirestore.getInstance()
-                    val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                        firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
-                            .await()
-                    }
-
-                    if (!ratesQuerySnapshot.isEmpty) {
-                        val cityRatesDoc = ratesQuerySnapshot.documents[0]
-                        try {
-                            val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
-                            _uiState.update { it.copy(rates = rates) }
-
-                        } catch (e: Exception) {
-                            FirebaseCrashlytics.getInstance().recordException(e)
-                            appViewModel.showMessage(
-                                type = DialogType.ERROR,
-                                title = appContext.getString(R.string.something_went_wrong),
-                                message = appContext.getString(R.string.general_error),
-                                onDismiss = { goBack() }
-                            )
-                        }
-                    } else {
-                        FirebaseCrashlytics.getInstance()
-                            .recordException(Exception("TaximeterViewModel ratesQuerySnapshot empty for city: $userCity"))
-                        appViewModel.showMessage(
-                            type = DialogType.ERROR,
-                            title = appContext.getString(R.string.something_went_wrong),
-                            message = appContext.getString(R.string.general_error),
-                            onDismiss = { goBack() }
-                        )
-                    }
-                } catch (e: Exception) {
-                    FirebaseCrashlytics.getInstance().recordException(e)
-                    appViewModel.showMessage(
-                        type = DialogType.ERROR,
-                        title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.general_error),
-                        onDismiss = { goBack() }
-                    )
-                }
-            } else {
-                FirebaseCrashlytics.getInstance()
-                    .recordException(Exception("TaximeterViewModel userCity null"))
-                appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    title = appContext.getString(R.string.something_went_wrong),
-                    message = appContext.getString(R.string.error_no_city_set),
-                    onDismiss = { goBack() }
-                )
-            }
-        }
-    }
 
     private fun goBack() {
         viewModelScope.launch {

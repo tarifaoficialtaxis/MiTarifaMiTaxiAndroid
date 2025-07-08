@@ -4,16 +4,24 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
+import com.mitarifamitaxi.taximetrousuario.models.Rates
 import com.mitarifamitaxi.taximetrousuario.states.HomeState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class HomeViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
 
@@ -58,6 +66,61 @@ class HomeViewModel(context: Context, private val appViewModel: AppViewModel) : 
 
         }
     }
+
+    fun getCityRates(userCity: String, goNext: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                    firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
+                        .await()
+                }
+
+                if (!ratesQuerySnapshot.isEmpty) {
+                    val cityRatesDoc = ratesQuerySnapshot.documents[0]
+                    try {
+                        val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
+                        CityRatesManager(appContext).saveRatesState(rates)
+                        goNext()
+
+                    } catch (e: Exception) {
+                        FirebaseCrashlytics.getInstance().recordException(e)
+                        appViewModel.showMessage(
+                            type = DialogType.ERROR,
+                            title = appContext.getString(R.string.something_went_wrong),
+                            message = appContext.getString(R.string.general_error),
+                            onDismiss = {
+
+                            }
+                        )
+                    }
+                } else {
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("TaximeterViewModel ratesQuerySnapshot empty for city: $userCity"))
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.something_went_wrong),
+                        message = appContext.getString(R.string.general_error),
+                        onDismiss = {
+
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = appContext.getString(R.string.general_error),
+                    onDismiss = {
+
+                    }
+                )
+            }
+
+        }
+    }
+
 }
 
 class HomeViewModelFactory(private val context: Context, private val appViewModel: AppViewModel) :

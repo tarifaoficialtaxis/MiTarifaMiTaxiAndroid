@@ -99,8 +99,9 @@ class HomeActivity : BaseActivity() {
             uiState = uiState,
             appState = appState,
             onTaximeterClick = {
-                startActivity(Intent(this, RoutePlannerActivity::class.java))
-                //startActivity(Intent(this, TaximeterActivity::class.java))
+                viewModel.getCityRates(userCity = appState.userData?.city ?: "", goNext = {
+                    startActivity(Intent(this, RoutePlannerActivity::class.java))
+                })
             },
             onSosClick = {
                 startActivity(Intent(this, SosActivity::class.java))
