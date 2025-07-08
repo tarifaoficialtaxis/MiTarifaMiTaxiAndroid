@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -30,6 +32,8 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     private val _uiState = MutableStateFlow(RoutePlannerState())
     val uiState = _uiState.asStateFlow()
+
+    private var searchJob: Job? = null
 
     init {
         appViewModel.setLoading(true)
@@ -82,16 +86,36 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     fun onStartAddressChange(address: String) {
         _uiState.update { it.copy(startAddress = address, isSelectingStart = true) }
-        loadPlacePredictions(address)
+
+        if (address.isEmpty()) {
+            _uiState.update { it.copy(startLocation = null, places = emptyList()) }
+            return
+        }
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            loadPlacePredictions(address)
+        }
     }
 
     fun onEndAddressChange(address: String) {
         _uiState.update { it.copy(endAddress = address, isSelectingStart = false) }
-        loadPlacePredictions(address)
+
+        if (address.isEmpty()) {
+            _uiState.update { it.copy(endLocation = null, places = emptyList()) }
+            return
+        }
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            loadPlacePredictions(address)
+        }
     }
 
     private fun loadPlacePredictions(input: String) {
-        if (input.length < 5) {
+        if (input.length < 3) {
             _uiState.update { it.copy(places = emptyList()) }
             return
         }

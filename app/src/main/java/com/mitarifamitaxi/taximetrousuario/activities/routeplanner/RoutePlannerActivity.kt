@@ -173,12 +173,16 @@ class RoutePlannerActivity : BaseActivity() {
                 Spacer(modifier = Modifier.weight(1f))
 
 
-                CustomButton(
-                    text = stringResource(id = R.string.start_trip).uppercase(),
-                    onClick = onValidateStartTrip,
-                    color = colorResource(id = R.color.main),
-                    leadingIcon = Icons.Default.PlayArrow
-                )
+                if (
+                    uiState.startLocation != null && uiState.endLocation != null
+                ) {
+                    CustomButton(
+                        text = stringResource(id = R.string.start_trip).uppercase(),
+                        onClick = onValidateStartTrip,
+                        color = colorResource(id = R.color.main),
+                        leadingIcon = Icons.Default.PlayArrow
+                    )
+                }
 
             }
 

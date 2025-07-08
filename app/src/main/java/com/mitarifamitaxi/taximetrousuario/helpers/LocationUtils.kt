@@ -264,7 +264,7 @@ fun getAddressFromCoordinates(
 }*/
 
 // GEOCODE EARTH API
-fun getPlacePredictions(
+/*fun getPlacePredictions(
     input: String,
     latitude: Double,
     longitude: Double,
@@ -323,6 +323,71 @@ fun getPlacePredictions(
                     callbackSuccess(predictionsList)
                 } else {
                     callbackSuccess(ArrayList())
+                }
+            }
+        }
+    })
+}*/
+
+fun getPlacePredictions(
+    input: String,
+    latitude: Double,
+    longitude: Double,
+    country: String = "CO",
+    radius: Int = 30000,
+    callbackSuccess: (ArrayList<PlacePrediction>) -> Unit,
+    callbackError: (Exception) -> Unit
+) {
+
+    val earthRadius = 6378137.0
+    val dLat = (radius / earthRadius) * (180 / Math.PI)
+    val dLon = (radius / (earthRadius * cos(Math.toRadians(latitude)))) * (180 / Math.PI)
+
+    val latMin = latitude - dLat
+    val latMax = latitude + dLat
+    val lonMin = longitude - dLon
+    val lonMax = longitude + dLon
+
+    val encodedInput = URLEncoder.encode(input, "UTF-8")
+    val url = "${K.NOMINATIM_URL}search?" +
+            "format=json" +
+            "&q=$encodedInput" +
+            "&addressdetails=1" +
+            "&limit=5" +
+            "&countrycodes=${country.lowercase()}" +
+            "&viewbox=$lonMin,$latMin,$lonMax,$latMax" +
+            "&bounded=1"
+
+    val request = Request.Builder().url(url).build()
+    NominatimNetworkClient.nominatimClient.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            callbackError(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                if (!it.isSuccessful) {
+                    callbackError(IOException("Unexpected response $response"))
+                    return
+                }
+                val body = it.body?.string().orEmpty()
+                try {
+                    val jsonArray = JSONArray(body)
+                    val list = ArrayList<PlacePrediction>()
+                    for (i in 0 until jsonArray.length()) {
+                        val obj = jsonArray.getJSONObject(i)
+                        val displayName = obj.optString("display_name")
+                        val osmId = obj.optString("osm_id")
+                        list.add(
+                            PlacePrediction(
+                                placeId = osmId,
+                                description = displayName
+                            )
+                        )
+                    }
+                    callbackSuccess(list)
+                } catch (je: JSONException) {
+                    callbackError(je)
                 }
             }
         }

@@ -7,9 +7,9 @@ import com.google.android.gms.maps.model.LatLng
 
 data class RoutePlannerState(
     val startAddress: String = "",
-    val startLocation: UserLocation = UserLocation(),
+    val startLocation: UserLocation? = null,
     val endAddress: String = "",
-    val endLocation: UserLocation = UserLocation(),
+    val endLocation: UserLocation? = null,
     val isSelectingStart: Boolean = true,
     val isStartAddressFocused: Boolean = false,
     val isEndAddressFocused: Boolean = false,
