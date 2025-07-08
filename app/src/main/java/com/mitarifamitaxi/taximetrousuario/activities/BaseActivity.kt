@@ -28,6 +28,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPopupDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.SideMenu
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.helpers.NominatimNetworkClient
 import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.states.AppState
@@ -65,7 +66,7 @@ open class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        NominatimNetworkClient.init(this)
         setContent {
             val appState by appViewModel.uiState.collectAsState()
 
