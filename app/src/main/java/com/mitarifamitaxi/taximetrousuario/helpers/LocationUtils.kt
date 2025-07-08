@@ -107,14 +107,12 @@ fun getAddressFromCoordinates(
     callbackError: (Exception) -> Unit
 ) {
     val url = "${K.NOMINATIM_URL}reverse?lat=${latitude}&lon=${longitude}&format=json"
-    val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
 
-    client.newCall(request).enqueue(object : Callback {
+    NominatimNetworkClient.nominatimClient.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            // Log en Crashlytics
-            FirebaseCrashlytics.getInstance().recordException(e)
-            // Luego tu callback de error
+            FirebaseCrashlytics.getInstance()
+                .recordException(Exception("getAddressFromCoordinates error on stop, ${e.message}"))
             callbackError(e)
         }
 
@@ -122,7 +120,8 @@ fun getAddressFromCoordinates(
             response.use {
                 if (!it.isSuccessful) {
                     val ex = IOException("Unexpected response $response")
-                    FirebaseCrashlytics.getInstance().recordException(ex)
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("getAddressFromCoordinates error on stop, $response"))
                     callbackError(ex)
                     return
                 }
@@ -131,7 +130,8 @@ fun getAddressFromCoordinates(
                 val jsonResponse = try {
                     JSONObject(bodyStr)
                 } catch (je: JSONException) {
-                    FirebaseCrashlytics.getInstance().recordException(je)
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("getAddressFromCoordinates error on stop, ${je.message}"))
                     callbackError(je)
                     return
                 }
@@ -153,7 +153,8 @@ fun getAddressFromCoordinates(
                     }
                 } else {
                     val ex = IOException("Address object not found in response")
-                    FirebaseCrashlytics.getInstance().recordException(ex)
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("getAddressFromCoordinates error on stop, ${ex.message}"))
                     callbackError(ex)
                 }
             }
@@ -378,10 +379,9 @@ fun getCoordinatesFromQuery(
     val encodedQuery = URLEncoder.encode(query, "UTF-8")
     val url = "${K.NOMINATIM_URL}search?q=$encodedQuery&format=json"
 
-    val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
 
-    client.newCall(request).enqueue(object : Callback {
+    NominatimNetworkClient.nominatimClient.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             callbackError(e)
         }
