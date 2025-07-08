@@ -453,7 +453,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         viewModelScope.launch {
 
             try {
-                currentUser.delete().await()
                 Log.d("ProfileViewModel", "Deleted Firebase Auth user ${currentUser.uid}")
 
                 // Delete Firestore Trips
@@ -477,6 +476,9 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
                 userDocRef.delete().await()
                 Log.d("ProfileViewModel", "Deleted Firestore user document $userId")
+
+
+                currentUser.delete().await()
 
                 appViewModel.setLoading(false)
                 appViewModel.showMessage(
