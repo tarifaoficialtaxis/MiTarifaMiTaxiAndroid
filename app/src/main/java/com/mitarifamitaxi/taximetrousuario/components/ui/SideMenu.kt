@@ -115,11 +115,10 @@ fun SideMenu(
                     shape = RectangleShape,
                     modifier =
                         Modifier
-                            .padding(horizontal = 29.dp)
+                            .padding(horizontal = 15.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(11.dp),
                     ) {
 
                         ProfilePictureBox(
@@ -129,7 +128,10 @@ fun SideMenu(
                             iconSize = 40
                         )
 
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                        ) {
                             Text(
                                 text = userData.firstName + " " + userData.lastName,
                                 color = colorResource(id = R.color.white),
@@ -150,8 +152,6 @@ fun SideMenu(
                                     .align(Alignment.Start)
                             )
                         }
-
-                        Spacer(modifier = Modifier.weight(1f))
 
 
                         Icon(
@@ -313,8 +313,8 @@ fun SideMenuPreview() {
     ) {
         SideMenu(
             userData = LocalUser(
-                firstName = "John",
-                lastName = "Doe",
+                firstName = "Hugo Alberto",
+                lastName = "Ospina Agudelo",
                 city = "New York",
                 profilePicture = null
             ),

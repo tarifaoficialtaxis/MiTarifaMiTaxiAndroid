@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.helpers
 
 import android.content.Context
 import com.mitarifamitaxi.taximetrousuario.R
+import java.text.Normalizer
 
 fun String.isValidEmail(): Boolean {
     return this.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
@@ -17,6 +18,11 @@ fun String.isValidPassword(): Boolean {
     val hasSymbol = this.any { !it.isLetterOrDigit() }
 
     return this.length >= minLength && hasNumber && hasSymbol
+}
+
+fun String.removeAccents(): String {
+    val normalized = Normalizer.normalize(this, Normalizer.Form.NFD)
+    return normalized.replace("\\p{M}+".toRegex(), "")
 }
 
 fun getFirebaseAuthErrorMessage(appContext: Context, errorCode: String): String {

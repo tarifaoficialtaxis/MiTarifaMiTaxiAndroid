@@ -46,6 +46,7 @@ import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
 import com.google.firebase.firestore.SetOptions
 import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
+import com.mitarifamitaxi.taximetrousuario.helpers.removeAccents
 import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
@@ -394,7 +395,7 @@ class AppViewModel(context: Context) : ViewModel() {
     ) {
 
         val database = FirebaseDatabase.getInstance()
-        val countryRef = database.getReference("countriesRegions").child(country.lowercase())
+        val countryRef = database.getReference("countriesRegions").child(country.lowercase().removeAccents())
 
         countryRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

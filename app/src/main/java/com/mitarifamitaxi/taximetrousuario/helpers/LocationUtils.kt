@@ -3,6 +3,7 @@ package com.mitarifamitaxi.taximetrousuario.helpers
 import android.content.Context
 import android.location.Geocoder
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mitarifamitaxi.taximetrousuario.models.Feature
 import com.mitarifamitaxi.taximetrousuario.models.PlacePrediction
 import com.mitarifamitaxi.taximetrousuario.models.Properties
@@ -12,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URLEncoder
@@ -104,25 +106,35 @@ fun getAddressFromCoordinates(
     callbackSuccess: (address: String) -> Unit,
     callbackError: (Exception) -> Unit
 ) {
-    val url =
-        "${K.NOMINATIM_URL}reverse?lat=${latitude}&lon=${longitude}&format=json"
-
+    val url = "${K.NOMINATIM_URL}reverse?lat=${latitude}&lon=${longitude}&format=json"
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
 
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
+            // Log en Crashlytics
+            FirebaseCrashlytics.getInstance().recordException(e)
+            // Luego tu callback de error
             callbackError(e)
         }
 
         override fun onResponse(call: Call, response: Response) {
             response.use {
                 if (!it.isSuccessful) {
-                    callbackError(IOException("Unexpected response $response"))
+                    val ex = IOException("Unexpected response $response")
+                    FirebaseCrashlytics.getInstance().recordException(ex)
+                    callbackError(ex)
                     return
                 }
 
-                val jsonResponse = JSONObject(it.body?.string() ?: "")
+                val bodyStr = it.body?.string().orEmpty()
+                val jsonResponse = try {
+                    JSONObject(bodyStr)
+                } catch (je: JSONException) {
+                    FirebaseCrashlytics.getInstance().recordException(je)
+                    callbackError(je)
+                    return
+                }
 
                 if (jsonResponse.has("address")) {
                     val addressObject = jsonResponse.getJSONObject("address")
@@ -131,14 +143,18 @@ fun getAddressFromCoordinates(
 
                     if (road.isNotBlank() || city.isNotBlank()) {
                         val finalAddress = listOf(road, city)
-                            .filter { part -> part.isNotBlank() }
+                            .filter { it.isNotBlank() }
                             .joinToString(", ")
                         callbackSuccess(finalAddress)
                     } else {
-                        callbackError(IOException("Road or City not found in address details"))
+                        val ex = IOException("Road or City not found in address details")
+                        FirebaseCrashlytics.getInstance().recordException(ex)
+                        callbackError(ex)
                     }
                 } else {
-                    callbackError(IOException("Address object not found in response"))
+                    val ex = IOException("Address object not found in response")
+                    FirebaseCrashlytics.getInstance().recordException(ex)
+                    callbackError(ex)
                 }
             }
         }
