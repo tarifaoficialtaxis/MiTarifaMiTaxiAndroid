@@ -314,15 +314,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             longitude = currentPos.longitude ?: 0.0,
             callbackSuccess = { address ->
                 appViewModel.setLoading(false)
-                _uiState.update {
-                    it.copy(
-                        endAddress = address,
-                        isTaximeterStarted = false,
-                        fitCameraPosition = true
-                    )
-                }
-                stopWatchLocation()
-                endTime = Instant.now().toString()
+                finishTaximeter(address)
             },
             callbackError = {
                 FirebaseCrashlytics.getInstance()
@@ -331,11 +323,27 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
-                    message = appContext.getString(R.string.error_getting_address)
+                    message = appContext.getString(R.string.error_getting_address),
+                    onDismiss = {
+                        finishTaximeter(_uiState.value.endAddress)
+                    }
                 )
             }
         )
     }
+
+    fun finishTaximeter(endAddress: String) {
+        _uiState.update {
+            it.copy(
+                endAddress = endAddress,
+                isTaximeterStarted = false,
+                fitCameraPosition = true
+            )
+        }
+        stopWatchLocation()
+        endTime = Instant.now().toString()
+    }
+
 
     private fun startTimer() {
         viewModelScope.launch {

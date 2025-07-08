@@ -196,55 +196,6 @@ fun getPlaceDetails(
     })
 }
 
-fun fetchRoute(
-    originLatitude: Double,
-    originLongitude: Double,
-    destinationLatitude: Double,
-    destinationLongitude: Double,
-    callbackSuccess: (List<LatLng>) -> Unit,
-    callbackError: (Exception) -> Unit
-) {
-
-    val origin = "${originLatitude},${originLongitude}"
-    val destination = "${destinationLatitude},${destinationLongitude}"
-
-
-    val url =
-        "${K.MAPS_API_URL}directions/json?origin=$origin&destination=$destination&key=${K.GOOGLE_API_KEY}"
-
-    val client = OkHttpClient()
-    val request = Request.Builder().url(url).build()
-
-    client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            callbackError(e)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            response.use {
-                if (!it.isSuccessful) {
-                    callbackError(IOException("Unexpected response $response"))
-                    return
-                }
-
-                val jsonResponse = JSONObject(it.body?.string() ?: "")
-
-                val routes = jsonResponse.optJSONArray("routes")
-                if (routes != null && routes.length() > 0) {
-                    val overviewPolyline =
-                        routes.getJSONObject(0).getJSONObject("overview_polyline")
-                    val points = overviewPolyline.getString("points")
-                    val decodedPoints = decodePolyline(points)
-                    callbackSuccess(decodedPoints)
-                } else {
-                    callbackError(IOException("No routes found"))
-                }
-            }
-        }
-    })
-}
-
-
 fun getShortAddress(inputString: String?): String {
     if (inputString.isNullOrEmpty()) return ""
     val parts = inputString.split(",")

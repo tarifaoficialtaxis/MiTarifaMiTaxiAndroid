@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
-import com.mitarifamitaxi.taximetrousuario.helpers.fetchRoute
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.getPlaceDetails
 import com.mitarifamitaxi.taximetrousuario.helpers.getPlacePredictions
@@ -82,35 +81,13 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
     }
 
     fun onStartAddressChange(address: String) {
-        _uiState.update { it.copy(startAddress = address) }
+        _uiState.update { it.copy(startAddress = address, isSelectingStart = true) }
         loadPlacePredictions(address)
     }
 
     fun onEndAddressChange(address: String) {
-        _uiState.update { it.copy(endAddress = address) }
+        _uiState.update { it.copy(endAddress = address, isSelectingStart = false) }
         loadPlacePredictions(address)
-    }
-
-    fun getRoutePreview() {
-        val (startLocation, endLocation) = _uiState.value.let { it.startLocation to it.endLocation }
-        if (startLocation.latitude == null || startLocation.longitude == null || endLocation.latitude == null || endLocation.longitude == null) {
-            return
-        }
-
-        fetchRoute(
-            originLatitude = startLocation.latitude,
-            originLongitude = startLocation.longitude,
-            destinationLatitude = endLocation.latitude,
-            destinationLongitude = endLocation.longitude,
-            callbackSuccess = { points -> _uiState.update { it.copy(routePoints = points) } },
-            callbackError = {
-                appViewModel.showMessage(
-                    DialogType.ERROR,
-                    appContext.getString(R.string.something_went_wrong),
-                    appContext.getString(R.string.error_getting_route)
-                )
-            }
-        )
     }
 
     private fun loadPlacePredictions(input: String) {
@@ -157,7 +134,6 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
                                 )
                             }
                         }
-                        getRoutePreview()
                     }
                 },
                 callbackError = {
