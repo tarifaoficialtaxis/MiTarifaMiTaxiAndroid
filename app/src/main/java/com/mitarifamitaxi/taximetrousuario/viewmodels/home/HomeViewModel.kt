@@ -69,52 +69,34 @@ class HomeViewModel(context: Context, private val appViewModel: AppViewModel) : 
 
     fun getCityRates(userCity: String, goNext: () -> Unit) {
         viewModelScope.launch {
-            try {
-                val firestore = FirebaseFirestore.getInstance()
-                val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                    firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
-                        .await()
-                }
+            val firestore = FirebaseFirestore.getInstance()
+            val ratesQuerySnapshot = withContext(Dispatchers.IO) {
+                firestore.collection("dynamicRates").whereEqualTo("city", userCity).get()
+                    .await()
+            }
 
-                if (!ratesQuerySnapshot.isEmpty) {
-                    val cityRatesDoc = ratesQuerySnapshot.documents[0]
-                    try {
-                        val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
-                        CityRatesManager(appContext).saveRatesState(rates)
-                        goNext()
+            if (!ratesQuerySnapshot.isEmpty) {
+                val cityRatesDoc = ratesQuerySnapshot.documents[0]
+                try {
+                    val rates = cityRatesDoc.toObject(Rates::class.java) ?: Rates()
+                    CityRatesManager(appContext).saveRatesState(rates)
+                    goNext()
 
-                    } catch (e: Exception) {
-                        FirebaseCrashlytics.getInstance().recordException(e)
-                        appViewModel.showMessage(
-                            type = DialogType.ERROR,
-                            title = appContext.getString(R.string.something_went_wrong),
-                            message = appContext.getString(R.string.general_error),
-                            onDismiss = {
-
-                            }
-                        )
-                    }
-                } else {
-                    FirebaseCrashlytics.getInstance()
-                        .recordException(Exception("TaximeterViewModel ratesQuerySnapshot empty for city: $userCity"))
+                } catch (e: Exception) {
+                    FirebaseCrashlytics.getInstance().recordException(e)
                     appViewModel.showMessage(
                         type = DialogType.ERROR,
                         title = appContext.getString(R.string.something_went_wrong),
-                        message = appContext.getString(R.string.general_error),
-                        onDismiss = {
-
-                        }
+                        message = appContext.getString(R.string.general_error)
                     )
                 }
-            } catch (e: Exception) {
-                FirebaseCrashlytics.getInstance().recordException(e)
+            } else {
+                FirebaseCrashlytics.getInstance()
+                    .recordException(Exception("TaximeterViewModel ratesQuerySnapshot empty for city: $userCity"))
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
-                    title = appContext.getString(R.string.something_went_wrong),
-                    message = appContext.getString(R.string.general_error),
-                    onDismiss = {
-
-                    }
+                    title = appContext.getString(R.string.we_sorry),
+                    message = appContext.getString(R.string.feature_not_available_on_city)
                 )
             }
 
