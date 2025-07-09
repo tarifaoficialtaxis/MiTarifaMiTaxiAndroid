@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 
 class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -32,8 +31,6 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
 
     private val _uiState = MutableStateFlow(RoutePlannerState())
     val uiState = _uiState.asStateFlow()
-
-    private var searchJob: Job? = null
 
     init {
         appViewModel.setLoading(true)
@@ -92,11 +89,7 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
             return
         }
 
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(300)
-            loadPlacePredictions(address)
-        }
+        loadPlacePredictions(address)
     }
 
     fun onEndAddressChange(address: String) {
@@ -107,11 +100,7 @@ class RoutePlannerViewModel(context: Context, private val appViewModel: AppViewM
             return
         }
 
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(300)
-            loadPlacePredictions(address)
-        }
+        loadPlacePredictions(address)
     }
 
     private fun loadPlacePredictions(input: String) {

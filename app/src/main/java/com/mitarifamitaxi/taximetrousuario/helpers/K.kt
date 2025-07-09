@@ -11,8 +11,8 @@ object K {
     //const val OPEN_CAGE_API_URL = "https://api.opencagedata.com/"
     //const val OPEN_CAGE_API_KEY = "47f379ddfb624d799af49cfa336d2b08"
 
-    //const val GEOCODE_EARTH_API_URL = "https://api.geocode.earth/v1/"
-    //const val GEOCODE_EARTH_API_KEY = "ge-a2b6d79bf7e411fd"
+    const val GEOCODE_EARTH_API_URL = "https://api.geocode.earth/v1/"
+    const val GEOCODE_EARTH_API_KEY = "ge-a2b6d79bf7e411fd"
 
     val GENERAL_PADDING = 29.dp
 }
