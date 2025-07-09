@@ -62,6 +62,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripInfoRow
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
+import com.mitarifamitaxi.taximetrousuario.helpers.adds.InterstitialAdManager
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
 import com.mitarifamitaxi.taximetrousuario.helpers.formatElapsed
 import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
@@ -81,9 +82,12 @@ class TripSummaryActivity : BaseActivity() {
         TripSummaryViewModelFactory(this, appViewModel)
     }
 
+    private lateinit var interstitialAdManager: InterstitialAdManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         observeViewModelEvents()
+        interstitialAdManager = InterstitialAdManager(this)
 
         val isDetails = intent.getBooleanExtra("is_details", false)
         viewModel.onChangeDetails(isDetails)
@@ -100,11 +104,19 @@ class TripSummaryActivity : BaseActivity() {
                 viewModel.navigationEvents.collect { event ->
                     when (event) {
                         is TripSummaryViewModel.NavigationEvent.GoBack -> {
-                            finish()
+                            finishAction()
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun finishAction() {
+        interstitialAdManager.showAd(this) {
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
         }
     }
 
@@ -127,9 +139,7 @@ class TripSummaryActivity : BaseActivity() {
                 viewModel.onShowShareDialog(true)
             },
             onFinishAction = {
-                val intent = Intent(this, HomeActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                startActivity(intent)
+                finishAction()
             }
         )
 

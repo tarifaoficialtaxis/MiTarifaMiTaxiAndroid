@@ -59,6 +59,11 @@ android {
                 "PQRS_AD_UNIT_ID",
                 "\"ca-app-pub-3940256099942544/9214589741\""
             )
+            buildConfigField(
+                "String",
+                "TRIP_SUMMARY_INTERSTITIAL_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/1033173712\""
+            )
 
         }
 
@@ -93,6 +98,11 @@ android {
                 "String",
                 "PQRS_AD_UNIT_ID",
                 "\"ca-app-pub-3864915489725459/2576078282\""
+            )
+            buildConfigField(
+                "String",
+                "TRIP_SUMMARY_INTERSTITIAL_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/3506016572\""
             )
 
             isMinifyEnabled = false
