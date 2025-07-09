@@ -26,7 +26,16 @@ android {
     }
 
     buildTypes {
+
+        debug {
+            buildConfigField("boolean", "IS_DEV", "true")
+            buildConfigField("String", "OPEN_APP_AD_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"")
+        }
+
         release {
+            buildConfigField("boolean", "IS_DEV", "false")
+            buildConfigField("String", "OPEN_APP_AD_UNIT_ID", "\"ca-app-pub-3864915489725459/1852355259\"")
+
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

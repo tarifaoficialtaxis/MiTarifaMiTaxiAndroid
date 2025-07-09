@@ -11,6 +11,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.MyApplication
 import java.util.Date
 
@@ -39,7 +40,7 @@ class AppOpenAdManager(myApplication: MyApplication) :
         val request = AdRequest.Builder().build()
         AppOpenAd.load(
             activity,
-            "ca-app-pub-3940256099942544/9257395921",
+            BuildConfig.OPEN_APP_AD_UNIT_ID,
             request,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {

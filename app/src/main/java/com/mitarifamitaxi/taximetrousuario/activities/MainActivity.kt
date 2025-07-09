@@ -5,9 +5,11 @@ import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,23 +30,29 @@ import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditions
 import com.mitarifamitaxi.taximetrousuario.helpers.adds.AppOpenAdManager
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import kotlinx.coroutines.delay
 
 class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
-        if (K.IS_DEV) {
-            showAdAndContinue()
-        }
     }
 
     @Composable
     override fun Content() {
-        SplashScreen {
-            if (!K.IS_DEV) {
+        if (K.IS_DEV) {
+            LaunchedEffect(Unit) {
+                delay(1000L)
+                showAdAndContinue()
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorResource(id = R.color.white))
+            )
+        } else {
+            SplashScreen {
                 showAdAndContinue()
             }
         }
