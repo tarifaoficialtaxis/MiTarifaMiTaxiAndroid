@@ -25,8 +25,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
+import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomMultilineTextField
@@ -80,7 +82,7 @@ class PqrsActivity : BaseActivity() {
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .padding(29.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
@@ -151,6 +153,7 @@ class PqrsActivity : BaseActivity() {
 
             }
 
+            BottomBannerAd(adId = BuildConfig.PQRS_AD_UNIT_ID)
 
         }
 

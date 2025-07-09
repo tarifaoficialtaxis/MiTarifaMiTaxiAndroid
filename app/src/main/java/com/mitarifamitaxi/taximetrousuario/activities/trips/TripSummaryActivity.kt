@@ -51,10 +51,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
 import com.google.gson.Gson
+import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
+import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
@@ -163,7 +165,7 @@ class TripSummaryActivity : BaseActivity() {
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
                 if (uiState.isDetails) {
@@ -466,6 +468,9 @@ class TripSummaryActivity : BaseActivity() {
                 }
 
             }
+
+            BottomBannerAd(adId = BuildConfig.TRIP_SUMMARY_AD_UNIT_ID)
+
         }
 
         if (uiState.showShareDialog) {

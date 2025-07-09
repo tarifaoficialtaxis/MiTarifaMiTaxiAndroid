@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.google.gson.Gson
+import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.LocalOpenDrawer
@@ -56,7 +57,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
-import com.mitarifamitaxi.taximetrousuario.components.adds.HomeBannerAdd
+import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
@@ -275,10 +276,8 @@ class HomeActivity : BaseActivity() {
                 }
             }
 
-            HomeBannerAdd(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
+            BottomBannerAd(
+                adId = BuildConfig.HOME_AD_UNIT_ID
             )
         }
     }

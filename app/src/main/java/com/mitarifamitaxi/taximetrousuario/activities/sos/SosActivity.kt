@@ -39,7 +39,8 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.grid.items
-import com.mitarifamitaxi.taximetrousuario.components.adds.SosBannerAd
+import com.mitarifamitaxi.taximetrousuario.BuildConfig
+import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 class SosActivity : BaseActivity() {
@@ -139,10 +140,8 @@ class SosActivity : BaseActivity() {
 
             }
 
-            SosBannerAd(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
+            BottomBannerAd(
+                adId = BuildConfig.SOS_AD_UNIT_ID
             )
 
         }

@@ -49,6 +49,16 @@ android {
                 "MY_TRIPS_AD_UNIT_ID",
                 "\"ca-app-pub-3940256099942544/9214589741\""
             )
+            buildConfigField(
+                "String",
+                "TRIP_SUMMARY_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9214589741\""
+            )
+            buildConfigField(
+                "String",
+                "PQRS_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9214589741\""
+            )
 
         }
 
@@ -73,6 +83,16 @@ android {
                 "String",
                 "MY_TRIPS_AD_UNIT_ID",
                 "\"ca-app-pub-3864915489725459/1425297076\""
+            )
+            buildConfigField(
+                "String",
+                "TRIP_SUMMARY_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/9722304086\""
+            )
+            buildConfigField(
+                "String",
+                "PQRS_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/2576078282\""
             )
 
             isMinifyEnabled = false
