@@ -1,14 +1,11 @@
 package com.mitarifamitaxi.taximetrousuario.activities.taximeter
 
 import SoundButton
-import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +27,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
@@ -72,19 +67,15 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomCheckBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomSizedMarker
-import com.mitarifamitaxi.taximetrousuario.components.ui.FloatingActionButtonRoutes
 import com.mitarifamitaxi.taximetrousuario.components.ui.SpeedLimitBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TaximeterInfoRow
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.WaitTimeBox
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
-import com.mitarifamitaxi.taximetrousuario.helpers.NotificationForegroundService
 import com.mitarifamitaxi.taximetrousuario.helpers.calculateBearing
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
 import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
-import com.mitarifamitaxi.taximetrousuario.helpers.getShortAddress
-import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.TaximeterState
@@ -101,10 +92,6 @@ class TaximeterActivity : BaseActivity() {
         TaximeterViewModelFactory(this, appViewModel)
     }
 
-    private val serviceIntent by lazy {
-        Intent(this, NotificationForegroundService::class.java)
-    }
-
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -114,52 +101,12 @@ class TaximeterActivity : BaseActivity() {
                             finish()
                         }
 
-                        is TaximeterViewModel.NavigationEvent.RequestBackgroundLocationPermission -> {
-                            showMessageBackgroundLocationPermissionRequired()
-                        }
+                        is TaximeterViewModel.NavigationEvent.RequestLocationPermission -> {
 
-                        is TaximeterViewModel.NavigationEvent.StartLocationUpdateNotification -> {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                startForegroundServiceIfNeeded()
-                            }
-                        }
-
-                        is TaximeterViewModel.NavigationEvent.StopLocationUpdateNotification -> {
-                            stopService(serviceIntent)
                         }
                     }
                 }
             }
-        }
-    }
-
-    val backgroundLocationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            viewModel.getCurrentLocation()
-        } else {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = getString(R.string.permission_required),
-                message = getString(R.string.background_location_permission_error)
-            )
-        }
-    }
-
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            startForegroundService(serviceIntent)
-        } else {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = getString(R.string.permission_required),
-                message = getString(R.string.notification_permission_denied)
-            )
         }
     }
 
@@ -186,21 +133,6 @@ class TaximeterActivity : BaseActivity() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    fun showMessageBackgroundLocationPermissionRequired() {
-        appViewModel.showMessage(
-            type = DialogType.WARNING,
-            title = getString(R.string.we_need_access_to_your_location),
-            message = getString(R.string.access_location_message),
-            buttonText = getString(R.string.grant_permission),
-            onButtonClicked = {
-                viewModel.requestBackgroundLocationPermission(this)
-            }
-        )
-    }
-
-    private fun startForegroundServiceIfNeeded() {
-        startForegroundService(serviceIntent)
-    }
 
     @Composable
     override fun Content() {
@@ -377,17 +309,6 @@ class TaximeterActivity : BaseActivity() {
                             .padding(end = 12.dp, bottom = 12.dp)
                     )
 
-                    /*FloatingActionButtonRoutes(
-                        expanded = taximeterState.isFabExpanded,
-                        onMainFabClick = onToggleFab,
-                        onAction1Click = onOpenWaze,
-                        onAction2Click = onOpenGoogleMaps,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 12.dp, bottom = 12.dp)
-                    )*/
-
-
                 }
 
                 Column(
@@ -429,28 +350,6 @@ class TaximeterActivity : BaseActivity() {
                             .padding(top = 10.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-
-                        /*Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 5.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = colorResource(id = R.color.main),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = getShortAddress(taximeterState.endAddress),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp,
-                                color = colorResource(id = R.color.gray1),
-                            )
-                        }*/
 
                         if (taximeterState.rates.showUnits == true) {
                             TaximeterInfoRow(

@@ -33,10 +33,10 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
-import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
+import com.mitarifamitaxi.taximetrousuario.helpers.LocationUpdatesService
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
@@ -72,9 +72,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     sealed class NavigationEvent {
         object GoBack : NavigationEvent()
-        object RequestBackgroundLocationPermission : NavigationEvent()
-        object StartLocationUpdateNotification : NavigationEvent()
-        object StopLocationUpdateNotification : NavigationEvent()
+        object RequestLocationPermission : NavigationEvent()
     }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -156,23 +154,20 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun validateLocationPermission() {
-        val backgroundLocationGranted = ContextCompat.checkSelfPermission(
+        val locationGranted = ContextCompat.checkSelfPermission(
             appContext,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (backgroundLocationGranted) {
+        if (locationGranted) {
             getCurrentLocation()
         } else {
             viewModelScope.launch {
-                _navigationEvents.emit(NavigationEvent.RequestBackgroundLocationPermission)
+                _navigationEvents.emit(NavigationEvent.RequestLocationPermission)
             }
         }
     }
 
-    fun requestBackgroundLocationPermission(activity: TaximeterActivity) {
-        activity.backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-    }
 
     @SuppressLint("MissingPermission")
     fun getCurrentLocation() {
@@ -216,6 +211,10 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun startTaximeter() {
+        ContextCompat.startForegroundService(
+            appContext,
+            Intent(appContext, LocationUpdatesService::class.java)
+        )
         _uiState.update {
             it.copy(
                 isTaximeterStarted = true,
@@ -229,9 +228,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         startTimer()
         startWatchLocation()
 
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.StartLocationUpdateNotification)
-        }
     }
 
     fun showFinishConfirmation() {
@@ -244,9 +240,11 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
+    @SuppressLint("ImplicitSamInstance")
     fun stopTaximeter() {
+        appContext.stopService(Intent(appContext, LocationUpdatesService::class.java))
+
         _uiState.update { it.copy(currentSpeed = 0) }
-        viewModelScope.launch { _navigationEvents.emit(NavigationEvent.StopLocationUpdateNotification) }
         appViewModel.setLoading(true)
 
         val currentPos = _uiState.value.currentPosition
