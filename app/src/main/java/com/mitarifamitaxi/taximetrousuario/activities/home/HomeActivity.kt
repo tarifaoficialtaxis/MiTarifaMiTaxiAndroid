@@ -52,7 +52,6 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.LocalOpenDrawer
 import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
-import com.mitarifamitaxi.taximetrousuario.activities.routeplanner.RoutePlannerActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity

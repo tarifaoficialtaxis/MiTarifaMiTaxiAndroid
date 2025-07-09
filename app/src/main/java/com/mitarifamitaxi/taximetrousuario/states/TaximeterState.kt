@@ -26,5 +26,6 @@ data class TaximeterState(
     val isMapLoaded: Boolean = false,
     val rates: Rates = Rates(),
     val isRechargesOpen: Boolean = false,
-    val rechargesSelected: List<Recharge> = emptyList()
+    val rechargesSelected: List<Recharge> = emptyList(),
+    val isSoundEnabled: Boolean = true,
 )

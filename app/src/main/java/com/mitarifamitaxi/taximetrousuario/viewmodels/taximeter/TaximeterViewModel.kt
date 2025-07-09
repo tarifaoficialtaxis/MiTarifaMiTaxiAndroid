@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -110,26 +109,28 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         mediaPlayer.release()
     }
 
-    fun setInitialData(
-        startAddress: String?,
-        startLocationJson: String?,
-        endAddress: String?,
-        endLocationJson: String?
-    ) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                startAddress = startAddress ?: "",
-                startLocation = startLocationJson?.let {
-                    Gson().fromJson(
-                        it,
-                        UserLocation::class.java
+    fun setInitialData() {
+        val userLocation = appViewModel.uiState.value.userLocation ?: return
+        getAddressFromCoordinates(
+            latitude = userLocation.latitude ?: 0.0,
+            longitude = userLocation.longitude ?: 0.0,
+            callbackSuccess = { address ->
+                appViewModel.setLoading(false)
+                _uiState.update {
+                    it.copy(
+                        startAddress = address,
+                        startLocation = UserLocation(userLocation.latitude, userLocation.longitude)
                     )
-                } ?: UserLocation(),
-                endAddress = endAddress ?: "",
-                endLocation = endLocationJson?.let { Gson().fromJson(it, UserLocation::class.java) }
-                    ?: UserLocation()
-            )
-        }
+                }
+            },
+            callbackError = {
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.something_went_wrong),
+                    message = appContext.getString(R.string.error_getting_address)
+                )
+            }
+        )
     }
 
     private fun onUnitsChanged(newValue: Double) {
@@ -211,13 +212,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 title = appContext.getString(R.string.something_went_wrong),
                 message = appContext.getString(R.string.error_fetching_location)
             )
-        }
-    }
-
-
-    private fun goBack() {
-        viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.GoBack)
         }
     }
 
@@ -456,38 +450,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    fun openGoogleMapsApp(onIntentReady: (Intent) -> Unit) {
-        val state = _uiState.value
-        val url =
-            "comgooglemaps://?saddr=${state.startLocation.latitude},${state.startLocation.longitude}&daddr=${state.endLocation.latitude},${state.endLocation.longitude}&directionsmode=driving"
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-            intent.setPackage("com.google.android.apps.maps")
-            onIntentReady(intent)
-        } catch (e: Exception) {
-            val webUrl =
-                "http://maps.google.com/maps?saddr=${state.startLocation.latitude},${state.startLocation.longitude}&daddr=${state.endLocation.latitude},${state.endLocation.longitude}"
-            val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
-            onIntentReady(webIntent)
-        }
-    }
-
-    fun openWazeApp(onIntentReady: (Intent) -> Unit) {
-        val state = _uiState.value
-        val wazeUrl =
-            "waze://?ll=${state.endLocation.latitude},${state.endLocation.longitude}&navigate=yes"
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, wazeUrl.toUri())
-            intent.setPackage("com.waze")
-            onIntentReady(intent)
-        } catch (e: Exception) {
-            val webUrl =
-                "https://waze.com/ul?ll=${state.endLocation.latitude},${state.endLocation.longitude}&navigate=yes"
-            val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
-            onIntentReady(webIntent)
-        }
-    }
-
     fun saveTripData(tripData: Trip, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -581,6 +543,15 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
         updateTotal(newRechargeUnits)
         _uiState.value = _uiState.value.copy(rechargesSelected = current)
+    }
+
+    fun toggleSound() {
+        if (_uiState.value.isSoundEnabled) {
+            mediaPlayer.setVolume(0f, 0f)
+        } else {
+            mediaPlayer.setVolume(1f, 1f)
+        }
+        _uiState.update { it.copy(isSoundEnabled = !it.isSoundEnabled) }
     }
 }
 

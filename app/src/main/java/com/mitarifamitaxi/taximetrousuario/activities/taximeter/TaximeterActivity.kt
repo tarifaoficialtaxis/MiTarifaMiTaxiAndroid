@@ -1,5 +1,6 @@
 package com.mitarifamitaxi.taximetrousuario.activities.taximeter
 
+import SoundButton
 import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
@@ -167,12 +168,7 @@ class TaximeterActivity : BaseActivity() {
         observeViewModelEvents()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        viewModel.setInitialData(
-            startAddress = intent.getStringExtra("start_address"),
-            startLocationJson = intent.getStringExtra("start_location"),
-            endAddress = intent.getStringExtra("end_address"),
-            endLocationJson = intent.getStringExtra("end_location")
-        )
+        viewModel.setInitialData()
 
         Timer().schedule(500) {
             viewModel.validateLocationPermission()
@@ -224,9 +220,6 @@ class TaximeterActivity : BaseActivity() {
                     )
                 }
             },
-            onToggleFab = { viewModel.toggleFab() },
-            onOpenWaze = { viewModel.openWazeApp { startActivity(it) } },
-            onOpenGoogleMaps = { viewModel.openGoogleMapsApp { startActivity(it) } },
             onSetTakeScreenshot = { viewModel.setTakeMapScreenshot(it) }
         )
         BackHandler(enabled = true) {
@@ -247,9 +240,6 @@ class TaximeterActivity : BaseActivity() {
         onStart: () -> Unit,
         onMapLoaded: () -> Unit,
         onScreenshotReady: (Bitmap) -> Unit,
-        onToggleFab: () -> Unit,
-        onOpenWaze: () -> Unit,
-        onOpenGoogleMaps: () -> Unit,
         onSetTakeScreenshot: (Boolean) -> Unit
     ) {
 
@@ -379,7 +369,15 @@ class TaximeterActivity : BaseActivity() {
                             .padding(start = 12.dp, bottom = 12.dp)
                     )
 
-                    FloatingActionButtonRoutes(
+                    SoundButton(
+                        isSoundEnabled = taximeterState.isSoundEnabled,
+                        onClick = { viewModel.toggleSound() },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = 12.dp)
+                    )
+
+                    /*FloatingActionButtonRoutes(
                         expanded = taximeterState.isFabExpanded,
                         onMainFabClick = onToggleFab,
                         onAction1Click = onOpenWaze,
@@ -387,7 +385,9 @@ class TaximeterActivity : BaseActivity() {
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(end = 12.dp, bottom = 12.dp)
-                    )
+                    )*/
+
+
                 }
 
                 Column(
@@ -430,7 +430,7 @@ class TaximeterActivity : BaseActivity() {
                             .verticalScroll(rememberScrollState())
                     ) {
 
-                        Row(
+                        /*Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp),
                             modifier = Modifier
@@ -450,6 +450,14 @@ class TaximeterActivity : BaseActivity() {
                                 fontSize = 12.sp,
                                 color = colorResource(id = R.color.gray1),
                             )
+                        }*/
+
+                        if (taximeterState.rates.showUnits == true) {
+                            TaximeterInfoRow(
+                                title = stringResource(id = R.string.units),
+                                value = (taximeterState.units + taximeterState.rechargeUnits).formatNumberWithDots()
+                                    .toString()
+                            )
                         }
 
                         TaximeterInfoRow(
@@ -461,13 +469,6 @@ class TaximeterActivity : BaseActivity() {
                             value = taximeterState.formattedTime
                         )
 
-                        if (taximeterState.rates.showUnits == true) {
-                            TaximeterInfoRow(
-                                title = stringResource(id = R.string.units),
-                                value = (taximeterState.units + taximeterState.rechargeUnits).formatNumberWithDots()
-                                    .toString()
-                            )
-                        }
 
                         if (taximeterState.rates.recharges.isNotEmpty()) {
                             Button(
@@ -614,9 +615,6 @@ class TaximeterActivity : BaseActivity() {
             onStart = {},
             onMapLoaded = {},
             onScreenshotReady = {},
-            onToggleFab = {},
-            onOpenWaze = {},
-            onOpenGoogleMaps = {},
             onSetTakeScreenshot = {}
         )
     }
