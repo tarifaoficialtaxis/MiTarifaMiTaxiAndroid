@@ -21,12 +21,13 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.mitarifamitaxi.taximetrousuario.R
 import androidx.core.net.toUri
+import com.mitarifamitaxi.taximetrousuario.MyApplication
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.TermsConditionsActivity
+import com.mitarifamitaxi.taximetrousuario.helpers.adds.AppOpenAdManager
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
-
 
 class MainActivity : BaseActivity() {
 
@@ -36,45 +37,46 @@ class MainActivity : BaseActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         if (K.IS_DEV) {
-            validateNextScreen()
-            //startActivity(Intent(this, RegisterActivity::class.java))
+            showAdAndContinue()
         }
-
     }
 
     @Composable
     override fun Content() {
         SplashScreen {
             if (!K.IS_DEV) {
-                validateNextScreen()
+                showAdAndContinue()
             }
         }
+    }
+
+    private fun showAdAndContinue() {
+        val app = application as MyApplication
+        app.appOpenAdManager.showAdIfAvailable(
+            this,
+            object : AppOpenAdManager.OnShowAdCompleteListener {
+                override fun onShowAdComplete() {
+                    validateNextScreen()
+                }
+            })
     }
 
     private fun validateNextScreen() {
-
         val userState = LocalUserManager(this).getUserState()
 
         if (userState != null) {
-            startActivity(
-                Intent(this, HomeActivity::class.java)
-            )
+            startActivity(Intent(this, HomeActivity::class.java))
             finish()
         } else {
             if (hasUserAcceptedTerms()) {
-                startActivity(
-                    Intent(this, LoginActivity::class.java)
-                )
+                startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             } else {
-                startActivity(
-                    Intent(this, TermsConditionsActivity::class.java)
-                )
+                startActivity(Intent(this, TermsConditionsActivity::class.java))
                 finish()
             }
         }
     }
-
 
     private fun hasUserAcceptedTerms(): Boolean {
         val sharedPref = this.getSharedPreferences("my_prefs", MODE_PRIVATE)
@@ -85,7 +87,6 @@ class MainActivity : BaseActivity() {
     @Composable
     fun SplashScreen(onVideoFinished: () -> Unit) {
         val context = LocalContext.current
-        // Remember the player instance across recompositions
         val player = remember {
             ExoPlayer.Builder(context).build().apply {
                 val mediaItem =
@@ -96,7 +97,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        // Add a listener with a flag to ensure single execution
         DisposableEffect(player) {
             val listener = object : Player.Listener {
                 private var hasFinished = false
@@ -128,6 +128,4 @@ class MainActivity : BaseActivity() {
                 }
             })
     }
-
-
 }
