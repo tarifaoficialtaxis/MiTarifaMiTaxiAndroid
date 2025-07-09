@@ -22,20 +22,20 @@ import com.mitarifamitaxi.taximetrousuario.R
 @Composable
 fun RegisterHeaderBox() {
     Box(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .fillMaxWidth()
             .height(LocalConfiguration.current.screenHeightDp.dp * 0.27f)
             .background(colorResource(id = R.color.black))
     ) {
 
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
         ) {
             Image(
                 painter = painterResource(id = R.drawable.city_background2),
                 contentDescription = null,
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.Companion.BottomCenter)
                     .padding(bottom = 30.dp)
@@ -44,7 +44,7 @@ fun RegisterHeaderBox() {
             Image(
                 painter = painterResource(id = R.drawable.logo3),
                 contentDescription = null,
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .height(91.dp)
                     .align(Alignment.Companion.Center)
             )

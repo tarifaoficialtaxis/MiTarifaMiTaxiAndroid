@@ -204,12 +204,12 @@ class ProfileActivity : BaseActivity() {
         }
 
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .background(colorResource(id = R.color.white)),
         ) {
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(280.dp)
                     .background(
@@ -223,7 +223,7 @@ class ProfileActivity : BaseActivity() {
                     painter = painterResource(id = R.drawable.city_background),
                     contentDescription = null,
                     contentScale = ContentScale.Companion.FillBounds,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(112.dp)
                         .align(Alignment.Companion.BottomCenter)
@@ -232,12 +232,12 @@ class ProfileActivity : BaseActivity() {
 
                 Column(
                     horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                 ) {
                     Row(
                         verticalAlignment = Alignment.Companion.CenterVertically,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
                     ) {
@@ -249,14 +249,14 @@ class ProfileActivity : BaseActivity() {
                                 containerColor = Color.Companion.Transparent
                             ),
                             shape = RectangleShape,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .width(40.dp)
                         ) {
 
                             Icon(
                                 imageVector = Icons.Default.ChevronLeft,
                                 contentDescription = "content description",
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .size(40.dp)
                                     .padding(0.dp),
                                 tint = colorResource(id = R.color.white),
@@ -271,11 +271,11 @@ class ProfileActivity : BaseActivity() {
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Companion.Bold,
                             textAlign = TextAlign.Companion.Center,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .weight(1f)
                         )
 
-                        Spacer(modifier = Modifier.Companion.width(40.dp))
+                        Spacer(modifier = Modifier.width(40.dp))
 
                     }
 
@@ -294,7 +294,7 @@ class ProfileActivity : BaseActivity() {
                         fontFamily = MontserratFamily,
                         fontWeight = FontWeight.Companion.Bold,
                         textAlign = TextAlign.Companion.Center,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .padding(top = 5.dp)
                             .fillMaxWidth()
                     )
@@ -309,19 +309,19 @@ class ProfileActivity : BaseActivity() {
                         fontFamily = MontserratFamily,
                         fontWeight = FontWeight.Companion.Normal,
                         textAlign = TextAlign.Companion.Center,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                     )
 
                     Row(
                         verticalAlignment = Alignment.Companion.CenterVertically,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 10.dp)
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .weight(1f)
                         )
                         {
@@ -350,7 +350,7 @@ class ProfileActivity : BaseActivity() {
                         }
 
                         Box(
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .width(2.dp)
                                 .height(36.dp)
                                 .background(colorResource(id = R.color.white))
@@ -358,7 +358,7 @@ class ProfileActivity : BaseActivity() {
 
                         Column(
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .weight(1f)
                         ) {
 
@@ -392,7 +392,7 @@ class ProfileActivity : BaseActivity() {
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .padding(top = 20.dp)
                     .padding(horizontal = 29.dp)
                     .verticalScroll(rememberScrollState())
@@ -469,14 +469,14 @@ class ProfileActivity : BaseActivity() {
                 )
 
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(top = 10.dp)
                         .fillMaxWidth()
                 ) {
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .padding(top = 20.dp, bottom = 30.dp)
                             .fillMaxWidth()
                     ) {

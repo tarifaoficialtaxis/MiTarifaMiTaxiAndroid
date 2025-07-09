@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -38,6 +39,7 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.sos.SosViewModelFactory
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.grid.items
+import com.mitarifamitaxi.taximetrousuario.components.adds.SosBannerAd
 import com.mitarifamitaxi.taximetrousuario.helpers.K
 
 class SosActivity : BaseActivity() {
@@ -96,7 +98,7 @@ class SosActivity : BaseActivity() {
     ) {
 
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .background(colorResource(id = R.color.gray4)),
         ) {
@@ -109,8 +111,9 @@ class SosActivity : BaseActivity() {
             )
 
             Column(
-                modifier = Modifier.Companion
-                    .fillMaxSize()
+                modifier = Modifier
+                    //.fillMaxSize()
+                    .weight(1f)
                     .padding(K.GENERAL_PADDING)
                     .verticalScroll(rememberScrollState())
             ) {
@@ -135,6 +138,12 @@ class SosActivity : BaseActivity() {
 
 
             }
+
+            SosBannerAd(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+            )
 
         }
 

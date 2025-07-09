@@ -91,11 +91,11 @@ class ForgotPasswordActivity : BaseActivity() {
     ) {
         Column {
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
             ) {
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                         .background(colorResource(id = R.color.white))
                 ) {
@@ -103,7 +103,7 @@ class ForgotPasswordActivity : BaseActivity() {
                     RegisterHeaderBox()
 
                     Card(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxSize()
                             .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.23f),
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -113,7 +113,7 @@ class ForgotPasswordActivity : BaseActivity() {
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .padding(K.GENERAL_PADDING)
                                 .verticalScroll(rememberScrollState())
@@ -126,7 +126,7 @@ class ForgotPasswordActivity : BaseActivity() {
 
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .padding(top = K.GENERAL_PADDING)
                             ) {
 
@@ -142,7 +142,7 @@ class ForgotPasswordActivity : BaseActivity() {
 
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
+                            Spacer(modifier = Modifier.weight(1.0f))
 
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)

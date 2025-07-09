@@ -58,21 +58,21 @@ class TermsConditionsActivity : BaseActivity() {
         onAcceptClicked: () -> Unit
     ) {
 
-        Box(modifier = Modifier.Companion.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(LocalConfiguration.current.screenHeightDp.dp * 0.27f)
                     .background(colorResource(id = R.color.main))
             ) {
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.city_background),
                         contentDescription = null,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.Companion.BottomCenter)
                             .padding(bottom = 30.dp)
@@ -81,7 +81,7 @@ class TermsConditionsActivity : BaseActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.logo1),
                         contentDescription = null,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .height(91.dp)
                             .align(Alignment.Companion.Center)
                     )
@@ -89,7 +89,7 @@ class TermsConditionsActivity : BaseActivity() {
             }
 
             Card(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.23f),
                 shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -98,13 +98,13 @@ class TermsConditionsActivity : BaseActivity() {
                 )
             ) {
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(K.GENERAL_PADDING)
                 ) {
 
                     Column(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .weight(0.9f)
                             .padding(bottom = 10.dp)
                     ) {
@@ -112,11 +112,11 @@ class TermsConditionsActivity : BaseActivity() {
                         MainTitleText(
                             title = stringResource(id = R.string.terms_title),
                             titleColor = colorResource(id = R.color.black),
-                            modifier = Modifier.Companion.padding(bottom = 25.dp)
+                            modifier = Modifier.padding(bottom = 25.dp)
                         )
 
                         Column(
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .verticalScroll(rememberScrollState())
                         ) {
                             Text(
@@ -131,7 +131,7 @@ class TermsConditionsActivity : BaseActivity() {
 
                     Box(
                         contentAlignment = Alignment.BottomCenter,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .weight(0.1f)
                     ) {
                         CustomButton(

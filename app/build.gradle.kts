@@ -29,12 +29,51 @@ android {
 
         debug {
             buildConfigField("boolean", "IS_DEV", "true")
-            buildConfigField("String", "OPEN_APP_AD_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"")
+            buildConfigField(
+                "String",
+                "OPEN_APP_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9257395921\""
+            )
+            buildConfigField(
+                "String",
+                "HOME_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9214589741\""
+            )
+            buildConfigField(
+                "String",
+                "SOS_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9214589741\""
+            )
+            buildConfigField(
+                "String",
+                "MY_TRIPS_AD_UNIT_ID",
+                "\"ca-app-pub-3940256099942544/9214589741\""
+            )
+
         }
 
         release {
             buildConfigField("boolean", "IS_DEV", "false")
-            buildConfigField("String", "OPEN_APP_AD_UNIT_ID", "\"ca-app-pub-3864915489725459/1852355259\"")
+            buildConfigField(
+                "String",
+                "OPEN_APP_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/1852355259\""
+            )
+            buildConfigField(
+                "String",
+                "HOME_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/1408985203\""
+            )
+            buildConfigField(
+                "String",
+                "SOS_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/3565726328\""
+            )
+            buildConfigField(
+                "String",
+                "MY_TRIPS_AD_UNIT_ID",
+                "\"ca-app-pub-3864915489725459/1425297076\""
+            )
 
             isMinifyEnabled = false
             proguardFiles(
@@ -59,7 +98,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(kotlin("reflect"))
-    
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity)

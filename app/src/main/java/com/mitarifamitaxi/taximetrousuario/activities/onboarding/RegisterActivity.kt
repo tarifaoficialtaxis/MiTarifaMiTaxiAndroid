@@ -115,7 +115,7 @@ class RegisterActivity : BaseActivity() {
 
 
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .background(colorResource(id = R.color.white))
         ) {
@@ -123,7 +123,7 @@ class RegisterActivity : BaseActivity() {
             RegisterHeaderBox()
 
             Card(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.23f),
                 shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -133,7 +133,7 @@ class RegisterActivity : BaseActivity() {
             ) {
                 Column(
                     horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(
                             top = K.GENERAL_PADDING,
@@ -145,13 +145,13 @@ class RegisterActivity : BaseActivity() {
 
                     MainTitleText(
                         title = stringResource(id = R.string.register),
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .padding(bottom = K.GENERAL_PADDING)
                     )
 
                     Column(
                         horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .weight(1f)
                             .verticalScroll(rememberScrollState())
                     ) {
@@ -232,13 +232,13 @@ class RegisterActivity : BaseActivity() {
 
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .padding(vertical = K.GENERAL_PADDING)
                         ) {
                             CustomButton(
                                 text = stringResource(id = R.string.register_action).uppercase(),
                                 onClick = { onRegisterClicked() },
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .fillMaxWidth()
                             )
 

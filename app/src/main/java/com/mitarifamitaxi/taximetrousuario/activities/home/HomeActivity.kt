@@ -56,6 +56,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
+import com.mitarifamitaxi.taximetrousuario.components.adds.HomeBannerAdd
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
@@ -136,13 +137,13 @@ class HomeActivity : BaseActivity() {
         val openDrawer = LocalOpenDrawer.current
 
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .background(colorResource(id = R.color.white)),
         ) {
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
                     .background(
@@ -154,28 +155,28 @@ class HomeActivity : BaseActivity() {
                 Image(
                     painter = painterResource(id = R.drawable.city_background3),
                     contentDescription = null,
-                    contentScale = ContentScale.Companion.FillWidth,
-                    modifier = Modifier.Companion
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(95.dp)
-                        .align(Alignment.Companion.BottomCenter)
+                        .align(Alignment.BottomCenter)
                         .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
 
                 )
 
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(20.dp)
                 ) {
 
                     OutlinedButton(
                         onClick = { openDrawer() },
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .size(45.dp)
                             .border(2.dp, colorResource(id = R.color.white), CircleShape),
                         shape = CircleShape,
-                        border = BorderStroke(0.dp, Color.Companion.Transparent),
+                        border = BorderStroke(0.dp, Color.Transparent),
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = colorResource(id = R.color.main),
@@ -191,15 +192,15 @@ class HomeActivity : BaseActivity() {
                         )
                     }
 
-                    Spacer(modifier = Modifier.Companion.height(18.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                     Text(
                         text = stringResource(id = R.string.welcome_home),
                         color = colorResource(id = R.color.white),
                         fontSize = 20.sp,
                         fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Medium,
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Start)
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .align(Alignment.Start)
                     )
 
                     Text(
@@ -207,67 +208,78 @@ class HomeActivity : BaseActivity() {
                         color = colorResource(id = R.color.main),
                         fontSize = 20.sp,
                         fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Bold,
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Start)
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .align(Alignment.Start)
                     )
-                    Spacer(modifier = Modifier.Companion.height(5.dp))
+                    Spacer(modifier = Modifier.height(5.dp))
 
                     Text(
                         text = appState.userData?.city ?: "",
                         color = colorResource(id = R.color.white),
                         fontSize = 14.sp,
                         fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Normal,
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Start)
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                            .align(Alignment.Start)
                     )
                 }
 
                 Image(
                     painter = painterResource(id = R.drawable.home_taxi),
                     contentDescription = null,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .width(220.dp)
                         .height(100.dp)
-                        .align(Alignment.Companion.BottomEnd)
+                        .align(Alignment.BottomEnd)
                         .offset(x = 30.dp, y = 15.dp)
                 )
             }
 
-            if (appState.isGettingLocation) {
-                Column(
-                    horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                ) {
-                    Spacer(modifier = Modifier.Companion.height(60.dp))
-                    Text(
-                        text = stringResource(id = R.string.getting_location),
-                        color = colorResource(id = R.color.black),
-                        fontSize = 20.sp,
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Medium,
-                        textAlign = TextAlign.Companion.Center,
-                        modifier = Modifier.Companion
-                            .fillMaxWidth()
-                            .padding(bottom = 20.dp)
-                    )
-                    CircularProgressIndicator(
-                        color = colorResource(id = R.color.black)
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+
+                if (appState.isGettingLocation) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Spacer(modifier = Modifier.height(60.dp))
+                        Text(
+                            text = stringResource(id = R.string.getting_location),
+                            color = colorResource(id = R.color.black),
+                            fontSize = 20.sp,
+                            fontFamily = MontserratFamily,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 20.dp)
+                        )
+                        CircularProgressIndicator(
+                            color = colorResource(id = R.color.black)
+                        )
+                    }
+                } else {
+
+                    UserView(
+                        uiState = uiState,
+                        onTaximeterClick = onTaximeterClick,
+                        onSosClick = onSosClick,
+                        onPqrsClick = onPqrsClick,
+                        onMyTripsClick = onMyTripsClick,
+                        onTripClicked = onTripClicked
                     )
                 }
-            } else {
-
-                UserView(
-                    uiState = uiState,
-                    onTaximeterClick = onTaximeterClick,
-                    onSosClick = onSosClick,
-                    onPqrsClick = onPqrsClick,
-                    onMyTripsClick = onMyTripsClick,
-                    onTripClicked = onTripClicked
-                )
-
-
             }
+
+            HomeBannerAdd(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+            )
         }
     }
 
@@ -282,7 +294,7 @@ class HomeActivity : BaseActivity() {
     ) {
 
         Column(
-            Modifier.Companion
+            Modifier
                 .padding(horizontal = 29.dp)
                 .padding(top = 30.dp)
                 .verticalScroll(rememberScrollState()),
@@ -291,7 +303,7 @@ class HomeActivity : BaseActivity() {
 
             OutlinedButton(
                 onClick = onTaximeterClick,
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth(),
                 border = null,
                 contentPadding = PaddingValues(0.dp),
@@ -300,20 +312,20 @@ class HomeActivity : BaseActivity() {
                 Image(
                     painter = painterResource(id = R.drawable.home_taximetro_button),
                     contentDescription = null,
-                    contentScale = ContentScale.Companion.FillWidth,
-                    modifier = Modifier.Companion
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier
                         .fillMaxSize()
                 )
             }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(11.dp),
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
             ) {
                 OutlinedButton(
                     onClick = onSosClick,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .weight(1.0f),
                     border = null,
                     contentPadding = PaddingValues(0.dp),
@@ -322,15 +334,15 @@ class HomeActivity : BaseActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.home_sos_button),
                         contentDescription = null,
-                        contentScale = ContentScale.Companion.FillWidth,
-                        modifier = Modifier.Companion
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
                             .fillMaxSize()
                     )
                 }
 
                 OutlinedButton(
                     onClick = onPqrsClick,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .weight(1.0f),
                     border = null,
                     contentPadding = PaddingValues(0.dp),
@@ -339,8 +351,8 @@ class HomeActivity : BaseActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.home_pqrs_button),
                         contentDescription = null,
-                        contentScale = ContentScale.Companion.FillWidth,
-                        modifier = Modifier.Companion
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
                             .fillMaxSize()
                     )
                 }
@@ -353,22 +365,22 @@ class HomeActivity : BaseActivity() {
                         color = colorResource(id = R.color.black),
                         fontSize = 16.sp,
                         fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Companion.Bold,
-                        modifier = Modifier.Companion
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
                             .padding(top = 15.dp)
                     )
 
-                    Spacer(modifier = Modifier.Companion.weight(1.0f))
+                    Spacer(modifier = Modifier.weight(1.0f))
 
                     if (uiState.trips.isNotEmpty()) {
                         TextButton(onClick = onMyTripsClick) {
                             Text(
                                 text = stringResource(id = R.string.see_all),
                                 color = colorResource(id = R.color.main),
-                                textDecoration = TextDecoration.Companion.Underline,
+                                textDecoration = TextDecoration.Underline,
                                 fontSize = 14.sp,
                                 fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Bold,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
@@ -380,7 +392,7 @@ class HomeActivity : BaseActivity() {
                 } else {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(11.dp),
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .background(colorResource(id = R.color.white))
                             .padding(top = 10.dp)

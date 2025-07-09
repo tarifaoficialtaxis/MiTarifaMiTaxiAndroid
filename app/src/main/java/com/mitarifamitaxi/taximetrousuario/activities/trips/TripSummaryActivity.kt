@@ -143,7 +143,7 @@ class TripSummaryActivity : BaseActivity() {
     ) {
 
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .background(colorResource(id = R.color.gray4))
                 .fillMaxSize()
         ) {
@@ -162,7 +162,7 @@ class TripSummaryActivity : BaseActivity() {
             )
 
             Column(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
@@ -171,7 +171,7 @@ class TripSummaryActivity : BaseActivity() {
                         model = uiState.tripData.routeImage,
                         contentDescription = "Trip route map image",
                         contentScale = ContentScale.Companion.FillWidth,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                     )
                 } else {
@@ -180,14 +180,14 @@ class TripSummaryActivity : BaseActivity() {
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,
                             contentScale = ContentScale.Companion.FillWidth,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .fillMaxWidth()
                         )
                     }
                 }
 
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 29.dp)
                         .padding(horizontal = 29.dp)
@@ -214,14 +214,14 @@ class TripSummaryActivity : BaseActivity() {
                             )
                         }
 
-                        Spacer(modifier = Modifier.Companion.weight(1f))
+                        Spacer(modifier = Modifier.weight(1f))
 
                         if (uiState.tripData.companyImage != null) {
                             AsyncImage(
                                 model = uiState.tripData.companyImage,
                                 contentDescription = "Company logo",
                                 contentScale = ContentScale.Companion.Crop,
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .size(70.dp)
                             )
                         }
@@ -232,11 +232,11 @@ class TripSummaryActivity : BaseActivity() {
                     Row(
                         verticalAlignment = Alignment.Companion.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.Companion.padding(top = 10.dp),
+                        modifier = Modifier.padding(top = 10.dp),
                     ) {
 
                         Box(
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .size(15.dp)
                                 .border(2.dp, colorResource(id = R.color.yellow2), CircleShape)
                                 .background(colorResource(id = R.color.main), shape = CircleShape),
@@ -248,10 +248,10 @@ class TripSummaryActivity : BaseActivity() {
                             fontWeight = FontWeight.Companion.Normal,
                             fontSize = 12.sp,
                             color = colorResource(id = R.color.black),
-                            modifier = Modifier.Companion.weight(0.8f)
+                            modifier = Modifier.weight(0.8f)
                         )
 
-                        Spacer(modifier = Modifier.Companion.weight(0.2f))
+                        Spacer(modifier = Modifier.weight(0.2f))
 
                         Text(
                             text = hourFormatDate(uiState.tripData.startHour ?: ""),
@@ -265,14 +265,14 @@ class TripSummaryActivity : BaseActivity() {
                     Row(
                         verticalAlignment = Alignment.Companion.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.Companion.padding(bottom = 10.dp),
+                        modifier = Modifier.padding(bottom = 10.dp),
                     ) {
 
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = colorResource(id = R.color.main),
-                            modifier = Modifier.Companion.size(15.dp)
+                            modifier = Modifier.size(15.dp)
                         )
 
                         Text(
@@ -281,10 +281,10 @@ class TripSummaryActivity : BaseActivity() {
                             fontWeight = FontWeight.Companion.Normal,
                             fontSize = 12.sp,
                             color = colorResource(id = R.color.black),
-                            modifier = Modifier.Companion.weight(0.8f)
+                            modifier = Modifier.weight(0.8f)
                         )
 
-                        Spacer(modifier = Modifier.Companion.weight(0.2f))
+                        Spacer(modifier = Modifier.weight(0.2f))
 
                         Text(
                             text = hourFormatDate(uiState.tripData.endHour ?: ""),
@@ -296,7 +296,7 @@ class TripSummaryActivity : BaseActivity() {
                     }
 
                     Box(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(2.dp)
                             .background(colorResource(id = R.color.gray2))
@@ -332,7 +332,7 @@ class TripSummaryActivity : BaseActivity() {
                     Row {
 
                         Spacer(
-                            modifier = Modifier.Companion.weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
 
                         Button(
@@ -438,7 +438,7 @@ class TripSummaryActivity : BaseActivity() {
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.Companion.padding(vertical = 20.dp)
+                        modifier = Modifier.padding(vertical = 20.dp)
                     ) {
                         CustomButton(
                             text = stringResource(id = R.string.sos).uppercase(),

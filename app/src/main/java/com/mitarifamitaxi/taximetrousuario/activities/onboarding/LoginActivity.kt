@@ -133,20 +133,20 @@ class LoginActivity : BaseActivity() {
         onGoogleSignIn: () -> Unit
     ) {
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
         ) {
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
             ) {
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .fillMaxSize()
                 ) {
 
                     Box(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(LocalConfiguration.current.screenHeightDp.dp * 0.35f)
                             .background(colorResource(id = R.color.main))
@@ -155,7 +155,7 @@ class LoginActivity : BaseActivity() {
                         Image(
                             painter = painterResource(id = R.drawable.city_background),
                             contentDescription = null,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.Companion.BottomCenter)
                                 .padding(bottom = 30.dp)
@@ -164,7 +164,7 @@ class LoginActivity : BaseActivity() {
                         Image(
                             painter = painterResource(id = R.drawable.logo2),
                             contentDescription = null,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .height(LocalConfiguration.current.screenHeightDp.dp * 0.23f)
                                 .align(Alignment.Companion.TopCenter)
                                 .padding(top = 40.dp)
@@ -173,7 +173,7 @@ class LoginActivity : BaseActivity() {
                     }
 
                     Card(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .fillMaxSize()
                             .padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.3f),
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -183,7 +183,7 @@ class LoginActivity : BaseActivity() {
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Companion.CenterHorizontally,
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
                                 .padding(K.GENERAL_PADDING)
@@ -191,12 +191,12 @@ class LoginActivity : BaseActivity() {
 
                             MainTitleText(
                                 title = stringResource(id = R.string.welcome),
-                                modifier = Modifier.Companion.padding(bottom = 25.dp)
+                                modifier = Modifier.padding(bottom = 25.dp)
                             )
 
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(17.dp),
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .padding(bottom = 10.dp)
                             ) {
                                 CustomTextField(
@@ -222,7 +222,7 @@ class LoginActivity : BaseActivity() {
 
                             Row(
                                 verticalAlignment = Alignment.Companion.CenterVertically,
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
 
@@ -240,7 +240,7 @@ class LoginActivity : BaseActivity() {
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = colorResource(id = R.color.transparent),
                                     ),
-                                    modifier = Modifier.Companion
+                                    modifier = Modifier
                                         .width(180.dp),
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
@@ -256,7 +256,7 @@ class LoginActivity : BaseActivity() {
                             }
 
                             Box(
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .padding(vertical = K.GENERAL_PADDING)
                             ) {
                                 CustomButton(
@@ -265,16 +265,16 @@ class LoginActivity : BaseActivity() {
                                 )
                             }
 
-                            Spacer(modifier = Modifier.Companion.weight(1.0f))
+                            Spacer(modifier = Modifier.weight(1.0f))
 
                             Row(
                                 verticalAlignment = Alignment.Companion.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .fillMaxWidth()
                             ) {
                                 Box(
-                                    modifier = Modifier.Companion
+                                    modifier = Modifier
                                         .weight(1f)
                                         .height(2.dp)
                                         .background(color = colorResource(id = R.color.gray2))
@@ -286,11 +286,11 @@ class LoginActivity : BaseActivity() {
                                     fontWeight = FontWeight.Companion.Medium,
                                     fontSize = 14.sp,
                                     color = colorResource(id = R.color.gray1),
-                                    modifier = Modifier.Companion.padding(horizontal = 10.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp)
                                 )
 
                                 Box(
-                                    modifier = Modifier.Companion
+                                    modifier = Modifier
                                         .weight(1f)
                                         .height(2.dp)
                                         .background(color = colorResource(id = R.color.gray2))
@@ -307,7 +307,7 @@ class LoginActivity : BaseActivity() {
                                     onClick = {
                                         onGoogleSignIn()
                                     },
-                                    modifier = Modifier.Companion
+                                    modifier = Modifier
                                         .padding(top = 29.dp)
                                         .width(133.dp)
                                         .height(45.dp),
@@ -316,7 +316,7 @@ class LoginActivity : BaseActivity() {
                                     Image(
                                         painter = painterResource(id = R.drawable.button_google),
                                         contentDescription = null,
-                                        modifier = Modifier.Companion
+                                        modifier = Modifier
                                             .fillMaxSize()
                                     )
                                 }

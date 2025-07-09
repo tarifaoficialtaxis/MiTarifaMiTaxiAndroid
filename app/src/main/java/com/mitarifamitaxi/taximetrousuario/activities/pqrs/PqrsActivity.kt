@@ -66,7 +66,7 @@ class PqrsActivity : BaseActivity() {
     ) {
 
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .background(colorResource(id = R.color.white)),
         ) {
@@ -79,7 +79,7 @@ class PqrsActivity : BaseActivity() {
             )
 
             Column(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(29.dp)
                     .verticalScroll(rememberScrollState()),
@@ -99,7 +99,7 @@ class PqrsActivity : BaseActivity() {
                 }
 
                 Column(
-                    modifier = Modifier.Companion.padding(top = 20.dp),
+                    modifier = Modifier.padding(top = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
@@ -109,7 +109,7 @@ class PqrsActivity : BaseActivity() {
                         fontFamily = MontserratFamily,
                         fontWeight = FontWeight.Companion.Medium,
                         textAlign = TextAlign.Companion.Start,
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .padding(bottom = 10.dp)
                     )
 
@@ -128,7 +128,7 @@ class PqrsActivity : BaseActivity() {
                     }
 
                     if (uiState.reasonsSelected.any { it.key == "OTHER" }) {
-                        Spacer(modifier = Modifier.Companion.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         CustomMultilineTextField(
                             value = uiState.otherValue,
                             onValueChange = { viewModel.onOtherValueChange(it) },
@@ -140,12 +140,12 @@ class PqrsActivity : BaseActivity() {
 
                 }
 
-                Spacer(modifier = Modifier.Companion.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
                 CustomButton(
                     text = stringResource(id = R.string.create_pqr).uppercase(),
                     onClick = onClickSendPqr,
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(top = K.GENERAL_PADDING),
                 )
 
