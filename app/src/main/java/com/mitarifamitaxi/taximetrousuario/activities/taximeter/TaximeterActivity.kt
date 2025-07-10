@@ -475,10 +475,10 @@ class TaximeterActivity : BaseActivity() {
                     }
 
                     CustomButton(
-                        text = stringResource(id = if (taximeterState.isTaximeterStarted) R.string.finish_trip else R.string.start_trip).uppercase(),
-                        onClick = { if (taximeterState.isTaximeterStarted) onFinish() else onStart() },
-                        color = colorResource(id = if (taximeterState.isTaximeterStarted) R.color.gray1 else R.color.main),
-                        leadingIcon = if (taximeterState.isTaximeterStarted) Icons.Default.Close else Icons.Default.PlayArrow
+                        text = stringResource(id = R.string.finish_trip).uppercase(),
+                        onClick = { onFinish() },
+                        color = colorResource(id = R.color.gray1),
+                        leadingIcon = Icons.Default.Close
                     )
                 }
             }

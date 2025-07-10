@@ -3,8 +3,8 @@ import androidx.compose.ui.unit.dp
 import com.mitarifamitaxi.taximetrousuario.BuildConfig
 
 object K {
-    //const val IS_DEV = BuildConfig.IS_DEV
-    const val IS_DEV = false
+    const val IS_DEV = BuildConfig.IS_DEV
+    //const val IS_DEV = false
     const val NOMINATIM_URL = "https://nominatim.openstreetmap.org/"
 
     //const val GOOGLE_API_KEY = "AIzaSyA_JVIFufi7zeH8nfkrglUg4c2QOjQqCx8"
