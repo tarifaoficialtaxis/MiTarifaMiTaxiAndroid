@@ -108,14 +108,6 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
     fun completeProfile(onResult: (Pair<Boolean, String?>) -> Unit) {
         val stateVal = _uiState.value
 
-        if (stateVal.imageUri == null) {
-            appViewModel.showMessage(
-                type = DialogType.ERROR,
-                title = appContext.getString(R.string.profile_photo_required),
-                message = appContext.getString(R.string.must_select_profile_photo),
-            )
-        }
-
         _uiState.update { state ->
             state.copy(
                 firstNameIsError = state.firstName.isBlank(),
@@ -127,7 +119,7 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
             )
         }
 
-        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError || _uiState.value.imageUri == null) {
+        if (_uiState.value.firstNameIsError || _uiState.value.lastNameIsError || _uiState.value.mobilePhoneIsError) {
             return
         }
 

@@ -520,10 +520,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         _uiState.update { it.copy(isMapLoaded = value) }
     }
 
-    fun toggleFab() {
-        _uiState.update { it.copy(isFabExpanded = !it.isFabExpanded) }
-    }
-
     fun onChangeIsAddRechargesOpen(value: Boolean) {
         _uiState.update { it.copy(isRechargesOpen = value) }
     }
