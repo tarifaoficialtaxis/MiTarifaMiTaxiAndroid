@@ -493,10 +493,9 @@ class TripSummaryActivity : BaseActivity() {
 
                         if (!uiState.isDetails) {
                             CustomButton(
-                                text = stringResource(id = R.string.finish).uppercase(),
+                                text = stringResource(id = R.string.back_home).uppercase(),
                                 onClick = onFinishAction,
-                                color = colorResource(id = R.color.gray1),
-                                leadingIcon = Icons.Default.Close
+                                color = colorResource(id = R.color.gray1)
                             )
                         }
                     }

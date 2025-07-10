@@ -53,6 +53,8 @@
     <string name="invalid_email">Correo electrónico inválido</string>
 
     <string name="back">Regresar</string>
+    <string name="back_home">Regresar al inicio</string>
+
     <string name="input_email_message">Ingresa tu correo electrónico, te enviaremos un enlace para restablecer tu contraseña.</string>
 
 
