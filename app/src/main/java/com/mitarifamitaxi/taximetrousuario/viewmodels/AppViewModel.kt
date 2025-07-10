@@ -44,16 +44,13 @@ import java.util.concurrent.Executor
 import com.google.firebase.database.ValueEventListener
 import com.mitarifamitaxi.taximetrousuario.helpers.findRegionForCoordinates
 import com.google.firebase.firestore.SetOptions
-import com.mitarifamitaxi.taximetrousuario.helpers.ContactsCatalogManager
 import com.mitarifamitaxi.taximetrousuario.helpers.UserLocationManager
 import com.mitarifamitaxi.taximetrousuario.helpers.removeAccents
-import com.mitarifamitaxi.taximetrousuario.models.Contact
 import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.DialogState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
 
 sealed class UserDataUpdateEvent {
     object FirebaseUserUpdated : UserDataUpdateEvent()
@@ -121,7 +118,12 @@ class AppViewModel(context: Context) : ViewModel() {
                         val appVersionObj =
                             querySnapshot.toObject(AppVersion::class.java) ?: AppVersion()
 
-                        if ((BuildConfig.VERSION_NAME != appVersionObj.version || BuildConfig.VERSION_CODE != appVersionObj.build) && appVersionObj.show == true) {
+                        if (appVersionObj.version.isNullOrEmpty() || appVersionObj.build == null) {
+                            Log.i("AppViewModel", "appVersionObj error: version or build is null")
+                            return@launch
+                        }
+
+                        if ((BuildConfig.VERSION_NAME != appVersionObj.version || BuildConfig.VERSION_CODE < appVersionObj.build) && appVersionObj.show == true) {
                             showMessage(
                                 type = DialogType.WARNING,
                                 title = appContext.getString(R.string.attention),
@@ -395,7 +397,8 @@ class AppViewModel(context: Context) : ViewModel() {
     ) {
 
         val database = FirebaseDatabase.getInstance()
-        val countryRef = database.getReference("countriesRegions").child(country.lowercase().removeAccents())
+        val countryRef =
+            database.getReference("countriesRegions").child(country.lowercase().removeAccents())
 
         countryRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
