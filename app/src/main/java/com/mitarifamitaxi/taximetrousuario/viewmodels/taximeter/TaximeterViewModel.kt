@@ -97,6 +97,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 rates = CityRatesManager(appContext).getRatesState() ?: Rates(),
             )
         }
+        filterRecharges()
     }
 
     override fun onCleared() {
@@ -105,6 +106,17 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             mediaPlayer.stop()
         }
         mediaPlayer.release()
+    }
+
+    fun filterRecharges() {
+        val filteredRecharges = _uiState.value.rates.recharges
+            .filter { it.show == true }
+            .sortedBy { it.order ?: 0 }
+        _uiState.update { state ->
+            state.copy(
+                rates = state.rates.copy(recharges = filteredRecharges)
+            )
+        }
     }
 
     fun setInitialData() {

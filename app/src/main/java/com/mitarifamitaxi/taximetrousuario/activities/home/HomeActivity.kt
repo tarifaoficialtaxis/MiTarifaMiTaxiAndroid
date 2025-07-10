@@ -205,7 +205,7 @@ class HomeActivity : BaseActivity() {
                     )
 
                     Text(
-                        text = appState.userData?.firstName ?: "",
+                        text = "${appState.userData?.firstName}!",
                         color = colorResource(id = R.color.main),
                         fontSize = 20.sp,
                         fontFamily = MontserratFamily,

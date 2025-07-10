@@ -57,6 +57,17 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
         it.copy(pqrsData = value)
     }
 
+    fun filterReasons() {
+        val filteredReasons = _uiState.value.pqrsData.reasons
+            .filter { it.show == true }
+            .sortedBy { it.order }
+        _uiState.update { state ->
+            state.copy(
+                pqrsData = state.pqrsData.copy(reasons = filteredReasons),
+            )
+        }
+    }
+
     fun onEmailTemplateChange(value: EmailTemplate) = _uiState.update {
         it.copy(emailTemplate = value)
     }
@@ -203,6 +214,7 @@ class PqrsViewModel(context: Context, private val appViewModel: AppViewModel) : 
                         val pqrsVal =
                             contactsDoc.toObject(PqrsData::class.java) ?: PqrsData()
                         onPqrsDataChange(pqrsVal)
+                        filterReasons()
                     } catch (e: Exception) {
                         Log.e("PqrsViewModel", "Error parsing contact data: ${e.message}")
                     }

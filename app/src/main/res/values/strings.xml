@@ -61,7 +61,7 @@
     <string name="somethingWentWrong">¡Algo salió mal!</string>
     <string name="generalError">Ha ocurrido un error. Por favor, inténtalo de nuevo.</string>
 
-    <string name="welcome_home">!Bienvenido,</string>
+    <string name="welcome_home">¡Bienvenido,</string>
 
     <string name="complete_profile">Completa tu perfil</string>
     <string name="complete_profile_action">Completar perfil</string>

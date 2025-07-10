@@ -143,7 +143,6 @@ class TaximeterActivity : BaseActivity() {
             appState = appState,
             taximeterState = taximeterState,
             onFinish = { if (taximeterState.isTaximeterStarted) viewModel.showFinishConfirmation() else finish() },
-            onStart = { viewModel.validateLocationPermission() },
             onMapLoaded = { viewModel.setIsMapLoaded(true) },
             onScreenshotReady = { bitmap ->
                 viewModel.mapScreenshotReady(bitmap) { intent ->
@@ -169,7 +168,6 @@ class TaximeterActivity : BaseActivity() {
         appState: AppState,
         taximeterState: TaximeterState,
         onFinish: () -> Unit,
-        onStart: () -> Unit,
         onMapLoaded: () -> Unit,
         onScreenshotReady: (Bitmap) -> Unit,
         onSetTakeScreenshot: (Boolean) -> Unit
@@ -511,7 +509,6 @@ class TaximeterActivity : BaseActivity() {
             appState = sampleAppState,
             taximeterState = sampleTaximeterState,
             onFinish = {},
-            onStart = {},
             onMapLoaded = {},
             onScreenshotReady = {},
             onSetTakeScreenshot = {}

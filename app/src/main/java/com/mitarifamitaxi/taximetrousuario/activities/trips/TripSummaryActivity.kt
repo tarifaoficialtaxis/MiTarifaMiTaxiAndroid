@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +56,9 @@ import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
+import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
+import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
@@ -135,6 +138,11 @@ class TripSummaryActivity : BaseActivity() {
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
             },
+            onPqrsAction = {
+                val intent = Intent(this, PqrsActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            },
             onShareAction = {
                 viewModel.onShowShareDialog(true)
             },
@@ -150,6 +158,7 @@ class TripSummaryActivity : BaseActivity() {
         uiState: TripSummaryState,
         onDeleteAction: () -> Unit,
         onSosAction: () -> Unit,
+        onPqrsAction: () -> Unit,
         onShareAction: () -> Unit,
         onFinishAction: () -> Unit
     ) {
@@ -452,12 +461,29 @@ class TripSummaryActivity : BaseActivity() {
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.padding(vertical = 20.dp)
                     ) {
-                        CustomButton(
-                            text = stringResource(id = R.string.sos).uppercase(),
-                            onClick = onSosAction,
-                            color = colorResource(id = R.color.red1),
-                            leadingIcon = Icons.Rounded.WarningAmber
-                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                CustomButton(
+                                    text = stringResource(id = R.string.sos).uppercase(),
+                                    onClick = { onSosAction() },
+                                    color = colorResource(id = R.color.red1),
+                                    leadingIcon = Icons.Rounded.WarningAmber
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CustomButton(
+                                    text = stringResource(id = R.string.pqrs).uppercase(),
+                                    onClick = { onPqrsAction() },
+                                    color = colorResource(id = R.color.blue2),
+                                    leadingIcon = Icons.AutoMirrored.Outlined.Chat
+                                )
+                            }
+                        }
 
                         CustomButton(
                             text = stringResource(id = R.string.share).uppercase(),
@@ -528,6 +554,7 @@ class TripSummaryActivity : BaseActivity() {
             ),
             onDeleteAction = {},
             onSosAction = {},
+            onPqrsAction = {},
             onShareAction = {},
             onFinishAction = {}
         )
