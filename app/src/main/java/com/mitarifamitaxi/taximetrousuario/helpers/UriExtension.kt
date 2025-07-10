@@ -13,10 +13,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Objects
+import androidx.core.graphics.scale
+import java.lang.Float.min
 
 fun Uri.toBitmap(
     context: Context,
-    maxSizeBytes: Long = 1_500_000L
+    maxSizeBytes: Long = 40_000L
 ): Bitmap? {
     val original: Bitmap = try {
         val source = ImageDecoder.createSource(context.contentResolver, this)
@@ -25,6 +27,10 @@ fun Uri.toBitmap(
         e.printStackTrace()
         return null
     }
+
+    val newWidth = original.width / 10
+    val newHeight = original.height / 10
+    val scaled = original.scale(newWidth, newHeight)
 
     var quality = 100
     var compressedBytes: ByteArray
@@ -36,10 +42,9 @@ fun Uri.toBitmap(
         else
             Bitmap.CompressFormat.WEBP
 
-        original.compress(format, quality, baos)
+        scaled.compress(format, quality, baos)
         compressedBytes = baos.toByteArray()
         baos.close()
-
         quality -= 5
     } while (compressedBytes.size > maxSizeBytes && quality > 0)
 
@@ -47,6 +52,7 @@ fun Uri.toBitmap(
 
     return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
 }
+
 
 fun createTempImageUri(appContext: Context): Uri {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())

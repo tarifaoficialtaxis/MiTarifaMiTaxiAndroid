@@ -477,6 +477,13 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                 userDocRef.delete().await()
                 Log.d("ProfileViewModel", "Deleted Firestore user document $userId")
 
+                // Delete profile picture from Firebase Storage
+
+                _uiState.value.originalProfilePictureUrl.let { imageUrl ->
+                    if (imageUrl.isNotEmpty()) {
+                        FirebaseStorageUtils.deleteImage(imageUrl)
+                    }
+                }
 
                 currentUser.delete().await()
 
