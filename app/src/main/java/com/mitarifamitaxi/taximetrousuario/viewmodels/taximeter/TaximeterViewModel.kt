@@ -187,7 +187,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
 
         task.addOnSuccessListener(executor) { location ->
-            appViewModel.setLoading(false)
             if (location != null) {
                 _uiState.update {
                     it.copy(
@@ -199,6 +198,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 }
                 startTaximeter()
             } else {
+                appViewModel.setLoading(false)
                 FirebaseCrashlytics.getInstance()
                     .recordException(Exception("TaximeterViewModel location null"))
                 appViewModel.showMessage(
@@ -235,7 +235,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         startTime = Instant.now().toString()
         startTimer()
         startWatchLocation()
-
+        appViewModel.setLoading(false)
     }
 
     fun showFinishConfirmation() {
