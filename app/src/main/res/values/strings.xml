@@ -258,7 +258,7 @@
     <string name="error_getting_route">Ha ocurrido un error al intentar obtener la ruta.</string>
 
     <string name="permission_required">Permiso requerido</string>
-    <string name="location_permission_required">Para continuar, necesitamos tu permiso para acceder a tu ubicación. Por favor, otorga los permisos necesarios en la configuración de tu dispositivo.</string>
+    <string name="location_permission_required">Para continuar, necesitamos tu permiso para acceder a tu ubicación. Selecciona Permisos → Ubicación → Permitir solo con la app en uso.</string>
     <string name="background_location_permission_required">Para que la aplicación funcione correctamente, necesitamos tu permiso para acceder a tu ubicación en segundo plano. Por favor, otorga los permisos necesarios.</string>
 
     <string name="background_location_permission_error">Vaya por favor a Ajustes, Aplicaciones, seleccione MiTarifaMiTaxi y conceda el permiso de ubicación "Permitir todo el tiempo" para que la app funcione correctamente.</string>

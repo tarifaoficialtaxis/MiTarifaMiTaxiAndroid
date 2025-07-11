@@ -1,6 +1,8 @@
 package com.mitarifamitaxi.taximetrousuario.activities.home
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
@@ -46,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.BuildConfig
@@ -91,6 +94,18 @@ class HomeActivity : BaseActivity() {
         appViewModel.reloadUserData()
     }
 
+    private fun ensureLocationAndProceed(action: () -> Unit) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            action()
+        } else {
+            appViewModel.requestLocationPermission(this)
+        }
+    }
+
     @Composable
     override fun Content() {
 
@@ -101,9 +116,11 @@ class HomeActivity : BaseActivity() {
             uiState = uiState,
             appState = appState,
             onTaximeterClick = {
-                viewModel.getCityRates(userCity = appState.userData?.city ?: "", goNext = {
-                    startActivity(Intent(this, TaximeterActivity::class.java))
-                })
+                ensureLocationAndProceed {
+                    viewModel.getCityRates(userCity = appState.userData?.city ?: "", goNext = {
+                        startActivity(Intent(this, TaximeterActivity::class.java))
+                    })
+                }
             },
             onSosClick = {
                 startActivity(Intent(this, SosActivity::class.java))

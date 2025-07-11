@@ -35,6 +35,8 @@ import com.mitarifamitaxi.taximetrousuario.states.DialogState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.launch
+import android.provider.Settings
+import android.net.Uri
 
 val LocalOpenDrawer = compositionLocalOf<() -> Unit> { {} }
 
@@ -54,9 +56,22 @@ open class BaseActivity : ComponentActivity() {
                 appViewModel.getCurrentLocation()
             } else {
                 appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    getString(R.string.permission_required),
-                    getString(R.string.location_permission_required)
+                    type = DialogType.WARNING,
+                    title = getString(R.string.permission_required),
+                    message = getString(R.string.location_permission_required),
+                    buttonText = getString(R.string.grant_permission),
+                    onButtonClicked = {
+                        /*val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)*/
+
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                    }
                 )
             }
         }
