@@ -72,7 +72,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     sealed class NavigationEvent {
         object GoBack : NavigationEvent()
-        object RequestLocationPermission : NavigationEvent()
     }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -174,10 +173,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
         if (locationGranted) {
             getCurrentLocation()
-        } else {
-            viewModelScope.launch {
-                _navigationEvents.emit(NavigationEvent.RequestLocationPermission)
-            }
         }
     }
 

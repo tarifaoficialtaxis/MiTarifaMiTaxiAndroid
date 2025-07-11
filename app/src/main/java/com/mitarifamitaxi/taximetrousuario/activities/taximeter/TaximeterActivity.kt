@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -99,10 +98,6 @@ class TaximeterActivity : BaseActivity() {
                     when (event) {
                         is TaximeterViewModel.NavigationEvent.GoBack -> {
                             finish()
-                        }
-
-                        is TaximeterViewModel.NavigationEvent.RequestLocationPermission -> {
-
                         }
                     }
                 }
