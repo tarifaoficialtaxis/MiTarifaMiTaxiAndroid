@@ -434,11 +434,15 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
-
     fun mapScreenshotReady(bitmap: Bitmap, onIntentReady: (Intent) -> Unit) {
-        val newWidth = bitmap.width / 1.3
-        val newHeight = bitmap.height / 1.3
-        val scaledBitmap = bitmap.scale(newWidth.toInt(), newHeight.toInt())
+        val maxDim = 2048
+        val ratio = minOf(
+            maxDim.toFloat() / bitmap.width,
+            maxDim.toFloat() / bitmap.height
+        ).coerceAtMost(1f)
+        val newWidth = (bitmap.width * ratio).toInt()
+        val newHeight = (bitmap.height * ratio).toInt()
+        val scaledBitmap = bitmap.scale(newWidth, newHeight)
         val outputStream = ByteArrayOutputStream()
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
         val compressedBytes = outputStream.toByteArray()
@@ -447,8 +451,10 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
         val state = _uiState.value
         val rates = state.rates
-        val baseUnits = if (state.units < (rates.minimumRateUnits ?: 0.0)) rates.minimumRateUnits
-            ?: 0.0 else state.units
+        val baseUnits = if (state.units < (rates.minimumRateUnits ?: 0.0))
+            rates.minimumRateUnits ?: 0.0
+        else
+            state.units
 
         val tripObj = Trip(
             startAddress = state.startAddress,
@@ -469,6 +475,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             currency = appViewModel.uiState.value.userData?.countryCurrency,
             routeImageLocal = compressedBitmap
         )
+
         saveTripData(tripData = tripObj) {
             val tripJson = Gson().toJson(tripObj)
             val intent = Intent(appContext, TripSummaryActivity::class.java)
