@@ -189,9 +189,11 @@ class AppViewModel(context: Context) : ViewModel() {
         title: String,
         message: String,
         buttonText: String? = null,
+        secondaryButtonText: String? = null,
         showCloseButton: Boolean = true,
         onDismiss: (() -> Unit)? = null,
-        onButtonClicked: (() -> Unit)? = null
+        onButtonClicked: (() -> Unit)? = null,
+        onSecondaryButtonClicked: (() -> Unit)? = null
     ) {
         val newDialogState = DialogState(
             show = true,
@@ -199,9 +201,11 @@ class AppViewModel(context: Context) : ViewModel() {
             title = title,
             message = message,
             buttonText = buttonText,
+            secondaryButtonText = secondaryButtonText,
             showCloseButton = showCloseButton,
             onDismiss = onDismiss,
-            onPrimaryActionClicked = onButtonClicked
+            onPrimaryActionClicked = onButtonClicked,
+            onSecondaryActionClicked = onSecondaryButtonClicked
         )
         _uiState.update { it.copy(dialogState = newDialogState) }
     }

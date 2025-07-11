@@ -34,9 +34,11 @@ fun CustomPopupDialog(
     title: String,
     message: String,
     primaryActionButton: String? = null,
+    secondaryActionButton: String? = null,
     showCloseButton: Boolean = true,
     onDismiss: () -> Unit,
-    onPrimaryActionClicked: () -> Unit = {}
+    onPrimaryActionClicked: () -> Unit = {},
+    onSecondaryActionClicked: () -> Unit = {}
 ) {
 
     val primaryColor: Color = when (dialogType) {
@@ -123,6 +125,14 @@ fun CustomPopupDialog(
                             text = it.uppercase(),
                             onClick = onPrimaryActionClicked,
                             color = primaryColor,
+                        )
+                    }
+
+                    secondaryActionButton?.let {
+                        CustomButton(
+                            text = it.uppercase(),
+                            onClick = onSecondaryActionClicked,
+                            color = colorResource(id = R.color.gray1),
                         )
                     }
 

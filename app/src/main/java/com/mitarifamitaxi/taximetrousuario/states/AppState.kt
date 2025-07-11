@@ -18,7 +18,9 @@ data class DialogState(
     val title: String = "",
     val message: String = "",
     val buttonText: String? = null,
+    val secondaryButtonText: String? = null,
     val showCloseButton: Boolean = true,
     val onDismiss: (() -> Unit)? = null,
-    val onPrimaryActionClicked: (() -> Unit)? = null
+    val onPrimaryActionClicked: (() -> Unit)? = null,
+    val onSecondaryActionClicked: (() -> Unit)? = null
 )

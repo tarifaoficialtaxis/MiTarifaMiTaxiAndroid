@@ -102,6 +102,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     override fun onCleared() {
         super.onCleared()
+        stopWatchLocation()
         if (mediaPlayer.isPlaying) {
             mediaPlayer.stop()
         }
@@ -249,6 +250,22 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             message = appContext.getString(R.string.you_are_about_to_finish),
             buttonText = appContext.getString(R.string.finish_trip),
             onButtonClicked = { stopTaximeter() }
+        )
+    }
+
+    fun showBackConfirmation() {
+        appViewModel.showMessage(
+            type = DialogType.WARNING,
+            title = appContext.getString(R.string.finish_your_trip_question),
+            message = appContext.getString(R.string.you_are_about_to_finish_long),
+            buttonText = appContext.getString(R.string.finish_trip),
+            secondaryButtonText = appContext.getString(R.string.back_home),
+            onButtonClicked = { stopTaximeter() },
+            onSecondaryButtonClicked = {
+                viewModelScope.launch {
+                    _navigationEvents.emit(NavigationEvent.GoBack)
+                }
+            }
         )
     }
 
@@ -502,25 +519,19 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    fun validateSpeedExceeded() {
-        val state = _uiState.value
-        val speedLimit = state.rates.speedLimit ?: 0
-        if (speedLimit <= 0) {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-            }
-            return
+    private fun isPlayerPlayingSafe(): Boolean =
+        try {
+            mediaPlayer.isPlaying
+        } catch (e: IllegalStateException) {
+            false
         }
 
-        val speedExceeded = state.currentSpeed > speedLimit
+    fun validateSpeedExceeded() {
+        val speedExceeded = _uiState.value.currentSpeed > (uiState.value.rates.speedLimit ?: 0)
         if (speedExceeded) {
-            if (!mediaPlayer.isPlaying) {
-                mediaPlayer.start()
-            }
+            if (!isPlayerPlayingSafe()) mediaPlayer.start()
         } else {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-            }
+            if (isPlayerPlayingSafe()) mediaPlayer.pause()
         }
     }
 

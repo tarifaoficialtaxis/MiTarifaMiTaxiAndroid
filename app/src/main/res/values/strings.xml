@@ -272,7 +272,9 @@
     <string name="no_results_found">No se encontraron resultados</string>
 
     <string name="finish_your_trip">Finaliza tu viaje</string>
-    <string name="you_are_about_to_finish">Estás a punto de terminar tu viaje. Si lo finalizas ahora, el recorrido realizado hasta este punto se perderá.</string>
+    <string name="you_are_about_to_finish">Se calculará la tarifa según la distancia\nrecorrida hasta ahora.</string>
+    <string name="you_are_about_to_finish_long">Si finalizas, se calculará la tarifa según la distancia recorrida hasta ahora.\nSi vuelves al inicio el progreso se perderá y el viaje no se guardará</string>
+    <string name="finish_your_trip_question">¿Deseas finalizar tu viaje o volver al inicio?</string>
 
 
     <string name="template">template</string>

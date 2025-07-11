@@ -223,6 +223,7 @@ open class BaseActivity : ComponentActivity() {
             title = dialogState.title,
             message = dialogState.message,
             primaryActionButton = dialogState.buttonText,
+            secondaryActionButton = dialogState.secondaryButtonText,
             showCloseButton = dialogState.showCloseButton,
             onDismiss = {
                 appViewModel.hideMessage()
@@ -231,6 +232,10 @@ open class BaseActivity : ComponentActivity() {
             onPrimaryActionClicked = {
                 appViewModel.hideMessage()
                 dialogState.onPrimaryActionClicked?.invoke()
+            },
+            onSecondaryActionClicked = {
+                appViewModel.hideMessage()
+                dialogState.onSecondaryActionClicked?.invoke()
             }
         )
 

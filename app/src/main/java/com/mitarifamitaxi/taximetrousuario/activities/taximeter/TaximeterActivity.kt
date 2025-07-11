@@ -142,7 +142,8 @@ class TaximeterActivity : BaseActivity() {
         TaximeterScreen(
             appState = appState,
             taximeterState = taximeterState,
-            onFinish = { if (taximeterState.isTaximeterStarted) viewModel.showFinishConfirmation() else finish() },
+            onBack = { viewModel.showBackConfirmation() },
+            onFinish = { viewModel.showFinishConfirmation() },
             onMapLoaded = { viewModel.setIsMapLoaded(true) },
             onScreenshotReady = { bitmap ->
                 viewModel.mapScreenshotReady(bitmap) { intent ->
@@ -167,6 +168,7 @@ class TaximeterActivity : BaseActivity() {
     fun TaximeterScreen(
         appState: AppState,
         taximeterState: TaximeterState,
+        onBack: () -> Unit,
         onFinish: () -> Unit,
         onMapLoaded: () -> Unit,
         onScreenshotReady: (Bitmap) -> Unit,
@@ -228,7 +230,7 @@ class TaximeterActivity : BaseActivity() {
                 TopHeaderView(
                     title = stringResource(id = R.string.taximeter),
                     leadingIcon = Icons.Filled.ChevronLeft,
-                    onClickLeading = onFinish
+                    onClickLeading = onBack
                 )
 
                 Box(
@@ -508,6 +510,7 @@ class TaximeterActivity : BaseActivity() {
         TaximeterScreen(
             appState = sampleAppState,
             taximeterState = sampleTaximeterState,
+            onBack = {},
             onFinish = {},
             onMapLoaded = {},
             onScreenshotReady = {},
