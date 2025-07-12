@@ -216,13 +216,15 @@ class TripSummaryActivity : BaseActivity() {
 
                     Row {
                         Column {
-                            Text(
-                                text = tripSummaryFormatDate(uiState.tripData.startHour ?: ""),
-                                fontFamily = MontserratFamily,
-                                fontWeight = FontWeight.Companion.Medium,
-                                fontSize = 20.sp,
-                                color = colorResource(id = R.color.blue1),
-                            )
+                            uiState.tripData.startHour?.let {
+                                Text(
+                                    text = if (it.isNotEmpty()) tripSummaryFormatDate(it) else "-",
+                                    fontFamily = MontserratFamily,
+                                    fontWeight = FontWeight.Companion.Medium,
+                                    fontSize = 20.sp,
+                                    color = colorResource(id = R.color.blue1),
+                                )
+                            }
 
                             Text(
                                 text = "$ ${

@@ -71,13 +71,15 @@ fun TripItem(trip: Trip, onTripClicked: () -> Unit) {
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    Text(
-                        text = tripCardFormatDate(trip.startHour ?: ""),
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.gray1),
-                    )
+                    trip.startHour?.let {
+                        Text(
+                            text = if (it.isNotEmpty()) tripCardFormatDate(it) else "-",
+                            fontFamily = MontserratFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = colorResource(id = R.color.gray1),
+                        )
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
