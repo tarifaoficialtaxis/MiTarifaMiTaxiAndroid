@@ -117,9 +117,11 @@ class HomeActivity : BaseActivity() {
             appState = appState,
             onTaximeterClick = {
                 ensureLocationAndProceed {
-                    viewModel.getCityRates(userCity = appState.userData?.city ?: "", goNext = {
-                        startActivity(Intent(this, TaximeterActivity::class.java))
-                    })
+                    appState.userData?.city?.let {
+                        viewModel.getCityRates(userCity = it, goNext = {
+                            startActivity(Intent(this, TaximeterActivity::class.java))
+                        })
+                    }
                 }
             },
             onSosClick = {
