@@ -43,8 +43,7 @@ class MainActivity : BaseActivity() {
     override fun Content() {
         if (K.IS_DEV) {
             LaunchedEffect(Unit) {
-                delay(1000L)
-                showAdAndContinue()
+                validateNextScreen()
             }
             Box(
                 modifier = Modifier
@@ -53,20 +52,9 @@ class MainActivity : BaseActivity() {
             )
         } else {
             SplashScreen {
-                showAdAndContinue()
+                validateNextScreen()
             }
         }
-    }
-
-    private fun showAdAndContinue() {
-        val app = application as MyApplication
-        app.appOpenAdManager.showAdIfAvailable(
-            this,
-            object : AppOpenAdManager.OnShowAdCompleteListener {
-                override fun onShowAdComplete() {
-                    validateNextScreen()
-                }
-            })
     }
 
     private fun validateNextScreen() {

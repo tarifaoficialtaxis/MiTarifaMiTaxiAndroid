@@ -68,25 +68,14 @@ class AppOpenAdManager(myApplication: MyApplication) :
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        currentActivity?.let {
-            showAdIfAvailable(
-                it,
-                onShowAdCompleteListener = object : OnShowAdCompleteListener {
-                    override fun onShowAdComplete() {
-                        // Ad has been shown or failed to show, you can handle any post-ad logic here
-                    }
-                }
-            )
-        }
     }
 
-    fun showAdIfAvailable(activity: Activity, onShowAdCompleteListener: OnShowAdCompleteListener) {
+    fun showAdIfAvailable(activity: Activity) {
         if (isShowingAd) {
             return
         }
 
         if (!isAdAvailable()) {
-            onShowAdCompleteListener.onShowAdComplete()
             loadAd(activity)
             return
         }
@@ -95,14 +84,12 @@ class AppOpenAdManager(myApplication: MyApplication) :
             override fun onAdDismissedFullScreenContent() {
                 appOpenAd = null
                 isShowingAd = false
-                onShowAdCompleteListener.onShowAdComplete()
                 loadAd(activity)
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
                 appOpenAd = null
                 isShowingAd = false
-                onShowAdCompleteListener.onShowAdComplete()
                 loadAd(activity)
             }
 
@@ -111,10 +98,6 @@ class AppOpenAdManager(myApplication: MyApplication) :
             }
         }
         appOpenAd?.show(activity)
-    }
-
-    interface OnShowAdCompleteListener {
-        fun onShowAdComplete()
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
