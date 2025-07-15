@@ -395,9 +395,9 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
                 isMooving = speedKph > dragThreshold
                 if (isMooving) {
-                    _uiState.update { state ->
+                    /*_uiState.update { state ->
                         state.copy(dragTimeElapsed = 0)
-                    }
+                    }*/
                     val addedUnits = distanceMeters / (_uiState.value.rates.meters ?: 1)
                     val newUnits = _uiState.value.units + addedUnits
                     onUnitsChanged(newUnits)
