@@ -72,6 +72,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     sealed class NavigationEvent {
         object GoBack : NavigationEvent()
+        object StartForegroundService : NavigationEvent()
     }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -219,10 +220,10 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun startTaximeter() {
-        ContextCompat.startForegroundService(
-            appContext,
-            Intent(appContext, LocationUpdatesService::class.java)
-        )
+        viewModelScope.launch {
+            _navigationEvents.emit(NavigationEvent.StartForegroundService)
+        }
+
         _uiState.update {
             it.copy(
                 isTaximeterStarted = true,

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -71,6 +72,7 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.TaximeterInfoRow
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.WaitTimeBox
 import com.mitarifamitaxi.taximetrousuario.helpers.K
+import com.mitarifamitaxi.taximetrousuario.helpers.LocationUpdatesService
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
 import com.mitarifamitaxi.taximetrousuario.helpers.calculateBearing
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
@@ -98,6 +100,11 @@ class TaximeterActivity : BaseActivity() {
                     when (event) {
                         is TaximeterViewModel.NavigationEvent.GoBack -> {
                             finish()
+                        }
+                        is TaximeterViewModel.NavigationEvent.StartForegroundService -> {
+                            startForegroundService(
+                                Intent(this@TaximeterActivity, LocationUpdatesService::class.java)
+                            )
                         }
                     }
                 }
