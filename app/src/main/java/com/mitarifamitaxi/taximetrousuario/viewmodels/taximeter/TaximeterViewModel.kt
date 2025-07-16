@@ -58,6 +58,7 @@ import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.util.Locale
 import java.util.concurrent.Executor
+import kotlin.math.floor
 
 class TaximeterViewModel(context: Context, private val appViewModel: AppViewModel) :
     ViewModel() {
@@ -395,13 +396,19 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
                 val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
                 isMooving = speedKph > dragThreshold
+
                 if (isMooving) {
-                    /*_uiState.update { state ->
-                        state.copy(dragTimeElapsed = 0)
-                    }*/
-                    val addedUnits = distanceMeters / (_uiState.value.rates.meters ?: 1)
-                    val newUnits = _uiState.value.units + addedUnits
-                    onUnitsChanged(newUnits)
+                    var newDistanceAccumulator = _uiState.value.distanceAccumulatorForUnits + distanceMeters
+
+                    val metersPerUnit = _uiState.value.rates.meters ?: 100
+                    if (newDistanceAccumulator >= metersPerUnit) {
+                        val unitsToAdd = floor(newDistanceAccumulator / metersPerUnit)
+                        val newUnits = _uiState.value.units + unitsToAdd
+                        onUnitsChanged(newUnits)
+
+                        newDistanceAccumulator %= metersPerUnit
+                    }
+                    _uiState.update { it.copy(distanceAccumulatorForUnits = newDistanceAccumulator) }
                 }
 
                 validateSpeedExceeded()

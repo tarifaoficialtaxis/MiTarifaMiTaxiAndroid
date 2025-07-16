@@ -20,6 +20,7 @@ data class TaximeterState(
     val isTaximeterStarted: Boolean = false,
     val dragTimeElapsed: Int = 0,
     val currentSpeed: Int = 0,
+    val distanceAccumulatorForUnits: Double = 0.0,
     val fitCameraPosition: Boolean = false,
     val takeMapScreenshot: Boolean = false,
     val isMapLoaded: Boolean = false,
