@@ -447,6 +447,10 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun mapScreenshotReady(bitmap: Bitmap, onIntentReady: (Intent) -> Unit) {
+
+        setTakeMapScreenshot(false)
+        _uiState.update { it.copy(fitCameraPosition = false) }
+
         val maxDim = 2048
         val ratio = minOf(
             maxDim.toFloat() / bitmap.width,

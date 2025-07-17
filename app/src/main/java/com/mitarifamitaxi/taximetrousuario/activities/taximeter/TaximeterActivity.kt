@@ -216,14 +216,13 @@ class TaximeterActivity : BaseActivity() {
                     val bounds = boundsBuilder.build()
                     val padding = 120
                     cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngBounds(
+                        update = CameraUpdateFactory.newLatLngBounds(
                             bounds,
                             padding
                         )
                     )
+                    onSetTakeScreenshot(true)
                 }
-                delay(1000L)
-                onSetTakeScreenshot(true)
             }
         }
 
