@@ -276,13 +276,15 @@ class TripSummaryActivity : BaseActivity() {
 
                         Spacer(modifier = Modifier.weight(0.2f))
 
-                        Text(
-                            text = hourFormatDate(uiState.tripData.startHour ?: ""),
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Companion.Medium,
-                            fontSize = 14.sp,
-                            color = colorResource(id = R.color.gray1),
-                        )
+                        uiState.tripData.startHour?.let {
+                            Text(
+                                text = if (it.isNotEmpty()) hourFormatDate(it) else "-",
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Medium,
+                                fontSize = 14.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+                        }
                     }
 
                     Row(
@@ -309,13 +311,15 @@ class TripSummaryActivity : BaseActivity() {
 
                         Spacer(modifier = Modifier.weight(0.2f))
 
-                        Text(
-                            text = hourFormatDate(uiState.tripData.endHour ?: ""),
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Companion.Medium,
-                            fontSize = 14.sp,
-                            color = colorResource(id = R.color.gray1),
-                        )
+                        uiState.tripData.endHour?.let {
+                            Text(
+                                text = if (it.isNotEmpty()) hourFormatDate(it) else "-",
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Companion.Medium,
+                                fontSize = 14.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+                        }
                     }
 
                     Box(
