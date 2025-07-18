@@ -404,11 +404,9 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     val metersPerUnit = _uiState.value.rates.meters ?: 100
                     if (newDistanceAccumulator >= metersPerUnit) {
 
-                        val timeoutThreshold = 20
-                        if (_uiState.value.dragTimeElapsed < timeoutThreshold) {
+                        if (_uiState.value.rates.accumulatesTime == false) {
                             _uiState.update { state -> state.copy(dragTimeElapsed = 0) }
                         }
-
                         val unitsToAdd = floor(newDistanceAccumulator / metersPerUnit)
                         //Log.d("TaximeterVM", "unitsToAdd $unitsToAdd ")
 

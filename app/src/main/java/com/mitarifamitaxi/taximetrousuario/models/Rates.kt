@@ -13,6 +13,7 @@ data class Rates(
     val speedLimit: Int? = null,
     val speedUnits: String? = null,
     val recharges: List<Recharge> = emptyList(),
+    val accumulatesTime: Boolean? = null,
 )
 
 data class Recharge(
