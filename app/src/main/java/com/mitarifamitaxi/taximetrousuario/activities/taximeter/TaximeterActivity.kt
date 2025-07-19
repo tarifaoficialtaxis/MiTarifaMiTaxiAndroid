@@ -1,6 +1,7 @@
 package com.mitarifamitaxi.taximetrousuario.activities.taximeter
 
 import SoundButton
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -46,7 +47,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -82,10 +82,7 @@ import com.mitarifamitaxi.taximetrousuario.states.AppState
 import com.mitarifamitaxi.taximetrousuario.states.TaximeterState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.taximeter.TaximeterViewModel
 import com.mitarifamitaxi.taximetrousuario.viewmodels.taximeter.TaximeterViewModelFactory
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Timer
-import kotlin.concurrent.schedule
 
 class TaximeterActivity : BaseActivity() {
 
@@ -93,16 +90,22 @@ class TaximeterActivity : BaseActivity() {
         TaximeterViewModelFactory(this, appViewModel)
     }
 
+    @SuppressLint("ImplicitSamInstance")
     private fun observeViewModelEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.navigationEvents.collect { event ->
                     when (event) {
-                        is TaximeterViewModel.NavigationEvent.GoBack -> {
+                        is TaximeterViewModel.TaximeterViewModelEvent.GoBack -> {
                             finish()
                         }
-                        is TaximeterViewModel.NavigationEvent.StartForegroundService -> {
+                        is TaximeterViewModel.TaximeterViewModelEvent.StartForegroundService -> {
                             startForegroundService(
+                                Intent(this@TaximeterActivity, LocationUpdatesService::class.java)
+                            )
+                        }
+                        is TaximeterViewModel.TaximeterViewModelEvent.StopForegroundService -> {
+                            stopService(
                                 Intent(this@TaximeterActivity, LocationUpdatesService::class.java)
                             )
                         }
@@ -117,12 +120,7 @@ class TaximeterActivity : BaseActivity() {
         observeViewModelEvents()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        viewModel.setInitialData()
-
-        Timer().schedule(500) {
-            viewModel.validateLocationPermission()
-            this.cancel()
-        }
+        viewModel.validateLocationPermission()
     }
 
     override fun onResume() {
@@ -157,11 +155,7 @@ class TaximeterActivity : BaseActivity() {
             onSetTakeScreenshot = { viewModel.setTakeMapScreenshot(it) }
         )
         BackHandler(enabled = true) {
-            if (taximeterState.isTaximeterStarted) {
-                viewModel.showFinishConfirmation()
-            } else {
-                finish()
-            }
+            viewModel.showBackConfirmation()
         }
     }
 
@@ -183,16 +177,29 @@ class TaximeterActivity : BaseActivity() {
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
                 LatLng(
-                    appState.userLocation?.latitude ?: 4.60971,
-                    appState.userLocation?.longitude ?: -74.08175
+                    taximeterState.currentLocation.latitude ?: 0.0,
+                    taximeterState.currentLocation.longitude ?: 0.0
                 ), 15f
             )
         }
 
-        LaunchedEffect(taximeterState.currentPosition, taximeterState.routeCoordinates) {
+        LaunchedEffect(taximeterState.startLocation) {
             val targetLatLng = LatLng(
-                taximeterState.currentPosition.latitude ?: 0.0,
-                taximeterState.currentPosition.longitude ?: 0.0
+                taximeterState.startLocation.latitude ?: 0.0,
+                taximeterState.startLocation.longitude ?: 0.0
+            )
+
+            val camPos = CameraPosition.builder(cameraPositionState.position)
+                .target(targetLatLng)
+                .zoom(15f)
+                .build()
+            cameraPositionState.animate(update = CameraUpdateFactory.newCameraPosition(camPos))
+        }
+
+        LaunchedEffect(taximeterState.currentLocation, taximeterState.routeCoordinates) {
+            val targetLatLng = LatLng(
+                taximeterState.currentLocation.latitude ?: 0.0,
+                taximeterState.currentLocation.longitude ?: 0.0
             )
 
             if (taximeterState.routeCoordinates.size > 1) {
@@ -207,6 +214,7 @@ class TaximeterActivity : BaseActivity() {
                 cameraPositionState.animate(update = CameraUpdateFactory.newCameraPosition(camPos))
             }
         }
+
 
         LaunchedEffect(taximeterState.fitCameraPosition) {
             if (taximeterState.fitCameraPosition) {
@@ -253,22 +261,21 @@ class TaximeterActivity : BaseActivity() {
                             )
                         }
 
-                        if (taximeterState.startAddress.isNotEmpty()) {
-                            CustomSizedMarker(
-                                position = LatLng(
-                                    taximeterState.startLocation.latitude ?: 0.0,
-                                    taximeterState.startLocation.longitude ?: 0.0
-                                ),
-                                drawableRes = R.drawable.flag_start,
-                                width = 60,
-                                height = 60
-                            )
-                        }
+                        CustomSizedMarker(
+                            position = LatLng(
+                                taximeterState.startLocation.latitude ?: 0.0,
+                                taximeterState.startLocation.longitude ?: 0.0
+                            ),
+                            drawableRes = R.drawable.flag_start,
+                            width = 60,
+                            height = 60
+                        )
+
 
                         CustomSizedMarker(
                             position = LatLng(
-                                taximeterState.currentPosition.latitude ?: 0.0,
-                                taximeterState.currentPosition.longitude ?: 0.0
+                                taximeterState.currentLocation.latitude ?: 0.0,
+                                taximeterState.currentLocation.longitude ?: 0.0
                             ),
                             drawableRes = R.drawable.taxi_marker,
                             width = 27,

@@ -52,10 +52,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-sealed class UserDataUpdateEvent {
-    object FirebaseUserUpdated : UserDataUpdateEvent()
-}
-
 class AppViewModel(context: Context) : ViewModel() {
 
     private val appContext = context.applicationContext
@@ -66,9 +62,6 @@ class AppViewModel(context: Context) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppState())
     val uiState = _uiState.asStateFlow()
-
-    private val _userDataUpdateEvents = MutableSharedFlow<UserDataUpdateEvent>()
-    val userDataUpdateEvents = _userDataUpdateEvents.asSharedFlow()
 
     init {
         loadUserData()
@@ -265,10 +258,6 @@ class AppViewModel(context: Context) : ViewModel() {
 
                 if (!locationChanged) {
                     _uiState.update { it.copy(isGettingLocation = false) }
-
-                    viewModelScope.launch {
-                        _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
-                    }
                     return@addOnSuccessListener
                 }
 
@@ -385,7 +374,6 @@ class AppViewModel(context: Context) : ViewModel() {
                     .set(data, SetOptions.merge())
                     .await()
                 Log.d("HomeViewModel", "User data updated in Firestore")
-                _userDataUpdateEvents.emit(UserDataUpdateEvent.FirebaseUserUpdated)
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Failed to update user data in Firestore: ${e.message}")
                 withContext(Dispatchers.Main) {

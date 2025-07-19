@@ -13,7 +13,7 @@ data class TaximeterState(
     val formattedTime: String = "00:00",
     val startAddress: String = "",
     val endAddress: String = "",
-    val currentPosition: UserLocation = UserLocation(),
+    val currentLocation: UserLocation = UserLocation(),
     val startLocation: UserLocation = UserLocation(),
     val endLocation: UserLocation = UserLocation(),
     val routeCoordinates: List<LatLng> = emptyList(),

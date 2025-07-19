@@ -68,12 +68,13 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     private val _uiState = MutableStateFlow(TaximeterState())
     val uiState = _uiState.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
+    private val _navigationEvents = MutableSharedFlow<TaximeterViewModelEvent>()
     val navigationEvents = _navigationEvents.asSharedFlow()
 
-    sealed class NavigationEvent {
-        object GoBack : NavigationEvent()
-        object StartForegroundService : NavigationEvent()
+    sealed class TaximeterViewModelEvent {
+        object GoBack : TaximeterViewModelEvent()
+        object StartForegroundService : TaximeterViewModelEvent()
+        object StopForegroundService : TaximeterViewModelEvent()
     }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -121,21 +122,22 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    fun setInitialData() {
-        val userLocation = appViewModel.uiState.value.userLocation ?: return
+    private fun getAddressFromStartLocation(latitude: Double, longitude: Double) {
         getAddressFromCoordinates(
-            latitude = userLocation.latitude ?: 0.0,
-            longitude = userLocation.longitude ?: 0.0,
+            latitude = latitude,
+            longitude = longitude,
             callbackSuccess = { address ->
-                appViewModel.setLoading(false)
+                Log.d("TaximeterVM", "Initial address: $address")
                 _uiState.update {
                     it.copy(
                         startAddress = address,
-                        startLocation = UserLocation(userLocation.latitude, userLocation.longitude)
                     )
                 }
+                appViewModel.setLoading(false)
+                startTaximeter()
             },
             callbackError = {
+                appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
@@ -180,7 +182,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
 
     @SuppressLint("MissingPermission")
-    fun getCurrentLocation() {
+    private fun getCurrentLocation() {
         appViewModel.setLoading(true)
         val cancellationTokenSource = CancellationTokenSource()
         val task: Task<Location> = fusedLocationClient.getCurrentLocation(
@@ -190,15 +192,22 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
         task.addOnSuccessListener(executor) { location ->
             if (location != null) {
+
+                val userLocation = UserLocation(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+                appViewModel.updateUserLocation(userLocation)
+
                 _uiState.update {
                     it.copy(
-                        currentPosition = UserLocation(
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        )
+                        startLocation = userLocation
                     )
                 }
-                startTaximeter()
+                getAddressFromStartLocation(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
             } else {
                 appViewModel.setLoading(false)
                 FirebaseCrashlytics.getInstance()
@@ -222,7 +231,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     fun startTaximeter() {
         viewModelScope.launch {
-            _navigationEvents.emit(NavigationEvent.StartForegroundService)
+            _navigationEvents.emit(TaximeterViewModelEvent.StartForegroundService)
         }
 
         _uiState.update {
@@ -237,7 +246,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         startTime = Instant.now().toString()
         startTimer()
         startWatchLocation()
-        appViewModel.setLoading(false)
     }
 
     fun showFinishConfirmation() {
@@ -260,7 +268,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             onButtonClicked = { stopTaximeter() },
             onSecondaryButtonClicked = {
                 viewModelScope.launch {
-                    _navigationEvents.emit(NavigationEvent.GoBack)
+                    _navigationEvents.emit(TaximeterViewModelEvent.GoBack)
                 }
             }
         )
@@ -268,12 +276,15 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     @SuppressLint("ImplicitSamInstance")
     fun stopTaximeter() {
-        appContext.stopService(Intent(appContext, LocationUpdatesService::class.java))
+
+        viewModelScope.launch {
+            _navigationEvents.emit(TaximeterViewModelEvent.StopForegroundService)
+        }
 
         _uiState.update { it.copy(currentSpeed = 0) }
         appViewModel.setLoading(true)
 
-        val currentPos = _uiState.value.currentPosition
+        val currentPos = _uiState.value.currentLocation
         getAddressFromCoordinates(
             latitude = currentPos.latitude ?: 0.0,
             longitude = currentPos.longitude ?: 0.0,
@@ -384,7 +395,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 _uiState.update {
                     it.copy(
                         currentSpeed = speedKph,
-                        currentPosition = userLocation,
+                        currentLocation = userLocation,
                         routeCoordinates = newRoute,
                         distanceMade = it.distanceMade + distanceMeters.toDouble()
                     )
@@ -404,9 +415,11 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     val metersPerUnit = _uiState.value.rates.meters ?: 100
                     if (newDistanceAccumulator >= metersPerUnit) {
 
-                        if (_uiState.value.rates.accumulatesTime == false) {
+                        val accumulatesTime = _uiState.value.rates.accumulatesTime
+                        if (accumulatesTime == null || !accumulatesTime) {
                             _uiState.update { state -> state.copy(dragTimeElapsed = 0) }
                         }
+
                         val unitsToAdd = floor(newDistanceAccumulator / metersPerUnit)
                         //Log.d("TaximeterVM", "unitsToAdd $unitsToAdd ")
 
@@ -470,16 +483,35 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         else
             state.units
 
+
+        val totalUnits = baseUnits + state.rechargeUnits
+
+        if (state.startAddress.isBlank()
+            || state.endAddress.isBlank()
+            || (state.startLocation.latitude == 0.0 && state.startLocation.longitude == 0.0)
+            || (state.currentLocation.latitude == 0.0 && state.currentLocation.longitude == 0.0)
+            || startTime.isEmpty()
+            || endTime.isEmpty()
+            || totalUnits == 0.0
+        ) {
+            appViewModel.showMessage(
+                type = DialogType.ERROR,
+                title = appContext.getString(R.string.error_on_save_trip),
+                message = appContext.getString(R.string.general_error)
+            )
+            return
+        }
+
         val tripObj = Trip(
             startAddress = state.startAddress,
             startCoords = state.startLocation,
             endAddress = state.endAddress,
-            endCoords = state.currentPosition,
+            endCoords = state.currentLocation,
             startHour = startTime,
             endHour = endTime,
             showUnits = state.rates.showUnits,
             unitPrice = state.rates.unitPrice,
-            units = baseUnits + state.rechargeUnits,
+            units = totalUnits,
             baseUnits = baseUnits,
             rechargeUnits = state.rechargeUnits,
             total = (baseUnits + state.rechargeUnits) * (rates.unitPrice ?: 0.0),
