@@ -151,7 +151,9 @@ class TaximeterActivity : BaseActivity() {
                     )
                 }
             },
-            onSetTakeScreenshot = { viewModel.setTakeMapScreenshot(it) }
+            onSetTakeScreenshot = {
+                viewModel.setTakeMapScreenshot(it)
+            }
         )
         BackHandler(enabled = true) {
             viewModel.showBackConfirmation()
@@ -213,7 +215,6 @@ class TaximeterActivity : BaseActivity() {
             }
         }
 
-
         LaunchedEffect(taximeterState.fitCameraPosition) {
             if (taximeterState.fitCameraPosition) {
                 if (taximeterState.routeCoordinates.size > 1) {
@@ -227,6 +228,8 @@ class TaximeterActivity : BaseActivity() {
                             padding
                         )
                     )
+                    onSetTakeScreenshot(true)
+                } else {
                     onSetTakeScreenshot(true)
                 }
             }

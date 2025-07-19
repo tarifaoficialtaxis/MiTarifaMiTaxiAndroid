@@ -234,6 +234,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
                 _uiState.update {
                     it.copy(
+                        currentLocation = userLocation,
                         startLocation = userLocation
                     )
                 }
@@ -546,8 +547,8 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         ) {
             appViewModel.showMessage(
                 type = DialogType.ERROR,
-                title = appContext.getString(R.string.error_on_save_trip),
-                message = appContext.getString(R.string.general_error)
+                title = appContext.getString(R.string.attention),
+                message = appContext.getString(R.string.error_on_save_trip)
             )
             return
         }
