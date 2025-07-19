@@ -23,7 +23,6 @@ data class TaximeterState(
     val distanceAccumulatorForUnits: Double = 0.0,
     val fitCameraPosition: Boolean = false,
     val takeMapScreenshot: Boolean = false,
-    val isMapLoaded: Boolean = false,
     val rates: Rates = Rates(),
     val isRechargesOpen: Boolean = false,
     val rechargesSelected: List<Recharge> = emptyList(),

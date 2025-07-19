@@ -144,7 +144,6 @@ class TaximeterActivity : BaseActivity() {
             taximeterState = taximeterState,
             onBack = { viewModel.showBackConfirmation() },
             onFinish = { viewModel.showFinishConfirmation() },
-            onMapLoaded = { viewModel.setIsMapLoaded(true) },
             onScreenshotReady = { bitmap ->
                 viewModel.mapScreenshotReady(bitmap) { intent ->
                     startActivity(
@@ -166,7 +165,6 @@ class TaximeterActivity : BaseActivity() {
         taximeterState: TaximeterState,
         onBack: () -> Unit,
         onFinish: () -> Unit,
-        onMapLoaded: () -> Unit,
         onScreenshotReady: (Bitmap) -> Unit,
         onSetTakeScreenshot: (Boolean) -> Unit
     ) {
@@ -250,8 +248,7 @@ class TaximeterActivity : BaseActivity() {
                     GoogleMap(
                         cameraPositionState = cameraPositionState,
                         uiSettings = MapUiSettings(zoomControlsEnabled = false),
-                        modifier = Modifier.fillMaxSize(),
-                        onMapLoaded = onMapLoaded
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         if (taximeterState.routeCoordinates.isNotEmpty()) {
                             Polyline(
@@ -282,7 +279,7 @@ class TaximeterActivity : BaseActivity() {
                             height = 57
                         )
 
-                        if (taximeterState.isMapLoaded && taximeterState.takeMapScreenshot) {
+                        if (taximeterState.takeMapScreenshot) {
                             MapEffect { map ->
                                 map.snapshot { snapshot ->
                                     if (snapshot != null) {
@@ -520,7 +517,6 @@ class TaximeterActivity : BaseActivity() {
             taximeterState = sampleTaximeterState,
             onBack = {},
             onFinish = {},
-            onMapLoaded = {},
             onScreenshotReady = {},
             onSetTakeScreenshot = {}
         )

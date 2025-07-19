@@ -592,10 +592,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         _uiState.update { it.copy(takeMapScreenshot = value) }
     }
 
-    fun setIsMapLoaded(value: Boolean) {
-        _uiState.update { it.copy(isMapLoaded = value) }
-    }
-
     fun onChangeIsAddRechargesOpen(value: Boolean) {
         _uiState.update { it.copy(isRechargesOpen = value) }
     }
