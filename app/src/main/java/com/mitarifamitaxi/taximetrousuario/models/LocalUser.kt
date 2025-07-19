@@ -18,7 +18,13 @@ data class LocalUser(
     val supportNumber: String? = null,
     val lastActive: Date? = null,
     var authProvider: AuthProvider? = null,
-    var profilePicture: String? = null
+    var profilePicture: String? = null,
+
+    var appVersion: String? = null,
+    var deviceBrand: String? = null,
+    var deviceModel: String? = null,
+    var operatingSystem: String? = null,
+    var operatingSystemVersion: String? = null,
 )
 
 enum class AuthProvider {

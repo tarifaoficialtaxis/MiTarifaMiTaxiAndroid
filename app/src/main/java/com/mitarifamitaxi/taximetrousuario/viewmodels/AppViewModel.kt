@@ -355,7 +355,12 @@ class AppViewModel(context: Context) : ViewModel() {
             countryCode = countryCode,
             countryCodeWhatsapp = countryCodeWhatsapp,
             countryCurrency = countryCurrency,
-            lastActive = Date()
+            lastActive = Date(),
+            appVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            deviceBrand = android.os.Build.BRAND,
+            deviceModel = android.os.Build.MODEL,
+            operatingSystem = "Android",
+            operatingSystemVersion = android.os.Build.VERSION.RELEASE
         )
 
         _uiState.update {
