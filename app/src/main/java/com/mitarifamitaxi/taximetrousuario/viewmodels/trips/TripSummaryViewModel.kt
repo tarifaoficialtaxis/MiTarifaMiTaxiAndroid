@@ -2,6 +2,7 @@ package com.mitarifamitaxi.taximetrousuario.viewmodels.trips
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -42,6 +43,10 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
 
     fun setTrip(trip: Trip) {
         _uiState.update { it.copy(tripData = trip) }
+    }
+
+    fun setRouteImageLocal(image: Bitmap) {
+        _uiState.update { it.copy(routeImageLocal = image) }
     }
 
     fun onShareNumberChange(number: String) {

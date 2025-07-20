@@ -1,6 +1,7 @@
 package com.mitarifamitaxi.taximetrousuario.activities.trips
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
@@ -21,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -97,6 +97,11 @@ class TripSummaryActivity : BaseActivity() {
         val tripJson = intent.getStringExtra("trip_data")
         tripJson?.let {
             viewModel.setTrip(Gson().fromJson(it, Trip::class.java))
+        }
+
+        val imageBytes = intent.getByteArrayExtra("trip_image_bytes")
+        imageBytes?.let {
+            viewModel.setRouteImageLocal(BitmapFactory.decodeByteArray(it, 0, it.size))
         }
     }
 
@@ -196,7 +201,7 @@ class TripSummaryActivity : BaseActivity() {
                             .fillMaxWidth()
                     )
                 } else {
-                    uiState.tripData.routeImageLocal?.let {
+                    uiState.routeImageLocal?.let {
                         Image(
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,

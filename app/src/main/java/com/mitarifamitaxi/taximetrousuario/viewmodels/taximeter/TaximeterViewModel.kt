@@ -514,19 +514,14 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         setTakeMapScreenshot(false)
         _uiState.update { it.copy(fitCameraPosition = false) }
 
-        val maxDim = 2048
+        val maxDim = 1280
         val ratio = minOf(
             maxDim.toFloat() / bitmap.width,
             maxDim.toFloat() / bitmap.height
         ).coerceAtMost(1f)
         val newWidth = (bitmap.width * ratio).toInt()
         val newHeight = (bitmap.height * ratio).toInt()
-        val scaledBitmap = bitmap.scale(newWidth, newHeight)
-        val outputStream = ByteArrayOutputStream()
-        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        val compressedBytes = outputStream.toByteArray()
-        val compressedBitmap =
-            BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
+        val scaledBitmap = bitmap.scale(newWidth, newHeight, true)
 
         val state = _uiState.value
         val rates = state.rates
@@ -570,30 +565,32 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             distance = state.distanceMade,
             recharges = state.rechargesSelected,
             currency = appViewModel.uiState.value.userData?.countryCurrency,
-            routeImageLocal = compressedBitmap
         )
 
-        saveTripData(tripData = tripObj) {
+        saveTripData(tripData = tripObj, image = scaledBitmap) {
+            val outputStream = ByteArrayOutputStream()
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            val compressedBytes = outputStream.toByteArray()
+
             val tripJson = Gson().toJson(tripObj)
             val intent = Intent(appContext, TripSummaryActivity::class.java)
             intent.putExtra("trip_data", tripJson)
+            intent.putExtra("trip_image_bytes", compressedBytes)
             onIntentReady(intent)
         }
     }
 
-    fun saveTripData(tripData: Trip, onSuccess: () -> Unit) {
+    fun saveTripData(tripData: Trip, image: Bitmap, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
                 appViewModel.setLoading(true)
                 var imageUrl: String? = null
 
                 if (_uiState.value.routeCoordinates.size > 2) {
-                    imageUrl = tripData.routeImageLocal?.let {
-                        FirebaseStorageUtils.uploadImage(
-                            "trips",
-                            it
-                        )
-                    }
+                    imageUrl = FirebaseStorageUtils.uploadImage(
+                        "trips",
+                        image
+                    )
                 }
 
                 val tripDataReq = mutableMapOf<String, Any?>().apply {
