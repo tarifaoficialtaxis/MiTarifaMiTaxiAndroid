@@ -52,14 +52,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
 import com.google.gson.Gson
-import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
-import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
-import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
@@ -121,11 +118,11 @@ class TripSummaryActivity : BaseActivity() {
     }
 
     private fun finishAction() {
-        interstitialAdManager.showAd(this) {
-            val intent = Intent(this, HomeActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            startActivity(intent)
-        }
+        //interstitialAdManager.showAd(this) {
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        //}
     }
 
     @Composable
@@ -515,7 +512,7 @@ class TripSummaryActivity : BaseActivity() {
 
             }
 
-            BottomBannerAd(adId = BuildConfig.TRIP_SUMMARY_AD_UNIT_ID)
+//            BottomBannerAd(adId = BuildConfig.TRIP_SUMMARY_AD_UNIT_ID)
 
         }
 

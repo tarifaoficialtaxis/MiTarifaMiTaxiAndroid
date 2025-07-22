@@ -103,7 +103,7 @@ class MyTripsActivity : BaseActivity() {
                 }
             }
 
-            BottomBannerAd(adId = BuildConfig.MY_TRIPS_AD_UNIT_ID)
+//            BottomBannerAd(adId = BuildConfig.MY_TRIPS_AD_UNIT_ID)
         }
     }
 

@@ -153,7 +153,7 @@ class PqrsActivity : BaseActivity() {
 
             }
 
-            BottomBannerAd(adId = BuildConfig.PQRS_AD_UNIT_ID)
+//            BottomBannerAd(adId = BuildConfig.PQRS_AD_UNIT_ID)
 
         }
 

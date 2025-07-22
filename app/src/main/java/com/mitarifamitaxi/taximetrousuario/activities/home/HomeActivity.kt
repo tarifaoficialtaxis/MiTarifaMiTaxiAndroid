@@ -295,9 +295,9 @@ class HomeActivity : BaseActivity() {
                 }
             }
 
-            BottomBannerAd(
-                adId = BuildConfig.HOME_AD_UNIT_ID
-            )
+//            BottomBannerAd(
+//                adId = BuildConfig.HOME_AD_UNIT_ID
+//            )
         }
     }
 

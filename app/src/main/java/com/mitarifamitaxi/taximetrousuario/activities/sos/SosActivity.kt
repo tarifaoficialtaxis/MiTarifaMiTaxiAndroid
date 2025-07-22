@@ -140,9 +140,9 @@ class SosActivity : BaseActivity() {
 
             }
 
-            BottomBannerAd(
-                adId = BuildConfig.SOS_AD_UNIT_ID
-            )
+//            BottomBannerAd(
+//                adId = BuildConfig.SOS_AD_UNIT_ID
+//            )
 
         }
 
