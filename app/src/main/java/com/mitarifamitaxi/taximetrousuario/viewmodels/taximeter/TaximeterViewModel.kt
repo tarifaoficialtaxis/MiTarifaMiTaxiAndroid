@@ -35,7 +35,6 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
-import com.mitarifamitaxi.taximetrousuario.helpers.LocationUpdatesService
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
@@ -83,7 +82,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     private var previousLocation: Location? = null
     private var startTime by mutableStateOf("")
     private var endTime by mutableStateOf("")
-    private var isMooving by mutableStateOf(false)
+    private var isMoving by mutableStateOf(false)
     private var timeElapsed by mutableIntStateOf(0)
 
     private val mediaPlayer: MediaPlayer by lazy {
@@ -297,7 +296,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 }
                 _uiState.update { it.copy(formattedTime = formatted) }
 
-                if (!isMooving && _uiState.value.isTaximeterStarted) {
+                if (!isMoving && _uiState.value.isTaximeterStarted) {
                     val newDragTime = _uiState.value.dragTimeElapsed + 1
                     val waitTime = _uiState.value.rates.waitTime ?: 24
 
@@ -361,9 +360,9 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 //Log.d("TaximeterVM", "speedKph=$speedKph km/h over $distanceMeters m in $timeDeltaSec s")
 
                 val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
-                isMooving = speedKph > dragThreshold
+                isMoving = speedKph > dragThreshold
 
-                if (isMooving) {
+                if (isMoving) {
                     var newDistanceAccumulator =
                         _uiState.value.distanceAccumulatorForUnits + distanceMeters
 
@@ -421,7 +420,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
 
     fun validateSpeedExceeded() {
-        val speedExceeded = _uiState.value.currentSpeed > (uiState.value.rates.speedLimit ?: 0)
+        val speedExceeded = _uiState.value.currentSpeed > ((uiState.value.rates.speedLimit ?: 0) - 3)
         if (speedExceeded) {
             if (!isPlayerPlayingSafe()) mediaPlayer.start()
         } else {

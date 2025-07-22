@@ -31,6 +31,7 @@ import android.graphics.BlurMaskFilter
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.unit.TextUnit
 
 @Composable
 fun TopHeaderView(
@@ -38,6 +39,8 @@ fun TopHeaderView(
     leadingColor: Color = colorResource(id = R.color.main),
     onClickLeading: () -> Unit = {},
     title: String,
+    titleFontSize: TextUnit = 20.sp,
+    upperCaseTitle: Boolean = true,
     trailingIcon: ImageVector? = null,
     trailingColor: Color = colorResource(id = R.color.main),
     onClickTrailing: () -> Unit = {},
@@ -103,9 +106,9 @@ fun TopHeaderView(
 
 
             Text(
-                text = title.uppercase(),
+                text = if (upperCaseTitle) title.uppercase() else title,
                 color = colorResource(id = R.color.black),
-                fontSize = 20.sp,
+                fontSize = titleFontSize,
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,

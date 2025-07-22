@@ -238,7 +238,9 @@ class TaximeterActivity : BaseActivity() {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 TopHeaderView(
-                    title = stringResource(id = R.string.taximeter),
+                    title = stringResource(id = R.string.mitarifamitaxi),
+                    upperCaseTitle = false,
+                    titleFontSize = 28.sp,
                     leadingIcon = Icons.Filled.ChevronLeft,
                     onClickLeading = onBack
                 )
@@ -278,8 +280,8 @@ class TaximeterActivity : BaseActivity() {
                                 taximeterState.currentLocation.longitude ?: 0.0
                             ),
                             drawableRes = R.drawable.taxi_marker,
-                            width = 27,
-                            height = 57
+                            width = 49,
+                            height = 114
                         )
 
                         if (taximeterState.takeMapScreenshot) {
