@@ -77,7 +77,7 @@ fun CustomContactActionDialog(
                     if (contactCatalog.line1 != null) {
                         CustomCardCallAction(
                             icon = Icons.Default.Call,
-                            text = stringResource(id = R.string.emergency_line),
+                            text = contactCatalog.line1Title ?: stringResource(id = R.string.emergency_line),
                             number = contactCatalog.line1,
                             onClick = { onCallAction(contactCatalog.line1) },
                         )
