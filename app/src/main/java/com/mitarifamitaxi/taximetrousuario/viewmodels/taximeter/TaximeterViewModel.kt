@@ -8,21 +8,16 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
 import android.media.MediaPlayer
-import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
@@ -35,6 +30,7 @@ import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
 import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
 import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
+import com.mitarifamitaxi.taximetrousuario.helpers.LocationUpdatesService
 import com.mitarifamitaxi.taximetrousuario.helpers.getAddressFromCoordinates
 import com.mitarifamitaxi.taximetrousuario.helpers.putIfNotNull
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
@@ -49,6 +45,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -76,7 +74,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    private var locationCallback: LocationCallback? = null
     private val executor: Executor = ContextCompat.getMainExecutor(context)
 
     private var previousLocation: Location? = null
@@ -102,7 +99,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
     override fun onCleared() {
         super.onCleared()
-        stopWatchLocation()
         if (mediaPlayer.isPlaying) {
             mediaPlayer.stop()
         }
@@ -120,7 +116,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    // Update methods
     private fun onUnitsChanged(newValue: Double) {
         val currentRates = _uiState.value.rates
         val rechargeUnits = _uiState.value.rechargeUnits
@@ -175,7 +170,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         _uiState.update { it.copy(isSoundEnabled = !it.isSoundEnabled) }
     }
 
-    // Location methods
     private fun getAddressFromStartLocation(latitude: Double, longitude: Double) {
         getAddressFromCoordinates(
             latitude = latitude,
@@ -279,7 +273,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
         startTime = Instant.now().toString()
         startTimer()
-        startWatchLocation()
+        observeLocationUpdates()
     }
 
     private fun startTimer() {
@@ -314,21 +308,15 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun startWatchLocation() {
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
-            .setMinUpdateIntervalMillis(2000L)
-            .build()
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                super.onLocationResult(locationResult)
-                val location = locationResult.lastLocation ?: return
+    private fun observeLocationUpdates() {
+        LocationUpdatesService.locationUpdates
+            .onEach { location ->
+                if (!_uiState.value.isTaximeterStarted) return@onEach
 
                 if (previousLocation == null) {
                     previousLocation = location
                     _uiState.update { it.copy(currentSpeed = 0) }
-                    return
+                    return@onEach
                 }
 
                 val timeDeltaSec = (location.time - previousLocation!!.time) / 1000f
@@ -357,8 +345,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
 
                 appViewModel.updateUserLocation(userLocation)
 
-                //Log.d("TaximeterVM", "speedKph=$speedKph km/h over $distanceMeters m in $timeDeltaSec s")
-
                 val dragThreshold = _uiState.value.rates.dragSpeed ?: 0.0
                 isMoving = speedKph > dragThreshold
 
@@ -375,8 +361,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                         }
 
                         val unitsToAdd = floor(newDistanceAccumulator / metersPerUnit)
-                        //Log.d("TaximeterVM", "unitsToAdd $unitsToAdd ")
-
                         val newUnits = _uiState.value.units + unitsToAdd
                         onUnitsChanged(newUnits)
 
@@ -384,34 +368,12 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                     }
                     _uiState.update { it.copy(distanceAccumulatorForUnits = newDistanceAccumulator) }
                 }
-
                 validateSpeedExceeded()
-
                 previousLocation = location
             }
-        }
-
-        if (ActivityCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // No tenemos permisos: simplemente salimos
-            return
-        }
-
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback!!,
-            Looper.getMainLooper()
-        )
+            .launchIn(viewModelScope)
     }
 
-    // Speed methods
     private fun isPlayerPlayingSafe(): Boolean =
         try {
             mediaPlayer.isPlaying
@@ -427,8 +389,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             if (isPlayerPlayingSafe()) mediaPlayer.pause()
         }
     }
-
-    // Finish logic
 
     fun showBackConfirmation() {
         appViewModel.showMessage(
@@ -488,13 +448,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
-    private fun stopWatchLocation() {
-        locationCallback?.let {
-            fusedLocationClient.removeLocationUpdates(it)
-            locationCallback = null
-        }
-    }
-
     fun finishTaximeter(endAddress: String) {
         _uiState.update {
             it.copy(
@@ -503,7 +456,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
                 fitCameraPosition = true
             )
         }
-        stopWatchLocation()
         endTime = Instant.now().toString()
     }
 

@@ -106,6 +106,12 @@ class HomeActivity : BaseActivity() {
         }
     }
 
+    private fun ensureNotificationsAndProceed(action: () -> Unit) {
+        appViewModel.requestNotificationPermission(this) {
+            action()
+        }
+    }
+
     @Composable
     override fun Content() {
 
@@ -117,10 +123,12 @@ class HomeActivity : BaseActivity() {
             appState = appState,
             onTaximeterClick = {
                 ensureLocationAndProceed {
-                    appState.userData?.city?.let {
-                        viewModel.getCityRates(userCity = it, goNext = {
-                            startActivity(Intent(this, TaximeterActivity::class.java))
-                        })
+                    ensureNotificationsAndProceed {
+                        appState.userData?.city?.let {
+                            viewModel.getCityRates(userCity = it, goNext = {
+                                startActivity(Intent(this, TaximeterActivity::class.java))
+                            })
+                        }
                     }
                 }
             },

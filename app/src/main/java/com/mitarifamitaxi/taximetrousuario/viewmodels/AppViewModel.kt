@@ -21,6 +21,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationCallback
@@ -55,6 +56,8 @@ import kotlinx.coroutines.flow.update
 class AppViewModel(context: Context) : ViewModel() {
 
     private val appContext = context.applicationContext
+
+    private var onNotificationPermissionGranted: (() -> Unit)? = null
 
     private lateinit var locationCallback: LocationCallback
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -235,6 +238,28 @@ class AppViewModel(context: Context) : ViewModel() {
         } else {
             getCurrentLocation()
         }
+    }
+
+    fun requestNotificationPermission(activity: BaseActivity, onGranted: () -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    appContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                onGranted()
+            } else {
+                onNotificationPermissionGranted = onGranted
+                activity.notificationPermissionRequest.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            onGranted()
+        }
+    }
+
+    fun notificationPermissionGranted() {
+        onNotificationPermissionGranted?.invoke()
+        onNotificationPermissionGranted = null
     }
 
     @SuppressLint("MissingPermission")

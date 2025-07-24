@@ -6,12 +6,23 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.location.Location
 import android.os.Build
 import android.os.Looper
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import com.google.android.gms.location.*
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.mitarifamitaxi.taximetrousuario.R
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 class LocationUpdatesService : LifecycleService() {
 
@@ -19,6 +30,10 @@ class LocationUpdatesService : LifecycleService() {
         private const val NOTIFY_ID = 1
         private const val CHANNEL_ID = "nav_channel"
         private const val CHANNEL_NAME = "Navegación activa"
+        private const val TAG = "LocationUpdatesService"
+
+        private val _locationUpdates = MutableSharedFlow<Location>()
+        val locationUpdates = _locationUpdates.asSharedFlow()
     }
 
     private lateinit var fusedClient: FusedLocationProviderClient
@@ -26,22 +41,27 @@ class LocationUpdatesService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate: Service is being created.")
+
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { loc ->
-
+                    lifecycleScope.launch {
+                        _locationUpdates.emit(loc)
+                    }
                 }
             }
         }
 
         createNotificationChannel()
-        startForegroundWithCorrectType()
+        startForegroundServiceLocation()
         startLocationUpdates()
     }
 
-    private fun startForegroundWithCorrectType() {
+    private fun startForegroundServiceLocation() {
         val notification = buildNotification()
+        Log.d(TAG, "startForegroundWithCorrectType: Starting foreground service.")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFY_ID,
@@ -56,11 +76,13 @@ class LocationUpdatesService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        Log.d(TAG, "onStartCommand: Service started.")
         return START_STICKY
     }
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
+        Log.d(TAG, "startLocationUpdates: Requesting location updates.")
         val request = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
             5_000L
@@ -76,6 +98,7 @@ class LocationUpdatesService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy: Service is being destroyed.")
         fusedClient.removeLocationUpdates(locationCallback)
         super.onDestroy()
     }
@@ -88,13 +111,14 @@ class LocationUpdatesService : LifecycleService() {
         )
         val mgr = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         mgr.createNotificationChannel(chan)
+        Log.d(TAG, "createNotificationChannel: Channel created.")
     }
 
     private fun buildNotification(): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("MiTarifaMiTaxi")
-            .setContentText("Obteniendo ubicación…")
-            .setSmallIcon(R.drawable.logo2)
+            .setContentText("Obteniendo ubicación...")
+            .setSmallIcon(R.drawable.logo5)
             .setOngoing(true)
             .build()
     }

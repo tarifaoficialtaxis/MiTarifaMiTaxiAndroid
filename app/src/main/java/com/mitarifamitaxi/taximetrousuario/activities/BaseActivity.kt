@@ -46,6 +46,27 @@ open class BaseActivity : ComponentActivity() {
         AppViewModelFactory(this)
     }
 
+    val notificationPermissionRequest =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                appViewModel.notificationPermissionGranted()
+            } else {
+                appViewModel.showMessage(
+                    type = DialogType.WARNING,
+                    title = getString(R.string.permission_required),
+                    message = getString(R.string.notification_permission_required),
+                    buttonText = getString(R.string.grant_permission),
+                    onButtonClicked = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                    }
+                )
+            }
+        }
+
     val locationPermissionRequest =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false

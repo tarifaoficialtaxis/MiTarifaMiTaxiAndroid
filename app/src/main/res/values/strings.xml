@@ -328,4 +328,6 @@
     <string name="we_sorry">¡Lo sentimos!</string>
     <string name="feature_not_available_on_city">Esta funcionalidad aún no esta disponible en tu ciudad</string>
 
+    <string name="notification_permission_required">El permiso de notificaciones es necesario para informarte cuando la app está funcionando en segundo plano. Por favor, actívalo en los ajustes de la app.</string>
+
 </resources>
