@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.location.Location
@@ -20,6 +21,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mitarifamitaxi.taximetrousuario.R
+import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -100,6 +102,7 @@ class LocationUpdatesService : LifecycleService() {
     override fun onDestroy() {
         Log.d(TAG, "onDestroy: Service is being destroyed.")
         fusedClient.removeLocationUpdates(locationCallback)
+        stopForeground(true)
         super.onDestroy()
     }
 
@@ -115,11 +118,20 @@ class LocationUpdatesService : LifecycleService() {
     }
 
     private fun buildNotification(): Notification {
+        val intent = Intent(this, TaximeterActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntentFlags =
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, pendingIntentFlags)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("MiTarifaMiTaxi")
-            .setContentText("Obteniendo ubicación...")
+            .setContentText("Viaje en curso. Toca para volver a la app.")
             .setSmallIcon(R.drawable.logo5)
             .setOngoing(true)
+            .setAutoCancel(false)
+            .setContentIntent(pendingIntent)
             .build()
     }
 }
