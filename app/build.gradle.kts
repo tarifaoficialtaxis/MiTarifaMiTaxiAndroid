@@ -19,7 +19,7 @@ android {
         applicationId = "com.mitarifamitaxi.taximetrousuario"
         minSdk = 28
         targetSdk = 35
-        versionCode = 30
+        versionCode = 31
         versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
