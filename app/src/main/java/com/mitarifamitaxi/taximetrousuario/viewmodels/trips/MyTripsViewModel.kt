@@ -5,8 +5,10 @@ import android.util.Log
 import com.mitarifamitaxi.taximetrousuario.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.mitarifamitaxi.taximetrousuario.helpers.FirebaseStorageUtils
 import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.states.MyTripsState
@@ -14,6 +16,7 @@ import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 
 class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel) : ViewModel() {
@@ -92,38 +95,49 @@ class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel)
     }
 
     fun deleteTripsSelected() {
+        viewModelScope.launch {
+            appViewModel.setLoading(true)
 
-        appViewModel.setLoading(true)
+            val tripsToDelete = _uiState.value.tripsSelected
+            val db = FirebaseFirestore.getInstance()
+            val batch = db.batch()
 
-        val ids = _uiState.value.tripsSelected.map { it.id ?: "" }
-        val db = FirebaseFirestore.getInstance()
-        val batch = db.batch()
+            // Primero eliminamos las imágenes en paralelo
+            tripsToDelete.forEach { trip ->
+                trip.routeImage?.let { imageUrl ->
+                    FirebaseStorageUtils.deleteImage(imageUrl)
+                }
+            }
 
-        ids.forEach { id ->
-            val docRef = db.collection("trips").document(id)
-            batch.delete(docRef)
+            // Luego eliminamos los documentos en Firestore
+            tripsToDelete.forEach { trip ->
+                trip.id?.let { id ->
+                    val docRef = db.collection("trips").document(id)
+                    batch.delete(docRef)
+                }
+            }
+
+            batch.commit()
+                .addOnSuccessListener {
+                    appViewModel.setLoading(false)
+                    _uiState.update { it.copy(tripsSelected = emptyList()) }
+                    appViewModel.showMessage(
+                        type = DialogType.SUCCESS,
+                        title = appContext.getString(R.string.success),
+                        message = appContext.getString(R.string.trips_deleted_successfully)
+                    )
+                }
+                .addOnFailureListener { e ->
+                    appViewModel.setLoading(false)
+                    _uiState.update { it.copy(tripsSelected = emptyList()) }
+                    appViewModel.showMessage(
+                        type = DialogType.ERROR,
+                        title = appContext.getString(R.string.error),
+                        message = appContext.getString(R.string.trips_deleted_error)
+                    )
+                    Log.e("MyTripsViewModel", "Error al eliminar viajes: ${e.message}")
+                }
         }
-
-        batch.commit()
-            .addOnSuccessListener {
-                appViewModel.setLoading(false)
-                _uiState.update { it.copy(tripsSelected = emptyList()) }
-                appViewModel.showMessage(
-                    type = DialogType.SUCCESS,
-                    title = appContext.getString(R.string.success),
-                    message = appContext.getString(R.string.trips_deleted_successfully)
-                )
-            }
-            .addOnFailureListener { e ->
-                appViewModel.setLoading(false)
-                _uiState.update { it.copy(tripsSelected = emptyList()) }
-                appViewModel.showMessage(
-                    type = DialogType.ERROR,
-                    title = appContext.getString(R.string.error),
-                    message = appContext.getString(R.string.trips_deleted_error)
-                )
-                Log.e("MyTripsViewModel", "Error al eliminar viajes: ${e.message}")
-            }
     }
 
 }

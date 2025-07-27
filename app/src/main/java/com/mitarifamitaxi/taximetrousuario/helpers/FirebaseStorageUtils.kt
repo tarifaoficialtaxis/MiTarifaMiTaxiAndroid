@@ -51,6 +51,30 @@ object FirebaseStorageUtils {
             Log.e("FirebaseStorageUtils", "Error al borrar imagen de Storage: ${e.message}")
         }
     }
+
+    fun deleteFolder(folderPath: String) {
+        val storageRef = FirebaseStorage.getInstance().reference.child(folderPath)
+
+        storageRef.listAll()
+            .addOnSuccessListener { listResult ->
+                listResult.items.forEach { item ->
+                    item.delete()
+                        .addOnSuccessListener {
+                            Log.d("FirebaseStorageUtils", "Deleted file: ${item.path}")
+                        }
+                        .addOnFailureListener {
+                            Log.e("FirebaseStorageUtils", "Failed to delete file: ${item.path}", it)
+                        }
+                }
+
+                listResult.prefixes.forEach { subFolder ->
+                    deleteFolder(subFolder.path)
+                }
+            }
+            .addOnFailureListener {
+                Log.e("FirebaseStorageUtils", "Failed to list folder: $folderPath", it)
+            }
+    }
 }
 
 

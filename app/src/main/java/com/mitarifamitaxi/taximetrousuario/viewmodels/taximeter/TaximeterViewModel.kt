@@ -97,13 +97,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         filterRecharges()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.stop()
-        }
-        mediaPlayer.release()
-    }
 
     private fun filterRecharges() {
         val filteredRecharges = _uiState.value.rates.recharges
@@ -417,6 +410,13 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
+    fun stopMediaPlayer() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.stop()
+        }
+        mediaPlayer.release()
+    }
+
     @SuppressLint("ImplicitSamInstance")
     fun stopTaximeter() {
 
@@ -424,6 +424,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             _navigationEvents.emit(TaximeterViewModelEvent.StopForegroundService)
         }
 
+        stopMediaPlayer()
         _uiState.update { it.copy(currentSpeed = 0) }
         appViewModel.setLoading(true)
 

@@ -437,7 +437,6 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
     }
 
     fun deleteFirebaseAuthUser() {
-
         val currentUser = FirebaseAuth.getInstance().currentUser
         val userId = appViewModel.uiState.value.userData?.id ?: ""
 
@@ -453,42 +452,37 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         appViewModel.setLoading(true)
 
         viewModelScope.launch {
-
             try {
-                Log.d("ProfileViewModel", "Deleted Firebase Auth user ${currentUser.uid}")
+                val firestore = FirebaseFirestore.getInstance()
 
-                // Delete Firestore Trips
-                val tripsSnapshot = FirebaseFirestore.getInstance()
-                    .collection("trips")
+                // 1. Obtener todos los trips del usuario
+                val tripsSnapshot = firestore.collection("trips")
                     .whereEqualTo("userId", userId)
                     .get()
                     .await()
 
+                // 2. Crear y ejecutar el batch para eliminar todos los trips
                 if (tripsSnapshot.documents.isNotEmpty()) {
-                    for (trip in tripsSnapshot.documents) {
-                        trip.reference.delete().await()
-                        Log.d("ProfileViewModel", "Deleted trip ${trip.id}")
+                    val batch = firestore.batch()
+                    tripsSnapshot.documents.forEach { tripDoc ->
+                        batch.delete(tripDoc.reference)
                     }
+                    batch.commit().await()
+                    Log.d("ProfileViewModel", "Deleted ${tripsSnapshot.size()} trips for user $userId")
                 }
 
-                // Delete Firestore User Document
-                val userDocRef = FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(userId)
-
-                userDocRef.delete().await()
+                // 3. Eliminar el documento del usuario
+                firestore.collection("users").document(userId).delete().await()
                 Log.d("ProfileViewModel", "Deleted Firestore user document $userId")
 
-                // Delete profile picture from Firebase Storage
+                // 4. Eliminar la carpeta completa del usuario en Firebase Storage
+                FirebaseStorageUtils.deleteFolder("appFiles/$userId/")
 
-                _uiState.value.originalProfilePictureUrl.let { imageUrl ->
-                    if (imageUrl.isNotEmpty()) {
-                        FirebaseStorageUtils.deleteImage(imageUrl)
-                    }
-                }
-
+                // 5. Eliminar el usuario de Firebase Auth
                 currentUser.delete().await()
+                Log.d("ProfileViewModel", "Deleted Firebase Auth user ${currentUser.uid}")
 
+                // 6. Mostrar mensaje de éxito
                 appViewModel.setLoading(false)
                 appViewModel.showMessage(
                     type = DialogType.SUCCESS,
@@ -496,28 +490,17 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                     message = appContext.getString(R.string.account_deleted_message),
                     buttonText = appContext.getString(R.string.accept),
                     showCloseButton = false,
-                    onButtonClicked = {
-                        logOut()
-                    }
+                    onButtonClicked = { logOut() }
                 )
 
             } catch (authError: FirebaseAuthRecentLoginRequiredException) {
                 appViewModel.setLoading(false)
-                Log.w(
-                    "ProfileViewModel",
-                    "Auth deletion failed: Re-authentication required.",
-                    authError
-                )
-
+                Log.w("ProfileViewModel", "Auth deletion failed: Re-authentication required.", authError)
                 getUserAuthType()
 
-            } catch (authError: Exception) {
-                Log.e(
-                    "ProfileViewModel",
-                    "Error deleting Firebase Auth user: ${authError.message}",
-                    authError
-                )
+            } catch (e: Exception) {
                 appViewModel.setLoading(false)
+                Log.e("ProfileViewModel", "Error deleting user: ${e.message}", e)
                 appViewModel.showMessage(
                     type = DialogType.ERROR,
                     title = appContext.getString(R.string.something_went_wrong),
