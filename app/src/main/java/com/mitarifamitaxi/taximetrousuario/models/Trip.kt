@@ -1,9 +1,5 @@
 package com.mitarifamitaxi.taximetrousuario.models
 
-import android.graphics.Bitmap
-import com.google.firebase.firestore.PropertyName
-
-
 data class Trip(
     val id: String? = null,
     val userId: String? = null,

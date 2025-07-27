@@ -115,7 +115,6 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
         }
     }
 
-
     fun sendWatsAppMessage(onIntentReady: (Intent) -> Unit) {
         val currentState = _uiState.value
         if (currentState.shareNumber.isEmpty()) {

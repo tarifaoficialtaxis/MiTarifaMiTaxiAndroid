@@ -128,18 +128,22 @@ class CompleteProfileViewModel(context: Context, private val appViewModel: AppVi
                 // Show loading indicator
                 appViewModel.setLoading(true)
 
+                val userId = stateVal.userId
                 val imageUrl = withContext(Dispatchers.IO) {
                     stateVal.imageUri.let { uri ->
                         uri?.toBitmap(appContext)
                             ?.let { bitmap ->
-                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                                FirebaseStorageUtils.uploadImage(
+                                    "appFiles/$userId/profilePicture",
+                                    bitmap
+                                )
                             }
                     }
                 }
 
                 // Save user information in Firestore
                 val userMap = hashMapOf(
-                    "id" to stateVal.userId,
+                    "id" to userId,
                     "firstName" to stateVal.firstName,
                     "lastName" to stateVal.lastName,
                     "mobilePhone" to stateVal.mobilePhone.trim(),

@@ -382,7 +382,8 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
 
     fun validateSpeedExceeded() {
-        val speedExceeded = _uiState.value.currentSpeed > ((uiState.value.rates.speedLimit ?: 0) - 3)
+        val speedExceeded =
+            _uiState.value.currentSpeed > ((uiState.value.rates.speedLimit ?: 0) - 3)
         if (speedExceeded) {
             if (!isPlayerPlayingSafe()) mediaPlayer.start()
         } else {
@@ -531,20 +532,20 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     }
 
     fun saveTripData(tripData: Trip, image: Bitmap, onSuccess: () -> Unit) {
+
+        val userId = appViewModel.uiState.value.userData?.id
+
         viewModelScope.launch {
             try {
                 appViewModel.setLoading(true)
                 var imageUrl: String? = null
 
                 if (_uiState.value.routeCoordinates.size > 2) {
-                    imageUrl = FirebaseStorageUtils.uploadImage(
-                        "trips",
-                        image
-                    )
+                    imageUrl = FirebaseStorageUtils.uploadImage("appFiles/$userId/trips", image)
                 }
 
                 val tripDataReq = mutableMapOf<String, Any?>().apply {
-                    putIfNotNull("userId", appViewModel.uiState.value.userData?.id)
+                    putIfNotNull("userId", userId)
                     putIfNotNull("startCoords", tripData.startCoords)
                     putIfNotNull("endCoords", tripData.endCoords)
                     putIfNotNull("startHour", tripData.startHour)

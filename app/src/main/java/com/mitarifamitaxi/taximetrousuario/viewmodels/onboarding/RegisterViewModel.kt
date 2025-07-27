@@ -214,17 +214,21 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                         .await()
                 val user = authResult.user ?: throw Exception("User creation failed")
 
+                val userId = user.uid
                 val imageUrl = withContext(Dispatchers.IO) {
                     stateVal.imageUri.let { uri ->
                         uri?.toBitmap(appContext)
                             ?.let { bitmap ->
-                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                                FirebaseStorageUtils.uploadImage(
+                                    "appFiles/$userId/profilePicture",
+                                    bitmap
+                                )
                             }
                     }
                 }
 
                 val userMap = hashMapOf(
-                    "id" to user.uid,
+                    "id" to userId,
                     "firstName" to stateVal.firstName,
                     "lastName" to stateVal.lastName,
                     "mobilePhone" to stateVal.mobilePhone.trim(),
@@ -238,7 +242,7 @@ class RegisterViewModel(context: Context, private val appViewModel: AppViewModel
                 appViewModel.setLoading(false)
 
                 val localUser = LocalUser(
-                    id = user.uid,
+                    id = userId,
                     firstName = stateVal.firstName,
                     lastName = stateVal.lastName,
                     mobilePhone = stateVal.mobilePhone.trim(),

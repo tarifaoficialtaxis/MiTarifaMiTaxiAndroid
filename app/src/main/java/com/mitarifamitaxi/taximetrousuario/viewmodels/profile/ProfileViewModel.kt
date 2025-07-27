@@ -263,13 +263,15 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         viewModelScope.launch {
             appViewModel.setLoading(true)
 
+            val userId = appViewModel.uiState.value.userData?.id
+
             val finalImageUrl: String? =
                 if (stateVal.imageUri.toString() != stateVal.originalProfilePictureUrl) {
                     val uploadedUrl = withContext(Dispatchers.IO) {
                         stateVal.imageUri
                             ?.toBitmap(appContext)
                             ?.let { bitmap ->
-                                FirebaseStorageUtils.uploadImage("profilePictures", bitmap)
+                                FirebaseStorageUtils.uploadImage("appFiles/$userId/profilePicture", bitmap)
                             }
                     }
                     stateVal.originalProfilePictureUrl.let { oldUrl ->
