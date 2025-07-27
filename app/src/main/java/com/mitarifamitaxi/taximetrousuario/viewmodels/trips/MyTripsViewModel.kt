@@ -64,6 +64,68 @@ class MyTripsViewModel(context: Context, private val appViewModel: AppViewModel)
         }
     }
 
+    fun toggleTripSelection(trip: Trip) {
+        _uiState.update { currentState ->
+            val isAlreadySelected = currentState.tripsSelected.any { it.id == trip.id }
+
+            val updatedSelection = if (isAlreadySelected) {
+                currentState.tripsSelected.filterNot { it.id == trip.id }
+            } else {
+                currentState.tripsSelected + trip
+            }
+
+            currentState.copy(tripsSelected = updatedSelection)
+        }
+    }
+
+
+    fun onDeleteAction() {
+        appViewModel.showMessage(
+            type = DialogType.WARNING,
+            title = appContext.getString(R.string.delete_trips_question),
+            message = appContext.getString(R.string.wont_be_able_to_recover_trips),
+            buttonText = appContext.getString(R.string.delete),
+            onButtonClicked = {
+                deleteTripsSelected()
+            }
+        )
+    }
+
+    fun deleteTripsSelected() {
+
+        appViewModel.setLoading(true)
+
+        val ids = _uiState.value.tripsSelected.map { it.id ?: "" }
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        ids.forEach { id ->
+            val docRef = db.collection("trips").document(id)
+            batch.delete(docRef)
+        }
+
+        batch.commit()
+            .addOnSuccessListener {
+                appViewModel.setLoading(false)
+                _uiState.update { it.copy(tripsSelected = emptyList()) }
+                appViewModel.showMessage(
+                    type = DialogType.SUCCESS,
+                    title = appContext.getString(R.string.success),
+                    message = appContext.getString(R.string.trips_deleted_successfully)
+                )
+            }
+            .addOnFailureListener { e ->
+                appViewModel.setLoading(false)
+                _uiState.update { it.copy(tripsSelected = emptyList()) }
+                appViewModel.showMessage(
+                    type = DialogType.ERROR,
+                    title = appContext.getString(R.string.error),
+                    message = appContext.getString(R.string.trips_deleted_error)
+                )
+                Log.e("MyTripsViewModel", "Error al eliminar viajes: ${e.message}")
+            }
+    }
+
 }
 
 class MyTripsViewModelFactory(

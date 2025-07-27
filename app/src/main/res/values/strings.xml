@@ -330,4 +330,11 @@
 
     <string name="notification_permission_required">El permiso de notificaciones es necesario para informarte cuando la app está funcionando en segundo plano. Por favor, actívalo en los ajustes de la app.</string>
 
+
+    <string name="trips_deleted_successfully">Viajes eliminados correctamente.</string>
+    <string name="trips_deleted_error">Ha ocurrido un error al intentar eliminar los viajes.</string>
+
+    <string name="delete_trips_question">¿Desea eliminar los viajes seleccionados?</string>
+    <string name="wont_be_able_to_recover_trips">No se podran recuperar</string>
+
 </resources>

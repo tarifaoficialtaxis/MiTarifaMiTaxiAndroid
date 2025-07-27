@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,6 +54,9 @@ class MyTripsActivity : BaseActivity() {
                 intent.putExtra("is_details", true)
                 intent.putExtra("trip_data", tripJson)
                 startActivity(intent)
+            },
+            onDeleteTripsSelected = {
+                viewModel.onDeleteAction()
             }
         )
     }
@@ -60,7 +64,8 @@ class MyTripsActivity : BaseActivity() {
     @Composable
     private fun MyTripsScreen(
         uiState: MyTripsState,
-        onTripClicked: (Trip) -> Unit
+        onTripClicked: (Trip) -> Unit,
+        onDeleteTripsSelected: () -> Unit
     ) {
 
         Column(
@@ -73,7 +78,9 @@ class MyTripsActivity : BaseActivity() {
                 leadingIcon = Icons.Filled.ChevronLeft,
                 onClickLeading = {
                     finish()
-                }
+                },
+                trailingIcon = if (uiState.tripsSelected.isNotEmpty()) Icons.Filled.Delete else null,
+                onClickTrailing = onDeleteTripsSelected
             )
 
             Column(
@@ -94,9 +101,14 @@ class MyTripsActivity : BaseActivity() {
                             .verticalScroll(rememberScrollState())
                     ) {
                         uiState.trips.forEach { trip ->
+                            val isSelected = uiState.tripsSelected.any { it.id == trip.id }
                             TripItem(
                                 trip,
-                                onTripClicked = { onTripClicked(trip) }
+                                onTripClicked = { onTripClicked(trip) },
+                                isTripSelected = isSelected,
+                                onTripSelected = {
+                                    viewModel.toggleTripSelection(trip)
+                                }
                             )
                         }
                     }
@@ -145,7 +157,8 @@ class MyTripsActivity : BaseActivity() {
                     )
                 )
             ),
-            onTripClicked = {}
+            onTripClicked = {},
+            onDeleteTripsSelected = {}
         )
     }
 

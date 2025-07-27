@@ -38,7 +38,12 @@ import com.mitarifamitaxi.taximetrousuario.helpers.tripCardFormatDate
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 
 @Composable
-fun TripItem(trip: Trip, onTripClicked: () -> Unit) {
+fun TripItem(
+    trip: Trip,
+    onTripClicked: () -> Unit,
+    isTripSelected: Boolean? = null,
+    onTripSelected: (Trip) -> Unit = {}
+) {
 
     Card(
         modifier = Modifier
@@ -50,104 +55,127 @@ fun TripItem(trip: Trip, onTripClicked: () -> Unit) {
             containerColor = colorResource(id = R.color.white)
         )
     ) {
-        Button(
-            onClick = onTripClicked,
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            shape = RectangleShape
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(15.dp),
-                modifier = Modifier
-                    .padding(15.dp)
-                    .fillMaxWidth()
-            ) {
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
+        Row {
+
+            if (isTripSelected != null) {
+                CustomCheckBox(
+                    checked = isTripSelected,
+                    onValueChange = { isChecked ->
+                        onTripSelected(trip)
+                    },
                     modifier = Modifier
-                        .weight(1f)
+                        .padding(
+                            start = 15.dp,
+                            top = 15.dp,
+                        )
+                )
+            }
+
+            Button(
+                onClick = onTripClicked,
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                ),
+                shape = RectangleShape
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                    modifier = Modifier
+                        .padding(15.dp)
+                        .fillMaxWidth()
                 ) {
-                    trip.startHour?.let {
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        trip.startHour?.let {
+                            Text(
+                                text = if (it.isNotEmpty()) tripCardFormatDate(it) else "-",
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+
+                            Box(
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .border(2.dp, colorResource(id = R.color.yellow2), CircleShape)
+                                    .background(
+                                        colorResource(id = R.color.main),
+                                        shape = CircleShape
+                                    ),
+                            )
+
+                            Text(
+                                text = trip.startAddress?.getShortAddress() ?: "",
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.main),
+                                modifier = Modifier.size(15.dp)
+                            )
+
+                            Text(
+                                text = trip.endAddress?.getShortAddress() ?: "",
+                                fontFamily = MontserratFamily,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp,
+                                color = colorResource(id = R.color.gray1),
+                            )
+                        }
+
                         Text(
-                            text = if (it.isNotEmpty()) tripCardFormatDate(it) else "-",
+                            text = "$ ${
+                                trip.total?.toInt()?.formatNumberWithDots()
+                            } ${trip.currency ?: ""}",
                             fontFamily = MontserratFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = colorResource(id = R.color.gray1),
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(15.dp)
-                                .border(2.dp, colorResource(id = R.color.yellow2), CircleShape)
-                                .background(colorResource(id = R.color.main), shape = CircleShape),
-                        )
-
-                        Text(
-                            text = trip.startAddress?.getShortAddress() ?: "",
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 12.sp,
-                            color = colorResource(id = R.color.gray1),
+                            color = colorResource(id = R.color.main),
                         )
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .background(colorResource(id = R.color.main), shape = CircleShape)
                     ) {
 
                         Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = colorResource(id = R.color.main),
-                            modifier = Modifier.size(15.dp)
-                        )
-
-                        Text(
-                            text = trip.endAddress?.getShortAddress() ?: "",
-                            fontFamily = MontserratFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 12.sp,
-                            color = colorResource(id = R.color.gray1),
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "content description",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(25.dp),
+                            tint = colorResource(id = R.color.black),
                         )
                     }
 
-                    Text(
-                        text = "$ ${trip.total?.toInt()?.formatNumberWithDots()} ${trip.currency ?: ""}",
-                        fontFamily = MontserratFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.main),
-                    )
+
                 }
-
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .background(colorResource(id = R.color.main), shape = CircleShape)
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "content description",
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(25.dp),
-                        tint = colorResource(id = R.color.black),
-                    )
-                }
-
-
             }
         }
 
