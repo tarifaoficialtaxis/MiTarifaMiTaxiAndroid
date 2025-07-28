@@ -41,10 +41,10 @@ object FirebaseStorageUtils {
         }
     }
 
-
-    suspend fun deleteImage(imageUrl: String) {
+    suspend fun deleteImage(imagePath: String) {
         try {
-            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+            val storageRef = FirebaseStorage.getInstance()
+                .getReference(imagePath)
             storageRef.delete().await()
             Log.d("FirebaseStorageUtils", "Imagen borrada de Storage correctamente.")
         } catch (e: Exception) {

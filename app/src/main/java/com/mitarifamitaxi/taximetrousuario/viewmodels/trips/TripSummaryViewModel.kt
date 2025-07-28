@@ -82,8 +82,8 @@ class TripSummaryViewModel(context: Context, private val appViewModel: AppViewMo
             try {
                 appViewModel.setLoading(true)
 
-                _uiState.value.tripData.routeImage?.let { imageUrl ->
-                    FirebaseStorageUtils.deleteImage(imageUrl)
+                _uiState.value.tripData.routeImage?.let { imagePath ->
+                    FirebaseStorageUtils.deleteImage(imagePath)
                 }
 
                 FirebaseFirestore.getInstance().collection("trips").document(tripId).delete()
