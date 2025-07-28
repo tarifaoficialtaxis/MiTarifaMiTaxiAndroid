@@ -29,82 +29,10 @@ android {
 
         debug {
             buildConfigField("boolean", "IS_DEV", "true")
-            buildConfigField(
-                "String",
-                "OPEN_APP_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9257395921\""
-            )
-            buildConfigField(
-                "String",
-                "HOME_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9214589741\""
-            )
-            buildConfigField(
-                "String",
-                "SOS_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9214589741\""
-            )
-            buildConfigField(
-                "String",
-                "MY_TRIPS_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9214589741\""
-            )
-            buildConfigField(
-                "String",
-                "TRIP_SUMMARY_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9214589741\""
-            )
-            buildConfigField(
-                "String",
-                "PQRS_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/9214589741\""
-            )
-            buildConfigField(
-                "String",
-                "TRIP_SUMMARY_INTERSTITIAL_AD_UNIT_ID",
-                "\"ca-app-pub-3940256099942544/1033173712\""
-            )
-
         }
 
         release {
             buildConfigField("boolean", "IS_DEV", "false")
-            buildConfigField(
-                "String",
-                "OPEN_APP_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/1852355259\""
-            )
-            buildConfigField(
-                "String",
-                "HOME_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/1408985203\""
-            )
-            buildConfigField(
-                "String",
-                "SOS_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/3565726328\""
-            )
-            buildConfigField(
-                "String",
-                "MY_TRIPS_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/1425297076\""
-            )
-            buildConfigField(
-                "String",
-                "TRIP_SUMMARY_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/9722304086\""
-            )
-            buildConfigField(
-                "String",
-                "PQRS_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/2576078282\""
-            )
-            buildConfigField(
-                "String",
-                "TRIP_SUMMARY_INTERSTITIAL_AD_UNIT_ID",
-                "\"ca-app-pub-3864915489725459/3506016572\""
-            )
-
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -161,10 +89,11 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.androidx.lifecycle.service)
 
-    implementation(libs.play.services.ads)
-
     implementation(libs.androidx.lifecycle.process)
 
+    implementation(libs.glide)
+
+    implementation(libs.firebase.ui.storage)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

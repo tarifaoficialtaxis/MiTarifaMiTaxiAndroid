@@ -62,7 +62,6 @@ import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripInfoRow
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
-import com.mitarifamitaxi.taximetrousuario.helpers.adds.InterstitialAdManager
 import com.mitarifamitaxi.taximetrousuario.helpers.formatDigits
 import com.mitarifamitaxi.taximetrousuario.helpers.formatElapsed
 import com.mitarifamitaxi.taximetrousuario.helpers.formatNumberWithDots
@@ -82,12 +81,10 @@ class TripSummaryActivity : BaseActivity() {
         TripSummaryViewModelFactory(this, appViewModel)
     }
 
-    private lateinit var interstitialAdManager: InterstitialAdManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         observeViewModelEvents()
-        interstitialAdManager = InterstitialAdManager(this)
 
         val isDetails = intent.getBooleanExtra("is_details", false)
         viewModel.onChangeDetails(isDetails)
@@ -512,7 +509,6 @@ class TripSummaryActivity : BaseActivity() {
 
             }
 
-//            BottomBannerAd(adId = BuildConfig.TRIP_SUMMARY_AD_UNIT_ID)
 
         }
 

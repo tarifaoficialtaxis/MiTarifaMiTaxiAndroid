@@ -22,10 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
-import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
-import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
@@ -115,7 +113,6 @@ class MyTripsActivity : BaseActivity() {
                 }
             }
 
-//            BottomBannerAd(adId = BuildConfig.MY_TRIPS_AD_UNIT_ID)
         }
     }
 

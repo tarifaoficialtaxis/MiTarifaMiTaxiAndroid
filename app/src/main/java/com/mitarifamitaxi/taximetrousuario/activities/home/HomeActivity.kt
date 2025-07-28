@@ -60,7 +60,6 @@ import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.activities.taximeter.TaximeterActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.MyTripsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.trips.TripSummaryActivity
-import com.mitarifamitaxi.taximetrousuario.components.adds.BottomBannerAd
 import com.mitarifamitaxi.taximetrousuario.components.ui.NoTripsView
 import com.mitarifamitaxi.taximetrousuario.components.ui.ProfilePictureBox
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripItem
@@ -302,10 +301,6 @@ class HomeActivity : BaseActivity() {
                     )
                 }
             }
-
-//            BottomBannerAd(
-//                adId = BuildConfig.HOME_AD_UNIT_ID
-//            )
         }
     }
 
