@@ -10,6 +10,7 @@ import com.google.firebase.storage.FirebaseStorage
 @Composable
 fun FirebaseImage(
     storagePath: String,
+    scaleTypeProp: ImageView.ScaleType? = ImageView.ScaleType.CENTER_CROP,
     modifier: Modifier = Modifier
 ) {
     val storageRef = FirebaseStorage.getInstance()
@@ -19,7 +20,7 @@ fun FirebaseImage(
     AndroidView(
         factory = { ctx ->
             ImageView(ctx).apply {
-                scaleType = ImageView.ScaleType.CENTER_CROP
+                scaleType = scaleTypeProp
                 Glide.with(ctx)
                     .load(storageRef)
                     .into(this)

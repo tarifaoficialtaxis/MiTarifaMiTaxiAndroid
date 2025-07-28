@@ -97,6 +97,9 @@ class TaximeterActivity : BaseActivity() {
                 viewModel.navigationEvents.collect { event ->
                     when (event) {
                         is TaximeterViewModel.TaximeterViewModelEvent.GoBack -> {
+                            stopService(
+                                Intent(this@TaximeterActivity, LocationUpdatesService::class.java)
+                            )
                             finish()
                         }
                         is TaximeterViewModel.TaximeterViewModelEvent.StartForegroundService -> {

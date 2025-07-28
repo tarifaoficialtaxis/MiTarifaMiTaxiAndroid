@@ -3,6 +3,7 @@ package com.mitarifamitaxi.taximetrousuario.activities.trips
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,7 +51,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import coil.compose.AsyncImage
 import com.google.gson.Gson
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
@@ -59,6 +59,7 @@ import com.mitarifamitaxi.taximetrousuario.activities.pqrs.PqrsActivity
 import com.mitarifamitaxi.taximetrousuario.activities.sos.SosActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomTextFieldDialog
+import com.mitarifamitaxi.taximetrousuario.components.ui.FirebaseImage
 import com.mitarifamitaxi.taximetrousuario.components.ui.TopHeaderView
 import com.mitarifamitaxi.taximetrousuario.components.ui.TripInfoRow
 import com.mitarifamitaxi.taximetrousuario.helpers.MontserratFamily
@@ -115,11 +116,9 @@ class TripSummaryActivity : BaseActivity() {
     }
 
     private fun finishAction() {
-        //interstitialAdManager.showAd(this) {
         val intent = Intent(this, HomeActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)
-        //}
     }
 
     @Composable
@@ -187,13 +186,13 @@ class TripSummaryActivity : BaseActivity() {
                     .verticalScroll(rememberScrollState())
             ) {
                 if (uiState.isDetails) {
-                    AsyncImage(
-                        model = uiState.tripData.routeImage,
-                        contentDescription = "Trip route map image",
-                        contentScale = ContentScale.Companion.FillWidth,
+                    FirebaseImage(
+                        storagePath = uiState.tripData.routeImage ?: "",
+                        scaleTypeProp = ImageView.ScaleType.FIT_XY,
                         modifier = Modifier
                             .fillMaxWidth()
                     )
+
                 } else {
                     uiState.routeImageLocal?.let {
                         Image(
@@ -238,15 +237,6 @@ class TripSummaryActivity : BaseActivity() {
 
                         Spacer(modifier = Modifier.weight(1f))
 
-                        if (uiState.tripData.companyImage != null) {
-                            AsyncImage(
-                                model = uiState.tripData.companyImage,
-                                contentDescription = "Company logo",
-                                contentScale = ContentScale.Companion.Crop,
-                                modifier = Modifier
-                                    .size(70.dp)
-                            )
-                        }
                     }
 
 

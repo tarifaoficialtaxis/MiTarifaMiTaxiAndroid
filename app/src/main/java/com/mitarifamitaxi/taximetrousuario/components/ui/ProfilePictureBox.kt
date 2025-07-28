@@ -50,8 +50,7 @@ fun ProfilePictureBox(
             )
         } else if (imagePath != null) {
             FirebaseImage(
-                //storagePath = imagePath,
-                storagePath = "/appFiles/itiMWpR37XZtF7c5rrxiGEHYSCD2/profilePicture/1753655299314.webp",
+                storagePath = imagePath,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .clip(CircleShape)

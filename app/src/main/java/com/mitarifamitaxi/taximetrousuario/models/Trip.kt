@@ -19,6 +19,5 @@ data class Trip(
     val baseRate: Double? = null,
     val recharges: List<Recharge> = emptyList(),
     val routeImage: String? = null,
-    val companyImage: String? = null,
     val currency: String? = null,
 )
