@@ -280,6 +280,7 @@ class ProfileActivity : BaseActivity() {
                     }
 
                     ProfilePictureBox(
+                        imagePath = appState.userData?.profilePicture,
                         imageUri = uiState.imageUri,
                         onClickEdit = {
                             hideKeyboard()

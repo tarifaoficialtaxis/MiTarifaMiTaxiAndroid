@@ -2,7 +2,6 @@ package com.mitarifamitaxi.taximetrousuario.components.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,12 +45,10 @@ import com.mitarifamitaxi.taximetrousuario.models.ItemSideMenu
 import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.net.toUri
 
 @Composable
 fun SideMenu(
@@ -60,7 +57,7 @@ fun SideMenu(
     onSectionClicked: (ItemSideMenu) -> Unit
 ) {
 
-    val sideMenuItems = sideMenuItems(userData)
+    val sideMenuItems = sideMenuItems()
 
     val itemLogOut = ItemSideMenu(
         id = "LOGOUT",
@@ -122,7 +119,7 @@ fun SideMenu(
                     ) {
 
                         ProfilePictureBox(
-                            imageUri = userData.profilePicture?.toUri(),
+                            imagePath = userData.profilePicture,
                             editable = false,
                             boxSize = 65,
                             iconSize = 40
@@ -228,7 +225,7 @@ fun SideMenu(
 }
 
 @Composable
-fun sideMenuItems(userData: LocalUser): List<ItemSideMenu> {
+fun sideMenuItems(): List<ItemSideMenu> {
     return listOfNotNull(
         ItemSideMenu(
             id = "HOME",

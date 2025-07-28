@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose.compiler)
+    id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
@@ -92,7 +93,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
 
     implementation(libs.glide)
-
+    ksp(libs.glide.ksp)
     implementation(libs.firebase.ui.storage)
 
     testImplementation(libs.junit)

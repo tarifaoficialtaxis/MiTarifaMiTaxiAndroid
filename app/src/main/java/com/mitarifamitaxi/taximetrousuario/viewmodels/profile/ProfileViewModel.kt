@@ -86,7 +86,7 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
         onEmailChange(currentUser?.email ?: "")
         onFamilyNumberChange(currentUser?.familyNumber ?: "")
         onSupportNumberChange(currentUser?.supportNumber ?: "")
-        onImageSelected(currentUser?.profilePicture?.toUri())
+        //onImageSelected(currentUser?.profilePicture?.toUri())
         onOriginalProfilePictureUrlChange(currentUser?.profilePicture ?: "")
 
         viewModelScope.launch {

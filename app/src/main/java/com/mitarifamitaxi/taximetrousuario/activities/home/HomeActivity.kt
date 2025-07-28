@@ -212,7 +212,7 @@ class HomeActivity : BaseActivity() {
                     ) {
 
                         ProfilePictureBox(
-                            imageUri = appState.userData?.profilePicture?.toUri(),
+                            imagePath = appState.userData?.profilePicture,
                             editable = false,
                             boxSize = 45,
                             iconSize = 30

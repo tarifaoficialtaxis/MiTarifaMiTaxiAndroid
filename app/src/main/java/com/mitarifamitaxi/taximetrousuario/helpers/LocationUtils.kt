@@ -5,7 +5,6 @@ import android.location.Geocoder
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mitarifamitaxi.taximetrousuario.models.Feature
-import com.mitarifamitaxi.taximetrousuario.models.PlacePrediction
 import com.mitarifamitaxi.taximetrousuario.models.Properties
 import com.mitarifamitaxi.taximetrousuario.models.UserLocation
 import com.mitarifamitaxi.taximetrousuario.resources.countries
@@ -55,49 +54,6 @@ suspend fun getCityFromCoordinates(
         }
     }
 }
-
-// OPEN CAGE API
-
-/*fun getAddressFromCoordinates(
-    latitude: Double,
-    longitude: Double,
-    callbackSuccess: (address: String) -> Unit,
-    callbackError: (Exception) -> Unit
-) {
-    val url =
-        "${K.OPEN_CAGE_API_URL}geocode/v1/json?q=$latitude,$longitude&key=${K.OPEN_CAGE_API_KEY}"
-
-    val client = OkHttpClient()
-    val request = Request.Builder().url(url).build()
-
-    client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            callbackError(e)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            response.use {
-                if (!it.isSuccessful) {
-                    callbackError(IOException("Unexpected response $response"))
-                    return
-                }
-
-                val jsonResponse = JSONObject(it.body?.string() ?: "")
-                val results = jsonResponse.optJSONArray("results")
-
-                if (results != null && results.length() > 0) {
-                    val address =
-                        results.getJSONObject(0).getString("formatted")
-
-                    callbackSuccess(address)
-
-                } else {
-                    callbackError(IOException("No results found"))
-                }
-            }
-        }
-    })
-}*/
 
 // NOMINATIM API
 fun getAddressFromCoordinates(
@@ -262,72 +218,6 @@ fun getAddressFromCoordinates(
         }
     })
 }*/
-
-// GEOCODE EARTH API
-fun getPlacePredictions(
-    input: String,
-    latitude: Double,
-    longitude: Double,
-    country: String = "CO",
-    radius: Int = 30000,
-    callbackSuccess: (ArrayList<PlacePrediction>) -> Unit,
-    callbackError: (Exception) -> Unit
-) {
-    val encodedInput = URLEncoder.encode(input, "UTF-8")
-    val radiusInKm = radius / 1000
-
-    val url =
-        "${K.GEOCODE_EARTH_API_URL}autocomplete?" +
-                "api_key=${K.GEOCODE_EARTH_API_KEY}" +
-                "&text=$encodedInput" +
-                "&focus.point.lat=$latitude" +
-                "&focus.point.lon=$longitude" +
-                "&boundary.country=$country" +
-                "&boundary.circle.lat=$latitude" +
-                "&boundary.circle.lon=$longitude" +
-                "&boundary.circle.radius=$radiusInKm" +
-                "&lang=es"
-
-    val client = OkHttpClient()
-    val request = Request.Builder().url(url).build()
-
-    client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            callbackError(e)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            response.use {
-                if (!it.isSuccessful) {
-                    callbackError(IOException("Unexpected response $response"))
-                    return
-                }
-
-                val jsonResponse = JSONObject(it.body?.string() ?: "")
-                val features = jsonResponse.optJSONArray("features")
-
-                if (features != null && features.length() > 0) {
-                    val predictionsList = ArrayList<PlacePrediction>()
-                    for (i in 0 until features.length()) {
-                        val feature = features.getJSONObject(i)
-                        val properties = feature.optJSONObject("properties")
-                        if (properties != null) {
-                            predictionsList.add(
-                                PlacePrediction(
-                                    placeId = properties.optString("gid"),
-                                    description = properties.optString("label")
-                                )
-                            )
-                        }
-                    }
-                    callbackSuccess(predictionsList)
-                } else {
-                    callbackSuccess(ArrayList())
-                }
-            }
-        }
-    })
-}
 
 
 /*fun getPlaceDetails(

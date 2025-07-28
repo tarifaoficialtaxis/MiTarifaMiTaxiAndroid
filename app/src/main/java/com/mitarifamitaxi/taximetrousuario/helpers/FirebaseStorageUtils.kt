@@ -34,7 +34,7 @@ object FirebaseStorageUtils {
                 "$folder/${System.currentTimeMillis()}.${if (format == Bitmap.CompressFormat.JPEG) "jpg" else "webp"}"
             val ref = FirebaseStorage.getInstance().reference.child(fileName)
             ref.putBytes(data, metadata).await()
-            ref.downloadUrl.await().toString()
+            return ref.path
         } catch (e: Exception) {
             Log.e("FirebaseStorageUtils", "Error uploading image: ${e.message}")
             null
