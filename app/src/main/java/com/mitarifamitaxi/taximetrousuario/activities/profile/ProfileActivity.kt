@@ -62,6 +62,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
+import com.mitarifamitaxi.taximetrousuario.activities.home.HomeActivity
 import com.mitarifamitaxi.taximetrousuario.activities.onboarding.LoginActivity
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomButton
 import com.mitarifamitaxi.taximetrousuario.components.ui.CustomPasswordPopupDialog
@@ -114,7 +115,7 @@ class ProfileActivity : BaseActivity() {
                         }
 
                         is ProfileViewModel.NavigationEvent.Finish -> {
-                            finish()
+                            finishAction()
                         }
 
                         is ProfileViewModel.NavigationEvent.LaunchGoogleSignIn -> {
@@ -134,6 +135,12 @@ class ProfileActivity : BaseActivity() {
             val imm = this.getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             imm?.hideSoftInputFromWindow(currentFocus.windowToken, 0)
         }
+    }
+
+    private fun finishAction() {
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
     }
 
     private fun logOutAction() {
