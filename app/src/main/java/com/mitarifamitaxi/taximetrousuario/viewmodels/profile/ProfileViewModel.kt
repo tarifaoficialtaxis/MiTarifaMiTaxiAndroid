@@ -266,12 +266,15 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
             val userId = appViewModel.uiState.value.userData?.id
 
             val finalImageUrl: String? =
-                if (stateVal.imageUri.toString() != stateVal.originalProfilePictureUrl) {
+                if (stateVal.imageUri != null) {
                     val uploadedUrl = withContext(Dispatchers.IO) {
                         stateVal.imageUri
-                            ?.toBitmap(appContext)
+                            .toBitmap(appContext)
                             ?.let { bitmap ->
-                                FirebaseStorageUtils.uploadImage("appFiles/$userId/profilePicture", bitmap)
+                                FirebaseStorageUtils.uploadImage(
+                                    "appFiles/$userId/profilePicture",
+                                    bitmap
+                                )
                             }
                     }
                     stateVal.originalProfilePictureUrl.let { oldUrl ->
@@ -468,7 +471,10 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
                         batch.delete(tripDoc.reference)
                     }
                     batch.commit().await()
-                    Log.d("ProfileViewModel", "Deleted ${tripsSnapshot.size()} trips for user $userId")
+                    Log.d(
+                        "ProfileViewModel",
+                        "Deleted ${tripsSnapshot.size()} trips for user $userId"
+                    )
                 }
 
                 // 3. Eliminar el documento del usuario
@@ -495,7 +501,11 @@ class ProfileViewModel(context: Context, private val appViewModel: AppViewModel)
 
             } catch (authError: FirebaseAuthRecentLoginRequiredException) {
                 appViewModel.setLoading(false)
-                Log.w("ProfileViewModel", "Auth deletion failed: Re-authentication required.", authError)
+                Log.w(
+                    "ProfileViewModel",
+                    "Auth deletion failed: Re-authentication required.",
+                    authError
+                )
                 getUserAuthType()
 
             } catch (e: Exception) {
