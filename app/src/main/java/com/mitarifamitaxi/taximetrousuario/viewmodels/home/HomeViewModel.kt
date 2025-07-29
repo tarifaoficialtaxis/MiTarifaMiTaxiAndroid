@@ -12,6 +12,8 @@ import com.mitarifamitaxi.taximetrousuario.models.DialogType
 import com.mitarifamitaxi.taximetrousuario.models.Trip
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.helpers.CityRatesManager
+import com.mitarifamitaxi.taximetrousuario.helpers.LocalUserManager
+import com.mitarifamitaxi.taximetrousuario.models.LocalUser
 import com.mitarifamitaxi.taximetrousuario.models.Rates
 import com.mitarifamitaxi.taximetrousuario.states.HomeState
 import com.mitarifamitaxi.taximetrousuario.viewmodels.AppViewModel
@@ -32,6 +34,44 @@ class HomeViewModel(context: Context, private val appViewModel: AppViewModel) : 
 
     init {
         getTripsByUserId()
+        observeCurrentUser()
+    }
+
+    fun observeCurrentUser() {
+        val userId = appViewModel.uiState.value.userData?.id
+        if (userId.isNullOrEmpty()) {
+            Log.e("HomeViewModel", "User ID es nulo o vacío al intentar observar usuario.")
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+
+        val userRef = db.collection("users")
+            .document(userId)
+
+
+        userRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("HomeViewModel", "Error escuchando usuario: ${error.message}")
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                try {
+                    val updatedUser = snapshot.toObject(LocalUser::class.java)
+                    updatedUser?.let { user ->
+                        viewModelScope.launch(Dispatchers.Main) {
+                            appViewModel.updateLocalUser(user)
+                            LocalUserManager(appContext).saveUserState(user)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Error parseando User: ${e.message}")
+                }
+            } else {
+                Log.w("HomeViewModel", "Snapshot de usuario vacío o no existe.")
+            }
+        }
     }
 
     private fun getTripsByUserId() {

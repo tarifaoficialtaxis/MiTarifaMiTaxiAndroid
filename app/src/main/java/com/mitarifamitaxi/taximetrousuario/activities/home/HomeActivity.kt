@@ -49,9 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import com.google.gson.Gson
-import com.mitarifamitaxi.taximetrousuario.BuildConfig
 import com.mitarifamitaxi.taximetrousuario.R
 import com.mitarifamitaxi.taximetrousuario.activities.BaseActivity
 import com.mitarifamitaxi.taximetrousuario.activities.LocalOpenDrawer
