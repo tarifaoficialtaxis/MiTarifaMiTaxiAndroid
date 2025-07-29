@@ -221,7 +221,7 @@ class SosViewModel(context: Context, private val appViewModel: AppViewModel) : V
             try {
                 val firestore = FirebaseFirestore.getInstance()
                 val ratesQuerySnapshot = withContext(Dispatchers.IO) {
-                    firestore.collection("dynamicContacts")
+                    firestore.collection("dynamicSos")
                         .whereEqualTo("city", city)
                         .get()
                         .await()
