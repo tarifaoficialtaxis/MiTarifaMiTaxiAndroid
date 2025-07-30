@@ -24,13 +24,14 @@ fun CustomAsyncImageButton(
         contentPadding = PaddingValues(0.dp),
         shape = RoundedCornerShape(20.dp)
     ) {
-
-        FirebaseImage(
-            storagePath = image,
-            scaleTypeProp = ImageView.ScaleType.FIT_XY,
-            modifier = Modifier
-                .fillMaxSize(),
-        )
+        if (image.isNotEmpty()) {
+            FirebaseImage(
+                storagePath = image,
+                scaleTypeProp = ImageView.ScaleType.FIT_XY,
+                modifier = Modifier
+                    .fillMaxSize(),
+            )
+        }
     }
 
 }

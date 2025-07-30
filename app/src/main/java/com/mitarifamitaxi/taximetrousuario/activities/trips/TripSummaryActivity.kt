@@ -186,13 +186,14 @@ class TripSummaryActivity : BaseActivity() {
                     .verticalScroll(rememberScrollState())
             ) {
                 if (uiState.isDetails) {
-                    FirebaseImage(
-                        storagePath = uiState.tripData.routeImage ?: "",
-                        scaleTypeProp = ImageView.ScaleType.FIT_XY,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-
+                    if (uiState.tripData.routeImage.isNullOrEmpty().not()) {
+                        FirebaseImage(
+                            storagePath = uiState.tripData.routeImage,
+                            scaleTypeProp = ImageView.ScaleType.FIT_XY,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                    }
                 } else {
                     uiState.routeImageLocal?.let {
                         Image(

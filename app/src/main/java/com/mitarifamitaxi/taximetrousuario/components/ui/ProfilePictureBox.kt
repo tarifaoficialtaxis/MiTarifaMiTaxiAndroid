@@ -48,7 +48,7 @@ fun ProfilePictureBox(
                 contentScale = ContentScale.Crop,
                 onError = { }
             )
-        } else if (imagePath != null) {
+        } else if (imagePath != null && imagePath.isNotEmpty()) {
             FirebaseImage(
                 storagePath = imagePath,
                 modifier = Modifier
