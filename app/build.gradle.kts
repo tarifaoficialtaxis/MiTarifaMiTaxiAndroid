@@ -20,7 +20,7 @@ android {
         applicationId = "com.mitarifamitaxi.taximetrousuario"
         minSdk = 28
         targetSdk = 35
-        versionCode = 36
+        versionCode = 37
         versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -95,6 +95,9 @@ dependencies {
     implementation(libs.glide)
     ksp(libs.glide.ksp)
     implementation(libs.firebase.ui.storage)
+
+    implementation(libs.firebase.appcheck.play.integrity)
+    debugImplementation(libs.firebase.appcheck.debug)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
