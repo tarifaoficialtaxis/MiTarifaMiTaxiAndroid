@@ -82,11 +82,7 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
     private var isMoving by mutableStateOf(false)
     private var timeElapsed by mutableIntStateOf(0)
 
-    private val mediaPlayer: MediaPlayer by lazy {
-        MediaPlayer.create(appContext, R.raw.soft_alert).apply {
-            isLooping = true
-        }
-    }
+    private var mediaPlayer: MediaPlayer? = null
 
     init {
         _uiState.update {
@@ -152,15 +148,6 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         }
         updateTotal(newRechargeUnits)
         _uiState.value = _uiState.value.copy(rechargesSelected = current)
-    }
-
-    fun toggleSound() {
-        if (_uiState.value.isSoundEnabled) {
-            mediaPlayer.setVolume(0f, 0f)
-        } else {
-            mediaPlayer.setVolume(1f, 1f)
-        }
-        _uiState.update { it.copy(isSoundEnabled = !it.isSoundEnabled) }
     }
 
     private fun getAddressFromStartLocation(latitude: Double, longitude: Double) {
@@ -367,20 +354,31 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
             .launchIn(viewModelScope)
     }
 
-    private fun isPlayerPlayingSafe(): Boolean =
-        try {
-            mediaPlayer.isPlaying
-        } catch (e: IllegalStateException) {
-            false
+    private fun isPlayerPlayingSafe(): Boolean {
+        mediaPlayer?.let { mp ->
+            return try {
+                mp.isPlaying
+            } catch (e: IllegalStateException) {
+                Log.w("TaximeterVM", "isPlaying no disponible: ${e.message}")
+                false
+            }
         }
+        return false
+    }
 
     fun validateSpeedExceeded() {
         val speedExceeded =
             _uiState.value.currentSpeed > ((uiState.value.rates.speedLimit ?: 0) - 3)
+
         if (speedExceeded) {
-            if (!isPlayerPlayingSafe()) mediaPlayer.start()
+            ensureMediaPlayer()
+            if (!isPlayerPlayingSafe()) {
+                mediaPlayer?.start()
+            }
         } else {
-            if (isPlayerPlayingSafe()) mediaPlayer.pause()
+            if (isPlayerPlayingSafe()) {
+                mediaPlayer?.pause()
+            }
         }
     }
 
@@ -410,11 +408,46 @@ class TaximeterViewModel(context: Context, private val appViewModel: AppViewMode
         )
     }
 
-    fun stopMediaPlayer() {
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.stop()
+    private fun ensureMediaPlayer() {
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(appContext, R.raw.soft_alert).apply {
+                isLooping = true
+            }
         }
-        mediaPlayer.release()
+    }
+
+    fun toggleSound() {
+        ensureMediaPlayer()
+        mediaPlayer?.let { mp ->
+            try {
+                if (_uiState.value.isSoundEnabled && isPlayerPlayingSafe()) {
+                    mp.setVolume(0f, 0f)
+                } else {
+                    mp.setVolume(1f, 1f)
+                }
+                _uiState.update { it.copy(isSoundEnabled = !it.isSoundEnabled) }
+            } catch (e: IllegalStateException) {
+                Log.w("TaximeterVM", "toggleSound falló: ${e.message}")
+                mp.release()
+                mediaPlayer = null
+            }
+        }
+    }
+
+    fun stopMediaPlayer() {
+        mediaPlayer?.let { mp ->
+            try {
+                if (mp.isPlaying) mp.stop()
+            } catch (e: IllegalStateException) {
+                Log.w("TaximeterVM", "stop() falló: ${e.message}")
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     @SuppressLint("ImplicitSamInstance")
